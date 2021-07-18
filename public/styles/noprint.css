@@ -1,0 +1,30 @@
+/*
+ * Esta hoja de estilo debe ser linkeada de la siguiente forma
+ * <link href=".......noPrint.css"  rel="stylesheet" media="print" type="text/css" />
+ *
+ * Esta hoja es utilizada para evitar que ciertos contenedores DIVs, SPAMs, etc...
+ * sean impresos al imprimir una página HTML, definiendo class="... noPrint"
+ *
+*/
+body
+{
+    padding: 0px;
+}
+
+.printWhenNoPrint
+{
+    display:block;
+}
+
+
+.noPrint
+{
+    display:none;
+    visibility: hidden;
+    height:0;
+    width:0;
+    padding:0;
+    margin:0;
+    border:0;
+}
+

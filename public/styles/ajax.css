@@ -1,0 +1,95 @@
+/* Estiulos para el manejo de erores de CtrlAjax */
+/*
+background: #F2DEDE;
+border: 1px solid #EED3D7;
+color: #B94A48;
+*/
+
+.CtrlAjaxErrorMaster
+{
+    position        : fixed;
+    top             : 70px;
+    right           : 10px;
+    min-width       : 400px;
+    max-width       : 80%;
+    max-height      : 70%;
+    overflow        : auto;
+    padding         : 0px;
+    background-color: #F2DEDE;
+    border          : 2px solid #EED3D7;
+    z-index         : 900; 
+    border-radius   : 10px;
+
+    -webkit-box-shadow:  1px 1px 15px 5px rgba(100, 100, 100, 0.25);  
+            box-shadow:  1px 1px 15px 5px rgba(100, 100, 100, 0.25);      
+}
+
+#CtrlAjaxErrorContainer
+{
+    padding     : 3px;
+    border      : 5px solid #e2bEbE;
+    margin      : 5px;
+}
+
+#CtrlAjaxErrorTable
+{
+    border          : 1px solid #e2bEbE;
+    border-width    : 0 0 1px 0;
+    color           : #fff;
+    border-radius   : 10px;
+}
+
+
+#CtrlAjaxErrorTable th
+{
+    border          : 0;
+    color           : #B94A48;
+    text-align      : center;
+    background-color: transparent;
+}
+
+#CtrlAjaxErrorClose
+{
+    border              : 0;
+    background-image	: url(../images/popup/popup_close.gif);
+    background-repeat	: no-repeat;
+    background-position	: center;
+    background-color	: transparent;
+    width				: 45px;
+    height				: 22px;
+    cursor				: pointer;
+}
+
+.CtrlAjaxErrorList
+{
+    margin          : 10px;
+    background-color: transparent;
+    border          : 0px;
+    min-height      : 250px;
+}
+
+
+.CtrlAjaxErrorList li
+{
+    background-color: transparent;
+    color           : #B94A48;
+    margin          : 2px;
+    margin-left     : 10px;
+}
+
+.CtrlAjaxLoadMsg
+{
+    background-color    : transparent;
+    background-image	: url(../images/loading_grey.gif);
+    background-repeat	: no-repeat;
+    background-position	: center;
+    width               : 100px;
+    height              : 100px;
+    color               : transparent;
+    position            : absolute;
+    top                 : 50%;
+    left                : 50%;
+    text-align          : center;
+    border              : 0px;
+}
+
