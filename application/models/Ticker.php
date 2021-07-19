@@ -116,11 +116,6 @@ file_put_contents($fichero, "\n"."Ticker::addPrices.1.1 ".date('H:i:s'),FILE_APP
                 {
                     $toIns .= ($toIns?',':'')."('".$tickerid."',".$price.",'".$date."')";
                 }
-                //else //Update
-                //{
-                //    $upds[] = "UPDATE tickers SET updated = '".$date."', price = ".$price.
-                //              " WHERE tickerid = '".$tickerid."'";
-                //}
             }
 file_put_contents($fichero, "\n"."Ticker::addPrices.1.2 ".date('H:i:s'),FILE_APPEND);
             if (!empty($toIns))
@@ -128,14 +123,6 @@ file_put_contents($fichero, "\n"."Ticker::addPrices.1.2 ".date('H:i:s'),FILE_APP
                 $ins = 'INSERT INTO tickers (tickerid,price,created) VALUES '.$toIns;
                 $this->db->query($ins);
             }
-file_put_contents($fichero, "\n"."Ticker::addPrices.1.3 ".date('H:i:s'),FILE_APPEND);
-                //if (!empty($upds))
-                //{
-                //    foreach ($upds as $upd)
-                //    {
-                //        $this->db->query($upd);
-                //    }
-                //}
 file_put_contents($fichero, "\n"."Ticker::addPrices.2 ".date('H:i:s'),FILE_APPEND);
             //Actualizando tabla prices_1m
             $toIns='';
