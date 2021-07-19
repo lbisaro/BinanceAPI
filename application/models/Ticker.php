@@ -92,6 +92,8 @@ class Ticker extends ModelDB
 
     function addPrices(array $prices)
     {
+        $fichero = ROOT_DIR.'/log.txt';
+file_put_contents($fichero, "\n"."Ticker::addPrices.1 ".date('H:i:s'),FILE_APPEND);
         $ds = $this->getDataSet();
         $exists = array();
         if (!empty($ds))
@@ -132,19 +134,23 @@ class Ticker extends ModelDB
                     $this->db->query($upd);
                 }
             }
-
+file_put_contents($fichero, "\n"."Ticker::addPrices.2 ".date('H:i:s'),FILE_APPEND);
             //Actualizando tabla prices_1m
             $toIns='';
             foreach ($prices as $tickerid => $price)
             {
                 $toIns .= ($toIns?',':'')."('".$tickerid."',".$price.",'".$date."')";
             }
+file_put_contents($fichero, "\n"."Ticker::addPrices.3 ".date('H:i:s'),FILE_APPEND);            
             if (!empty($toIns))
             {
                 $ins = 'INSERT INTO prices_1m (tickerid,price,datetime) VALUES '.$toIns;
                 $this->db->query($ins);
             }
-
+file_put_contents($fichero, "\n"."Ticker::addPrices.4 ".date('H:i:s'),FILE_APPEND);
+            //Actualizando tabla prices_1h
+            
+            //Armar las velas con los datos de la tabla prices_1m
 
         }
     }
