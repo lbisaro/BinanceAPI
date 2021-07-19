@@ -104,7 +104,7 @@ file_put_contents($fichero, "\n"."Ticker::addPrices.1 ".date('H:i:s'),FILE_APPEN
 
         $date = date('Y-m-d H:i');
 
-
+file_put_contents($fichero, "\n"."Ticker::addPrices.1.1 ".date('H:i:s'),FILE_APPEND);
         //Actualizando tabla tickers
         if (!empty($prices))
         {
@@ -122,11 +122,13 @@ file_put_contents($fichero, "\n"."Ticker::addPrices.1 ".date('H:i:s'),FILE_APPEN
                               " WHERE tickerid = '".$tickerid."'";
                 }
             }
+file_put_contents($fichero, "\n"."Ticker::addPrices.1.2 ".date('H:i:s'),FILE_APPEND);
             if (!empty($toIns))
             {
                 $ins = 'INSERT INTO tickers (tickerid,price,created) VALUES '.$toIns;
                 $this->db->query($ins);
             }
+file_put_contents($fichero, "\n"."Ticker::addPrices.1.3 ".date('H:i:s'),FILE_APPEND);
             if (!empty($upds))
             {
                 foreach ($upds as $upd)

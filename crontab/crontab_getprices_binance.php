@@ -17,7 +17,7 @@ file_put_contents($fichero, "\n"."Crontab.1 ".date('H:i:s'));
 $prices = $bnc->price();
 file_put_contents($fichero, "\n"."Crontab.2 ".date('H:i:s'),FILE_APPEND);
 $tckr->addPrices($prices);
-file_put_contents($fichero, "\n"."Crontab.3 ".date('H:i:s'),FILE_APPEND);
+file_put_contents($fichero, "\n"."Crontab.3 ".date('H:i:s')."\n",FILE_APPEND);
 
 $reporte[] = "\n\Ticker Prices OK\n";
 //foreach ($prices as $k => $v)
