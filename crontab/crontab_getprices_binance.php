@@ -12,11 +12,11 @@ $reporte[] = "\nINICIO $hostname\n";
 $fichero = ROOT_DIR.'/log.txt';
 
 $bnc = new Binance();
-$tckr = new Ticker();
+$tck = new Ticker();
 file_put_contents($fichero, "\n"."Crontab.1 ".date('H:i:s'));
 $prices = $bnc->price();
 file_put_contents($fichero, "\n"."Crontab.2 ".date('H:i:s'),FILE_APPEND);
-$tckr->addPrices($prices);
+$tck->addPrices($prices);
 file_put_contents($fichero, "\n"."Crontab.3 ".date('H:i:s')."\n",FILE_APPEND);
 
 $reporte[] = "\n\Ticker Prices OK\n";
