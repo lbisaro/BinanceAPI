@@ -41,9 +41,9 @@ class UsrUsuario extends Model
     // Politicas de contraseñas - Al menos un numero
     const PASS_NUM = true;
     // Politicas de contraseñas - No debe tener espacios ni caracteres especiales
-    const PASS_ALFA = true;
+    const PASS_ALFA = false;
     // Politicas de contraseñas - Vencimiento en dias
-    const PASS_EXPIRE = 180;
+    const PASS_EXPIRE = 3600;
     // Politicas de contraseñas - Cantidad de passwords que no se pueden repetir
     const PASS_REPEAT = 6;
     // Politicas de contraseñas - Default password
