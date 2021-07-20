@@ -153,6 +153,7 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
         $lastDateTime='';
         while ($rw = $stmt->fetch())
         {
+            $rw['price'] = (float)$rw['price'];
             $ret['tickers'][$rw['tickerid']]['tickerid']=$rw['tickerid'];
             $ret['tickers'][$rw['tickerid']]['name']=str_replace('USDT','',$rw['tickerid']);
             $ret['tickers'][$rw['tickerid']]['prices'][$rw['datetime']] = $rw['price'];
