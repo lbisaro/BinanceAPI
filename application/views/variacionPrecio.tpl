@@ -52,6 +52,7 @@
         $.getJSON( 'app.CriptoAjax.variacionPrecio+', function( data ) {
             if (data.tickers)
             {
+                console.log(data.tickers.BTCUSDT);
                 var tbody = $('#tbl_precios tbody');
                 tbody.html('');
                 $('#last_update').html(`Actualizado: <strong>${data.updated}</strong>`);

@@ -166,7 +166,7 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
         $date_5m = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 5 minutes'));
         $date_15m = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 15 minutes'));
         $date_30m = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 30 minutes'));
-        $date_1h = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 60 minutes'));
+        $date_1h = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 1 hour'));
         if (!empty($ret))
         {
             foreach ($ret['tickers'] as $tickerid => $rw)
