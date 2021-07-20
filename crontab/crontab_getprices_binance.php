@@ -13,9 +13,9 @@ $fichero = ROOT_DIR.'/log.txt';
 
 $bnc = new Binance();
 $tck = new Ticker();
-file_put_contents($fichero, "\n"."Crontab.1 ".date('H:i:s'));
+file_put_contents($fichero, "\n"."Crontab.1 ".date('H:i:s'),FILE_APPEND);
 $prices = $bnc->price();
-file_put_contents($fichero, "\n"."Crontab.2 ".date('H:i:s'),FILE_APPEND);
+file_put_contents($fichero, "\n"."Crontab.2 ".date('H:i:s')."\n",FILE_APPEND);
 $tck->addPrices($prices);
 file_put_contents($fichero, "\n"."Crontab.3 ".date('H:i:s')."\n",FILE_APPEND);
 

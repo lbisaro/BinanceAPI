@@ -21,7 +21,10 @@ class CriptoController extends Controller
         //}
 
         $ds = $tck->getVariacionDePrecios();
-        pr($ds['BTCUSDT']);
+        pr('--');
+        pr('--');
+        pr($ds['updated']);
+        pr($ds['tickers']['BTCUSDT']);
         $arr['data'] = 'HOME';
         $arr['hidden'] = '';
    

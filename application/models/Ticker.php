@@ -95,6 +95,9 @@ class Ticker extends ModelDB
 
     function addPrices(array $prices)
     {
+$fichero = ROOT_DIR.'/log.txt';
+file_put_contents($fichero, "\n"."addPrices.0 ".date('H:i:s'),FILE_APPEND);
+
         $ds = $this->getDataSet();
         $exists = array();
         if (!empty($ds))
@@ -102,6 +105,7 @@ class Ticker extends ModelDB
             foreach ($ds as $rw)
                 $exists[$rw['tickerid']]=$rw;
         }
+file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
 
         //Se resta un minuto a la fecha actual para guardar el precio como cierre del minuto anterior
         $date = date('Y-m-d H:i',strtotime('-1 minute')); 
@@ -118,6 +122,7 @@ class Ticker extends ModelDB
                     $toIns .= ($toIns?',':'')."('".$tickerid."',".$price.",'".$date."')";
                 }
             }
+            file_put_contents($fichero, "\n"."addPrices.2 ".date('H:i:s'),FILE_APPEND);
             if (!empty($toIns))
             {
                 $ins = 'INSERT INTO tickers (tickerid,price,created) VALUES '.$toIns;
@@ -129,62 +134,61 @@ class Ticker extends ModelDB
             {
                 $toIns .= ($toIns?',':'')."('".$tickerid."',".$price.",'".$date."')";
             }
+            
             if (!empty($toIns))
             {
                 $ins = 'INSERT INTO prices_1m (tickerid,price,datetime) VALUES '.$toIns;
                 $this->db->query($ins);
             }
+            file_put_contents($fichero, "\n"."addPrices.3 ".date('H:i:s'),FILE_APPEND);
         }
     }
 
     function getVariacionDePrecios()
     {
-        $dateLimit = date('Y-m-d H:i',strtotime('-1 hour'));
+        $dateLimit = date('Y-m-d H:i',strtotime('-61 minutes'));
         $qry = "SELECT * FROM prices_1m WHERE datetime > '".$dateLimit."' ORDER BY datetime"; 
-        debug($qry);
         $ret=array();
         $stmt = $this->db->query($qry);
         $lastDateTime='';
         while ($rw = $stmt->fetch())
         {
-            $ret[$rw['tickerid']]['tickerid']=$rw['tickerid'];
-            $ret[$rw['tickerid']]['name']=str_replace('USDT','',$rw['tickerid']);
-            $ret[$rw['tickerid']]['prices'][$rw['datetime']] = $rw['price'];
-            $ret[$rw['tickerid']]['price'] = $rw['price'];
+            $ret['tickers'][$rw['tickerid']]['tickerid']=$rw['tickerid'];
+            $ret['tickers'][$rw['tickerid']]['name']=str_replace('USDT','',$rw['tickerid']);
+            $ret['tickers'][$rw['tickerid']]['prices'][$rw['datetime']] = $rw['price'];
+            $ret['tickers'][$rw['tickerid']]['price'] = $rw['price'];
             $lastDateTime = $rw['datetime'];
+            $ret['updated'] = $lastDateTime;
         }
-
+        $date_1m = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 1 minutes'));
+        $date_3m = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 3 minutes'));
+        $date_5m = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 5 minutes'));
+        $date_15m = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 15 minutes'));
+        $date_30m = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 30 minutes'));
+        $date_1h = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 60 minutes'));
         if (!empty($ret))
         {
-            foreach ($ret as $tickerid => $rw)
+            foreach ($ret['tickers'] as $tickerid => $rw)
             {
-                reset($rw['prices']);
-                $price_1h = current($rw['prices']);
-                    
                 foreach ($rw['prices'] as $datetime => $price)
                 {
-                    $date_1m = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 1 minutes'));
-                    $date_3m = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 3 minutes'));
-                    $date_5m = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 5 minutes'));
-                    $date_15m = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 15 minutes'));
-                    $date_30m = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 30 minutes'));
                     if ($price != 0)
                     {
                         if ($datetime == $date_1m)
-                            $ret[$tickerid]['perc_1m']=toDec((($rw['price']/$price)-1)*100);
+                            $ret['tickers'][$tickerid]['perc_1m']=toDec((($rw['price']/$price)-1)*100);
                         if ($datetime == $date_3m)
-                            $ret[$tickerid]['perc_3m']=toDec((($rw['price']/$price)-1)*100);
+                            $ret['tickers'][$tickerid]['perc_3m']=toDec((($rw['price']/$price)-1)*100);
                         if ($datetime == $date_5m)
-                            $ret[$tickerid]['perc_5m']=toDec((($rw['price']/$price)-1)*100);
+                            $ret['tickers'][$tickerid]['perc_5m']=toDec((($rw['price']/$price)-1)*100);
                         if ($datetime == $date_15m)
-                            $ret[$tickerid]['perc_15m']=toDec((($rw['price']/$price)-1)*100);
+                            $ret['tickers'][$tickerid]['perc_15m']=toDec((($rw['price']/$price)-1)*100);
                         if ($datetime == $date_30m)
-                            $ret[$tickerid]['perc_30m']=toDec((($rw['price']/$price)-1)*100);
+                            $ret['tickers'][$tickerid]['perc_30m']=toDec((($rw['price']/$price)-1)*100);
+                        if ($datetime == $date_1h)
+                            $ret['tickers'][$tickerid]['perc_1h']=toDec((($rw['price']/$price)-1)*100);
                     }
                     $price_last = $price;
                 }
-                if ($price_1h != 0)
-                    $ret[$tickerid]['perc_1h']=toDec((($price_last/$price_1h)-1)*100);
             }
         }
         return $ret;
