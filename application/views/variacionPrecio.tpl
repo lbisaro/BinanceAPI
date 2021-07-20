@@ -20,6 +20,7 @@
                 <td class="text-right">% 3m</td>
                 <td class="text-right">% 5m</td>
                 <td class="text-right">% 15m</td>
+                <td class="text-right">% 30m</td>
                 <td class="text-right">% 1h</td>
             </tr>
         </thead>
@@ -69,6 +70,8 @@
                                 ${(ticker.perc_5m?ticker.perc_5m:'')}</td>
                             <td class="text-right ${(ticker.perc_15m>0?'text-success':'text-danger')}">
                                 ${(ticker.perc_15m?ticker.perc_15m:'')}</td>
+                            <td class="text-right ${(ticker.perc_30m>0?'text-success':'text-danger')}">
+                                ${(ticker.perc_30m?ticker.perc_30m:'')}</td>
                             <td class="text-right ${(ticker.perc_1h>0?'text-success':'text-danger')}">
                                 ${(ticker.perc_1h?ticker.perc_1h:'')}</td>
                         </tr>`);
