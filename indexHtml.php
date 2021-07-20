@@ -42,11 +42,7 @@ if (!$isLogScrn)
 else
 {
     $controller->addLinkCss('cripto_login');
-    if (SERVER_ENTORNO == 'Test')
-    {
-        //$controller->addOnloadJs("$('body').css('background','#555');");
-        $controller->addOnloadJs("$('form').css('background','#fff');");
-    }
+    $controller->addOnloadJs("$('body').css('background','#fff');");
 }
 
 $controller->$actionName($auth);

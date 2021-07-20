@@ -140,19 +140,52 @@ class Ticker extends ModelDB
     function getVariacionDePrecios()
     {
         $dateLimit = date('Y-m-d H:i',strtotime('-1 hour'));
-        $ds = $this->getDataSet("datetime > '".$dateLimit."'");
+        $qry = "SELECT * FROM prices_1m WHERE datetime > '".$dateLimit."' ORDER BY datetime"; 
+        debug($qry);
         $ret=array();
-        if (!empty($ds)))
+        $stmt = $this->db->query($qry);
+        $lastDateTime='';
+        while ($rw = $stmt->fetch())
         {
-            foreach ($ds as $rw)
-            {
-                $ret[$rw['tickerid']]['tickerid']=$rw['tickerid'];
-                $ret[$rw['tickerid']]['name']=str_replace('USDT','',$rw['tickerid']);
-                $ret[$rw['tickerid']]['prices'][] = array('dt'=>$rw['datetime'],
-                                                          'price'=>$rw['price']);
-            }
+            $ret[$rw['tickerid']]['tickerid']=$rw['tickerid'];
+            $ret[$rw['tickerid']]['name']=str_replace('USDT','',$rw['tickerid']);
+            $ret[$rw['tickerid']]['prices'][$rw['datetime']] = $rw['price'];
+            $ret[$rw['tickerid']]['price'] = $rw['price'];
+            $lastDateTime = $rw['datetime'];
+        }
 
-            pr($ret);
+        if (!empty($ret))
+        {
+            foreach ($ret as $tickerid => $rw)
+            {
+                reset($rw['prices']);
+                $price_1h = current($rw['prices']);
+                    
+                foreach ($rw['prices'] as $datetime => $price)
+                {
+                    $date_1m = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 1 minutes'));
+                    $date_3m = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 3 minutes'));
+                    $date_5m = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 5 minutes'));
+                    $date_15m = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 15 minutes'));
+                    $date_30m = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 30 minutes'));
+                    if ($price != 0)
+                    {
+                        if ($datetime == $date_1m)
+                            $ret[$tickerid]['perc_1m']=toDec((($rw['price']/$price)-1)*100);
+                        if ($datetime == $date_3m)
+                            $ret[$tickerid]['perc_3m']=toDec((($rw['price']/$price)-1)*100);
+                        if ($datetime == $date_5m)
+                            $ret[$tickerid]['perc_5m']=toDec((($rw['price']/$price)-1)*100);
+                        if ($datetime == $date_15m)
+                            $ret[$tickerid]['perc_15m']=toDec((($rw['price']/$price)-1)*100);
+                        if ($datetime == $date_30m)
+                            $ret[$tickerid]['perc_30m']=toDec((($rw['price']/$price)-1)*100);
+                    }
+                    $price_last = $price;
+                }
+                if ($price_1h != 0)
+                    $ret[$tickerid]['perc_1h']=toDec((($price_last/$price_1h)-1)*100);
+            }
         }
         return $ret;
     }

@@ -8,7 +8,7 @@
       <label for="login_password" class="sr-only">Password</label>
       <input type="password" id="login_password" name="login_password" class="form-control" placeholder="Password" required>
       <div id="login_msg" class=" mb-3 font-weight-normal text-center"></div>
-      <button class="btn btn-lg btn-success btn-block" type="submit" onclick="CtrlAjax.sendCtrl('Usr','Usr','login');">Acceder</button>
+      <button class="btn btn-lg btn-primary btn-block" type="submit" onclick="CtrlAjax.sendCtrl('Usr','Usr','login');">Acceder</button>
       <p class="mt-5 mb-3 text-muted">
           Cripto Web
           <br/>

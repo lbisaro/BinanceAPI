@@ -9,7 +9,7 @@
         <meta name="generator" content="Leonardo Bisaro">
         <meta http-equiv="Content-Type" content="text/html; charset={{charset}}" />
 
-        <meta name="theme-color" content="#5c8736">
+        <!--<meta name="theme-color" content="#5c8736">-->
 
         <title>{{title}}</title>
 
