@@ -7,6 +7,7 @@
         <meta name="description" content="">
         <meta name="author" content="Leonardo Bisaro">
         <meta name="generator" content="Leonardo Bisaro">
+        <link rel="icon" href="public/images/favicon.ico?v4">
         <meta http-equiv="Content-Type" content="text/html; charset={{charset}}" />
 
         <!--<meta name="theme-color" content="#5c8736">-->

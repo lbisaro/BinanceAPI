@@ -11,6 +11,8 @@ if (strtolower($moduleName.$controllerName.$actionName) == strtolower('UsrUsrCon
 if (SERVER_ENTORNO == 'Test')
     $controller->setTitle(SERVER_ENTORNO);
 
+$controller->setTitle('Cripto');
+
 //https://getbootstrap.com/docs/3.4/customize/
 
 $controller->addLinkCss('noPrint',$media='print');
@@ -29,6 +31,9 @@ $controller->addLinkJs('jquery.min');
 $controller->addLinkJs('push.min');
 $controller->addLinkJs('popper.min');
 $controller->addLinkJs('bootstrap.min');
+
+$controller->addLinkCss('jquery.tablesorter');
+$controller->addLinkJs('jquery-tablesorter/jquery.tablesorter.min');
 
 
 $isLogScrn = false;

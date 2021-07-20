@@ -91,9 +91,7 @@ $MES_LARGO = array('Enero','Febrero','Marzo','Abril','Mayo','Junio',
     */
     function pr($array)
     {
-        echo "<pre>";
-        print_r($array);
-        echo "</pre>";
+        debug($array);
     }
 
     /**
@@ -1206,8 +1204,18 @@ function getTimeDebug()
         return false;
 
     addTimeDebug('TIME_DEBUG_END');
-    $html = '<div class="timeDebugContainer msgAlert alert alert-info" style="position: absolute;top:100px;left:100px;" ondblclick="$(this).remove();">';
-    $html .= 'TIME DEBUG START'."<br/>";
+
+    $html = '
+        <div id="debugModal" class="timeDebugContainer modal" data-focus="true" >
+          <div class="modal-dialog">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title">DEBUG</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">';
     foreach ($_SESSION['timeDebug'] as $k => $rw)
     {
         $time = $rw['time'];
@@ -1219,7 +1227,19 @@ function getTimeDebug()
         
         $html .= str_pad('+'.$dif,4,' ',STR_PAD_LEFT).' | '.$str."<br>";
     }
-    $html .= '</div>';
+
+    $html .= '</div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script>
+    $(window).on("load", function() {
+            $("#debugModal").modal("show");
+        });
+    </script>';
     unset($_SESSION['timeDebug']);
     return $html;
 }

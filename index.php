@@ -112,4 +112,5 @@ Sql::close();
 //Solo muestra codigo si se establecio alguna info mediante addTimeDebug($str) o addTimeDebugBacktrace() 
 echo getTimeDebug();
 
+
 ?>
