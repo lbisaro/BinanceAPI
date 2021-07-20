@@ -3,7 +3,10 @@ include_once LIB_PATH."ModelDB.php";
 
 class Ticker extends ModelDB
 {
-    protected $query = "SELECT * FROM tickers";
+    protected $query = "SELECT *, 
+                            (SELECT price FROM prices_1m WHERE prices_1m.tickerid = tickers.tickerid ORDER BY datetime DESC limit 1) price,
+                            (SELECT datetime FROM prices_1m WHERE prices_1m.tickerid = tickers.tickerid ORDER BY datetime DESC limit 1) updated
+                        FROM tickers";
 
     protected $pKey  = 'tickerid';
 
@@ -92,8 +95,6 @@ class Ticker extends ModelDB
 
     function addPrices(array $prices)
     {
-        $fichero = ROOT_DIR.'/log.txt';
-file_put_contents($fichero, "\n"."Ticker::addPrices.1 ".date('H:i:s'),FILE_APPEND);
         $ds = $this->getDataSet();
         $exists = array();
         if (!empty($ds))
@@ -102,9 +103,9 @@ file_put_contents($fichero, "\n"."Ticker::addPrices.1 ".date('H:i:s'),FILE_APPEN
                 $exists[$rw['tickerid']]=$rw;
         }
 
-        $date = date('Y-m-d H:i');
+        //Se resta un minuto a la fecha actual para guardar el precio como cierre del minuto anterior
+        $date = date('Y-m-d H:i',strtotime('-1 minute')); 
 
-file_put_contents($fichero, "\n"."Ticker::addPrices.1.1 ".date('H:i:s'),FILE_APPEND);
         //Actualizando tabla tickers
         if (!empty($prices))
         {
@@ -117,30 +118,42 @@ file_put_contents($fichero, "\n"."Ticker::addPrices.1.1 ".date('H:i:s'),FILE_APP
                     $toIns .= ($toIns?',':'')."('".$tickerid."',".$price.",'".$date."')";
                 }
             }
-file_put_contents($fichero, "\n"."Ticker::addPrices.1.2 ".date('H:i:s'),FILE_APPEND);
             if (!empty($toIns))
             {
                 $ins = 'INSERT INTO tickers (tickerid,price,created) VALUES '.$toIns;
                 $this->db->query($ins);
             }
-file_put_contents($fichero, "\n"."Ticker::addPrices.2 ".date('H:i:s'),FILE_APPEND);
             //Actualizando tabla prices_1m
             $toIns='';
             foreach ($prices as $tickerid => $price)
             {
                 $toIns .= ($toIns?',':'')."('".$tickerid."',".$price.",'".$date."')";
             }
-file_put_contents($fichero, "\n"."Ticker::addPrices.3 ".date('H:i:s'),FILE_APPEND);            
             if (!empty($toIns))
             {
                 $ins = 'INSERT INTO prices_1m (tickerid,price,datetime) VALUES '.$toIns;
                 $this->db->query($ins);
             }
-file_put_contents($fichero, "\n"."Ticker::addPrices.4 ".date('H:i:s'),FILE_APPEND);
-            //Actualizando tabla prices_1h
-            
-            //Armar las velas con los datos de la tabla prices_1m
-
         }
+    }
+
+    function getVariacionDePrecios()
+    {
+        $dateLimit = date('Y-m-d H:i',strtotime('-1 hour'));
+        $ds = $this->getDataSet("datetime > '".$dateLimit."'");
+        $ret=array();
+        if (!empty($ds)))
+        {
+            foreach ($ds as $rw)
+            {
+                $ret[$rw['tickerid']]['tickerid']=$rw['tickerid'];
+                $ret[$rw['tickerid']]['name']=str_replace('USDT','',$rw['tickerid']);
+                $ret[$rw['tickerid']]['prices'][] = array('dt'=>$rw['datetime'],
+                                                          'price'=>$rw['price']);
+            }
+
+            pr($ret);
+        }
+        return $ret;
     }
 }

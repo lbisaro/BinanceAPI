@@ -19,10 +19,10 @@ $controller->addLinkCss('bootstrap.min');
 $controller->addLinkCss('bootstrap.icons');
 
 $controller->addLinkCss('bootstrap.add');
-$controller->addLinkCss('covid');
+$controller->addLinkCss('cripto');
 
 $controller->addLinkJs('functions');
-$controller->addLinkJs('covid');
+$controller->addLinkJs('cripto');
 $controller->addLinkJs('ajax');
 
 $controller->addLinkJs('jquery.min');

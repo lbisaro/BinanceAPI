@@ -70,7 +70,7 @@ function stoRestart()
     var d = new Date();
     var U = Math.round(d.getTime() / 1000);
 
-    var url = '../sgi/_lib.SessionTimeoutAjax.getStatus+sid=' + sid;
+    var url = '_lib.SessionTimeoutAjax.getStatus+sid=' + sid;
         url += '&restart=Ok&U='+U;
 
     stoXHR.onreadystatechange = stoRestart_receive;

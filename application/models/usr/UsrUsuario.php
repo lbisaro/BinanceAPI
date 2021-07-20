@@ -1425,7 +1425,7 @@ class UsrUsuario extends Model
             if (!is_dir($logFolder))
                 mkdir($logFolder, 0777, true);
 
-            $fileName = $logFolder.'/'.date('d').'_'.$this->get('username').'.sgiLog';
+            $fileName = $logFolder.'/'.date('d').'_'.$this->get('username').'.criptoLog';
 
             file_put_contents($fileName, $strToLog."\n", FILE_APPEND);
         }

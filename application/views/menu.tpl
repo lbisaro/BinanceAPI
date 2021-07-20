@@ -1,7 +1,7 @@
 
 <nav class="navbar fixed-top navbar-expand-lg navbar-default ">
-  <a class="navbar-brand mb-2" href="usr.covid.home+">
-    <img src="public/images/sgicovid_menu.png" alt="Home">
+  <a class="navbar-brand mb-2" href="app.Cripto.home+">
+    <img src="public/images/cripto_menu.png" style="width: 36px;" alt="Home">
   </a>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="sr-only  rounded" >Toggle navigation</span>
@@ -16,13 +16,7 @@
         {{mainMenu}}
 
         <li class="nav-item">
-          <a class="nav-link rounded" href="usr.covid.autodiagnostico+"><span class="glyphicon glyphicon-heart"></span> Autodiagnostico</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link rounded" href="usr.covid.registros+"><span class="glyphicon glyphicon-th-list"></span> Registros de autodiagnostico</a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link rounded" href="usr.covid.informacion+"><span class="glyphicon glyphicon-bookmark"></span> Informacion COVID-19</a>
+          <a class="nav-link rounded" href="app.cripto.graficos+"><span class="glyphicon glyphicon-random"></span> Graficos</a>
         </li>
         <li class="nav-item">
           <a class="nav-link rounded" href="usr.usr.perfil+"><span class="glyphicon glyphicon-user"></span> Cuenta</a>
