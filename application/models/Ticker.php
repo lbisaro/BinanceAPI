@@ -160,6 +160,7 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
             $ret['tickers'][$rw['tickerid']]['price'] = $rw['price'];
             $lastDateTime = $rw['datetime'];
             $ret['updated'] = $lastDateTime;
+            $ret['updatedStr'] = date('d/m/y h:i',strtotime($lastDateTime));
         }
         $date_1m = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 1 minutes'));
         $date_3m = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 3 minutes'));

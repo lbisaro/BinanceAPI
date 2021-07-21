@@ -14,14 +14,14 @@
     <table class="table table-sm table-dark table-striped" id="tbl_precios">
         <thead>
             <tr class="strong">
-                <td>ID</td>
-                <td class="text-right">Precio</td>
-                <td class="text-right">% 1m</td>
-                <td class="text-right">% 3m</td>
-                <td class="text-right">% 5m</td>
-                <td class="text-right">% 15m</td>
-                <td class="text-right">% 30m</td>
-                <td class="text-right">% 1h</td>
+                <th>Moneda</th>
+                <th class="text-right">Precio USD</th>
+                <th class="text-right">% 1m</th>
+                <th class="text-right">% 3m</th>
+                <th class="text-right">% 5m</th>
+                <th class="text-right">% 15m</th>
+                <th class="text-right">% 30m</th>
+                <th class="text-right">% 1h</th>
             </tr>
         </thead>
         <tbody>
@@ -35,7 +35,7 @@
 var updateProgress=0;
 var i1,i2;
 $(document).ready(function() {
-    $('#tbl_precios').tablesorter({ sortList: [[1,1]] });
+    $('#tbl_precios').tablesorter({ sortList: [[3,1]] });
     readPrecios();
     i1 = setInterval(readPrecios,60000); //Refresca la tabla cada 1 minuto
     i2 = setInterval(function () {
@@ -54,14 +54,19 @@ function readPrecios()
         {
             var tbody = $('#tbl_precios tbody');
             tbody.html('');
-            $('#last_update').html(`Actualizado: <strong>${data.updated}</strong>`);
+            $('#last_update').html(`Actualizado <strong>${data.updatedStr}</strong>`);
             if (data.tickers)
             {
                 $.each(data.tickers, function(i, ticker) {
                     tbody.append(`
-                        <tr>
-                            <td><a href="https://www.binance.com/es/trade/${ticker.name}_USDT?type=spot" class="link-info" target="_blank">
-                                ${ticker.name}</a> 
+                        <tr id="ticker_${ticker.tickerid}">
+                            <td class="fr"><a href="https://www.binance.com/es/trade/${ticker.name}_USDT?type=spot" class="badge badge-warning" style="width: 50px" target="_blank">
+                                ${ticker.name}</a>
+                                <!-- 
+                                &nbsp;<span style="cursor:pointer;" class="glyphicon glyphicon-random" onclick="showChart('${ticker.tickerid}')"></span>
+                                &nbsp;<span style="cursor:pointer;" class="glyphicon ${(!ticker.fav ? 'glyphicon-star-empty text-secondary' : 'glyphicon glyphicon-star text-warning')}"  onclick="toogleFav('${ticker.tickerid}')"></span>
+                                -->
+                            </td>
                             <td class="text-right">
                                 ${(ticker.price?ticker.price:'')}</td>
                             <td class="text-right ${(ticker.perc_1m>0?'text-success':'text-danger')}">
