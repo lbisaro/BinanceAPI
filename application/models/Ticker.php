@@ -146,7 +146,7 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
 
     function getVariacionDePrecios()
     {
-        $dateLimit = date('Y-m-d H:i',strtotime('-61 minutes'));
+        $dateLimit = date('Y-m-d H:i',strtotime('-70 minutes')); //Se buscan registros de poco mas de 1 hora
         $qry = "SELECT * FROM prices_1m WHERE datetime > '".$dateLimit."' ORDER BY datetime"; 
         $ret=array();
         $stmt = $this->db->query($qry);
