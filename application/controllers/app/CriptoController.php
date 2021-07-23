@@ -13,22 +13,16 @@ class CriptoController extends Controller
         $this->variacionPrecio($auth);
     }
 
-
     function variacionPrecio($auth)
     {
         $this->addTitle('Variacion de precios');
-
-        //if (!$auth->checkCsu('sgi.'))
-        //{
-        //     $this->adderror('No esta autorizado a visualizar esta pagina.');
-        //     return null;
-        //}
-
-        //$arr['data'] = '';
-        //$arr['hidden'] = '';
-    
         $this->addView('variacionPrecio',$arr);
     }
     
-    
+    function graficos($auth)    
+    {
+        $this->addTitle('Variacion de precios');
+        $this->addView('grafico',$arr);
+
+    }
 }

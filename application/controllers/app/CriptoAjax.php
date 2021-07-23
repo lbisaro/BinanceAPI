@@ -19,4 +19,14 @@ class CriptoAjax extends ControllerAjax
         echo json_encode($ds);
 
     }
+    function historico()
+    {
+        $tickerid = $_REQUEST['tickerid'];
+        $this->ajxRsp->setEchoOut(true);
+        $tck = new Ticker();
+
+        $ds = $tck->getHistorico($tickerid);
+        echo json_encode($ds);
+
+    }
 }

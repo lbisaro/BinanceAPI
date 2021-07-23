@@ -125,7 +125,7 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
             file_put_contents($fichero, "\n"."addPrices.2 ".date('H:i:s'),FILE_APPEND);
             if (!empty($toIns))
             {
-                $ins = 'INSERT INTO tickers (tickerid,price,created) VALUES '.$toIns;
+                $ins = 'INSERT INTO tickers (tickerid,created) VALUES '.$toIns;
                 $this->db->query($ins);
             }
             //Actualizando tabla prices_1m
@@ -195,4 +195,30 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
         }
         return $ret;
     }
+
+    /**
+     * @param: tickerid - Puede ser un solo ID o varios separados por coma
+     */
+    function getHistorico($tickerid)
+    {
+        $qry = "SELECT * 
+                FROM prices_1m 
+                WHERE tickerid in ('".$tickerid."')
+                ORDER BY datetime"; 
+        $ret=array();
+        $stmt = $this->db->query($qry);
+        while ($rw = $stmt->fetch())
+        {
+            $prices[$rw['tickerid']][] = array('date'=>date('c',strToTime($rw['datetime'])),
+                                               'price'=> (float)$rw['price']);
+            $lastUpdate = $rw['datetime'];
+        }
+        if (!empty($prices))
+            $ret['prices'] = $prices;
+
+        $ret['updated'] = $lastUpdate;
+        $ret['updatedStr'] = date('d/m/y h:i',strtotime($lastUpdate));
+        return $ret;
+    }
+
 }
