@@ -119,7 +119,7 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
             {
                 if (!isset($exists[$tickerid])) //Insert
                 {
-                    $toIns .= ($toIns?',':'')."('".$tickerid."',".$price.",'".$date."')";
+                    $toIns .= ($toIns?',':'')."('".$tickerid."','".$date."')";
                 }
             }
             file_put_contents($fichero, "\n"."addPrices.2 ".date('H:i:s'),FILE_APPEND);
