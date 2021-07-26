@@ -3,6 +3,7 @@
   <a class="navbar-brand mb-2" href="app.Cripto.home+">
     <img src="public/images/cripto_menu.png" style="width: 36px;" alt="Home">
   </a>
+  <span class="navbar-brand" >{{title}}</span>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
       <span class="sr-only  rounded" >Toggle navigation</span>
       <span class="glyphicon glyphicon-menu-hamburger text-white"></span>

@@ -10,8 +10,6 @@
         <link rel="icon" href="public/images/favicon.ico?v4">
         <meta http-equiv="Content-Type" content="text/html; charset={{charset}}" />
 
-        <!--<meta name="theme-color" content="#5c8736">-->
-
         <title>{{title}}</title>
 
         {FOR#head#

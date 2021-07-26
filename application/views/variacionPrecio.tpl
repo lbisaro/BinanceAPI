@@ -1,13 +1,10 @@
 <div class="container-fluid" id="variacion_del_precio">
     <div class="d-flex justify-content-between">
-        <div >
-            <h3 class="text-warning">Variacion del precio</h3>
-        </div>
         <div>
-        <div id="last_update" class="text-success"></div>  
-        <div class="progress">
-          <div id="updatePB" class="progress-bar progress-bar-striped bg-success" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-        </div>    
+            <div id="last_update" class="text-success"></div>  
+            <div class="progress">
+              <div id="updatePB" class="progress-bar progress-bar-striped bg-success" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+            </div>    
         </div>
     </div>
     

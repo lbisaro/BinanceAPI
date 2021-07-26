@@ -211,11 +211,22 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
                 ORDER BY datetime"; 
         $ret['getHistorico']=$thickerid;
         $stmt = $this->db->query($qry);
+
         while ($rw = $stmt->fetch())
         {
+            if (!isset($ret['base0'][$rw['tickerid']]))
+            {
+                $ret['base0'][$rw['tickerid']] = $rw['price'];
+                $perc = toDec(0);
+            }
+            else
+            {
+                $perc =  toDec((($rw['price']/$ret['base0'][$rw['tickerid']])-1)*100);
+            }
             $prices[$rw['tickerid']][] = array('date'=>date('c',strToTime($rw['datetime'])),
-                                               'price'=> (float)$rw['price']);
-            $lastUpdate = $rw['datetime'];            
+                                               'price'=> (float)$rw['price'],
+                                               'perc'=> $perc);
+            $lastUpdate = $rw['datetime'];     
         }
         if (!empty($prices))
             $ret['prices'] = $prices;

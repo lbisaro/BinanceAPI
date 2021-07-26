@@ -10,8 +10,8 @@ if (strtolower($moduleName.$controllerName.$actionName) == strtolower('UsrUsrCon
 
 if (SERVER_ENTORNO == 'Test')
     $controller->setTitle(SERVER_ENTORNO);
-
-$controller->setTitle('Cripto');
+$baseTitle = 'Cripto';
+$controller->setTitle($baseTitle);
 
 //https://getbootstrap.com/docs/3.4/customize/
 
@@ -60,7 +60,8 @@ if (!$isLogScrn )
 
     $view = new View();
     $view->setTpl('menu');
-    echo $view->get();
+    $arr['title']=str_replace($baseTitle.' - ','',$controller->getTitle());
+    echo $view->get($arr);
 
 }
 
