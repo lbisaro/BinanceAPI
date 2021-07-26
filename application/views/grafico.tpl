@@ -27,8 +27,10 @@
         </div>    
         </div>
     </div>
-
+    <div style="background:#fff">
+        
     <div id="chartdiv">Generando el grafico....</div>
+    </div>
 
 </div>
 
@@ -65,27 +67,28 @@ function readPrecios()
         {
             $('#last_update').html(`Actualizado <strong>${info.updatedStr}</strong>`);
             let data = [];
-            let j=0; //Indice para cada moneda recibida
-            console.log(info);
+            let seriesLabels = [];
+            let j=1; //Indice para cada moneda recibida
             if (info.prices)
             {
                 $.each(info.prices, function(tickerid, prices) {
-                    j++;
                     let dateField = 'date'+j;
                     let priceField = 'price'+j;
+                    seriesLabels.push(tickerid);
                     for (let i=0; i<prices.length ;i++)
                     {
                         //var obj = 
                         data.push({[dateField]: new Date(prices[i].date),
                                    [priceField]: prices[i].price });
-                        console.log(tickerid,' ',j,'.',i);
                     }
-                    
-            
+                    j++;
                 });
             }
-            console.log(data);
-            return;
+
+            function customizeGrip(grip) {
+                 // This is empty for now
+            }
+
 
             am4core.ready(function() {
 
@@ -100,60 +103,65 @@ function readPrecios()
                 // Add data
                 chart.data = data;
 
-                // Create axes
                 var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
-                dateAxis.renderer.minGridDistance = 50;
+                dateAxis.renderer.grid.template.location = 0;
+                dateAxis.renderer.labels.template.fill = am4core.color("#e59165");
+
+                var dateAxis2 = chart.xAxes.push(new am4charts.DateAxis());
+                dateAxis2.renderer.grid.template.location = 0;
+                dateAxis2.renderer.labels.template.fill = am4core.color("#dfcc64");
 
                 var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+                valueAxis.tooltip.disabled = true;
+                valueAxis.renderer.labels.template.fill = am4core.color("#e59165");
 
-                // Create series
+                valueAxis.renderer.minWidth = 60;
+
+                var valueAxis2 = chart.yAxes.push(new am4charts.ValueAxis());
+                valueAxis2.tooltip.disabled = true;
+                valueAxis2.renderer.labels.template.fill = am4core.color("#dfcc64");
+                valueAxis2.renderer.minWidth = 60;
+                valueAxis2.syncWithAxis = valueAxis;
+
                 var series = chart.series.push(new am4charts.LineSeries());
-                series.dataFields.valueY = "prices";
-                series.dataFields.dateX = "date";
-                series.strokeWidth = 2;
-                series.minBulletDistance = 10;
-                series.tooltipText = "{valueY}";
-                series.tooltip.pointerOrientation = "vertical";
-                series.tooltip.background.cornerRadius = 20;
-                series.tooltip.background.fillOpacity = 0.5;
-                series.tooltip.label.padding(12,12,12,12)
+                series.name = seriesLabels[0];
+                series.dataFields.dateX = "date1";
+                series.dataFields.valueY = "price1";
+                series.tooltipText = "{valueY.value}";
+                series.fill = am4core.color("#e59165");
+                series.stroke = am4core.color("#e59165");
+                //series.strokeWidth = 3;
 
-                // Add scrollbar
-                chart.scrollbarX = new am4charts.XYChartScrollbar();
-                chart.scrollbarX.series.push(series);
+                var series2 = chart.series.push(new am4charts.LineSeries());
+                series2.name = seriesLabels[1];
+                series2.dataFields.dateX = "date2";
+                series2.dataFields.valueY = "price2";
+                series2.yAxis = valueAxis2;
+                series2.xAxis = dateAxis2;
+                series2.tooltipText = "{valueY.value}";
+                series2.fill = am4core.color("#dfcc64");
+                series2.stroke = am4core.color("#dfcc64");
+                //series2.strokeWidth = 3;
 
-                // Add cursor
                 chart.cursor = new am4charts.XYCursor();
-                chart.cursor.xAxis = dateAxis;
-                //console.log(chart.cursor.xAxis);
-                chart.cursor.snapToSeries = series;
+                chart.cursor.xAxis = dateAxis2;
 
-                /*
-                function generateChartData() {
-                    
-                    var chartData = [];
-                    var firstDate = new Date();
-                    firstDate.setDate(firstDate.getDate() - 1000);
-                    var prices = 1200;
-                    for (var i = 0; i < 500; i++) {
-                        // we create date objects here. In your data, you can have date strings
-                        // and then set format of your dates using chart.dataDateFormat property,
-                        // however when possible, use date objects, as this will speed up chart rendering.
-                        var newDate = new Date(firstDate);
-                        newDate.setDate(newDate.getDate() + i);
-                        
-                        prices += Math.round((Math.random()<0.5?1:-1)*Math.random()*10);
+                var scrollbarX = new am4charts.XYChartScrollbar();
+                scrollbarX.series.push(series);
+                chart.scrollbarX = scrollbarX;
 
-                        chartData.push({
-                            date: newDate,
-                            prices: prices
-                        });
-                    }
-                
+                chart.legend = new am4charts.Legend();
+                chart.legend.parent = chart.plotContainer;
+                chart.legend.zIndex = 100;
 
-                    console.log(chartData);
-                }
-                */
+                valueAxis2.renderer.grid.template.strokeOpacity = 0.07;
+                dateAxis2.renderer.grid.template.strokeOpacity = 0.07;
+                dateAxis.renderer.grid.template.strokeOpacity = 0.07;
+                valueAxis.renderer.grid.template.strokeOpacity = 0.07;
+
+                //https://www.amcharts.com/docs/v4/tutorials/customizing-chart-scrollbar/
+                chart.scrollbarX.background.fill = am4core.color("#000");
+                chart.scrollbarX.background.fillOpacity = 0.05; 
                 
 
             }); // end am4core.ready()
