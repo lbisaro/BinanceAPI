@@ -101,7 +101,7 @@ function readPrecios()
     updateProgress=0;
     var tckr1 = $("#tickerid1").val();
     var tckr2 = $("#tickerid2").val();
-    var url = `app.CriptoAjax.historico+tickerid=${tckr1},${tckr2}`;
+    var url = `app.CriptoAjax.historico+tickerid=${tckr2},${tckr1}`;
     console.log(url);
     $.getJSON( url, function( info ) {
         if (info)
