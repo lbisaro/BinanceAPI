@@ -29,7 +29,7 @@
             BUSQUEDA
         </div>
     </div>
-    <div style="background:#fff">
+    <div style="background:#888">
         <div id="chartdiv">Generando el grafico....</div>
     </div>
 
@@ -83,8 +83,19 @@ function readPrecios()
 
                     // Create axes
                     var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+                        dateAxis.dataFields.category = "datetime";
+                        dateAxis.renderer.labels.template.fill = am4core.color("#eee");
                     var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+                        valueAxis.dataFields.category = "percent";
+                        valueAxis.title.text = "% respecto al inicio";
+                        valueAxis.renderer.labels.template.fill = am4core.color("#eee");
 
+                    //
+                    chart.cursor = new am4charts.XYCursor();
+                    chart.cursor.xAxis = dateAxis;
+
+
+                    //Adding data
                     $.each(info.prices, function(tickerid, prices) {
                         var name = tickerid;
                         var series = chart.series.push(new am4charts.LineSeries());
@@ -100,15 +111,7 @@ function readPrecios()
                         
                         var dimmed = segment.states.create("dimmed");
                         dimmed.properties.stroke = am4core.color("#dadada");
-                        /*
-                        segment.events.on("over", function(event) {
-                            processOver(event.target.parent.parent.parent);
-                        });
                         
-                        segment.events.on("out", function(event) {
-                            processOut(event.target.parent.parent.parent);
-                        });
-                        */
                         var data = [];
                         for (var i = 1; i < prices.length; i++) {
                             var dataItem = { date: new Date(prices[i].date) };
@@ -123,59 +126,9 @@ function readPrecios()
                     chart.legend = new am4charts.Legend();
 
                     chart.legend.position = "top";
-                    chart.legend.scrollable = true;
+                    chart.legend.scrollable = false;
 
-                    setTimeout(function() {
-                      chart.legend.markers.getIndex(0).opacity = 0.3;
-                    }, 3000)
-                    /*
-                    chart.legend.markers.template.states.create("dimmed").properties.opacity = 0.3;
-                    chart.legend.labels.template.states.create("dimmed").properties.opacity = 0.3;
                     
-
-                    chart.legend.itemContainers.template.events.on("over", function(event) {
-                      processOver(event.target.dataItem.dataContext);
-                    })
-                    
-
-                    chart.legend.itemContainers.template.events.on("out", function(event) {
-                      processOut(event.target.dataItem.dataContext);
-                    })
-                    */
-
-
-                    function processOver(hoveredSeries) {
-                      hoveredSeries.toFront();
-
-                      hoveredSeries.segments.each(function(segment) {
-                        segment.setState("hover");
-                      })
-                      
-                      hoveredSeries.legendDataItem.marker.setState("default");
-                      hoveredSeries.legendDataItem.label.setState("default");
-
-                      chart.series.each(function(series) {
-                        if (series != hoveredSeries) {
-                          series.segments.each(function(segment) {
-                            segment.setState("dimmed");
-                          })
-                          series.bulletsContainer.setState("dimmed");
-                          series.legendDataItem.marker.setState("dimmed");
-                          series.legendDataItem.label.setState("dimmed");
-                        }
-                      });
-                    }
-
-                    function processOut() {
-                      chart.series.each(function(series) {
-                        series.segments.each(function(segment) {
-                          segment.setState("default");
-                        })
-                        series.bulletsContainer.setState("default");
-                        series.legendDataItem.marker.setState("default");
-                        series.legendDataItem.label.setState("default");
-                      });
-                    }
 
                 }); // end am4core.ready()
             }
