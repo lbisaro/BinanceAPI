@@ -25,11 +25,11 @@ class CriptoController extends Controller
         $this->addTitle('Comparar');
         $tkr = new Ticker();
         $ds = $tkr->getDataSet('','tickerid');
-        $arr['availableTickers'] = 'var availableTickers = [';
+        $arr['availableTickers'] = 'var availableTickers = {';
         foreach ($ds as $rw)
-            $arr['availableTickers'] .= "\n   '".$rw['tickerid']."',"; 
+            $arr['availableTickers'] .= "\n   '".$rw['tickerid']."':'".$rw['tickerid']."',"; 
         $arr['availableTickers'] .= '
-        ];'; 
+        };'; 
         $this->addView('grafico',$arr);
 
     }

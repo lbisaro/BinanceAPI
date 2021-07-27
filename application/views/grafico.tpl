@@ -6,7 +6,6 @@
 }
 </style>
 <!-- Autocomplete-->
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
 
 
 <!-- FUENTE: 
@@ -24,10 +23,8 @@
         <div>
             <form>
                 <div class="input-group">
-                  <select class="form-control ticker-slct" id="tickerid1" style="width:150px;">
-                  </select>
-                  <select class="form-control ticker-slct" id="tickerid2" style="width:150px;">
-                  </select>
+                  <input class="form-control readonly" READONLY id="tickerid1" value="BTCUSDT" style="width: 100px;">
+                  <input class="form-control" id="tickerid2" placeholder="Comparar con" style="width: 130px;">
                 </div>
             </form>
         </div>
@@ -38,7 +35,7 @@
             </div>    
         </div>
     </div>
-    <div id="chartdiv">Generando el grafico....</div>
+    <div id="chartdiv">Seleccionar las monedas a comparar....</div>
 
 </div>
 
@@ -50,15 +47,27 @@
 <script src="https://cdn.amcharts.com/lib/4/fonts/notosans-sc.js"></script>
 <script src="https://cdn.amcharts.com/lib/4/themes/dark.js"></script>
 <!-- Autocomplete-->
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
+<script src="https://cdn.jsdelivr.net/npm/bootstrap-4-autocomplete/dist/bootstrap-4-autocomplete.min.js" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js" crossorigin="anonymous"></script>
 <script>
 
 var updateProgress=0;
 var i1,i2;
 
+/** AUTOCOMPLETE  */
+
 //Tickers ID list
 {{availableTickers}}
+
+$('#tickerid2').autocomplete({
+  source: availableTickers,
+  onSelectItem: readPrecios,
+  highlightClass: 'text-danger',
+  treshold: 2,
+});
+
+/** AUTOCOMPLETE -END */
 
 $(document).ready(function() {
     $('#tbl_precios').tablesorter({ sortList: [[3,1]] });
@@ -70,22 +79,7 @@ $(document).ready(function() {
         $('#updatePB').attr('aria-valuenow',updateProgress);
     },1000);
 
-    $('.ticker-slct').each( function (e) {
-        for (var i=0; i<availableTickers.length; i++)
-        {
-            var selected = false;
-            if ($(this).attr('id')=='tickerid1' && availableTickers[i]=='BTCUSDT')
-                selected = true;
-            $(this).append(`<option ${(selected?'SELECTED':'')} value="${availableTickers[i]}">${availableTickers[i]}</option>`);
-
-        }
-        $(this).select2({
-              theme: "classic"
-            });
-        $(this).change( function () { readPrecios(); } );
-    });
-
-    readPrecios();
+    $('#tickerid2').focus();
 });
 
 var colors = [
@@ -102,9 +96,11 @@ var colors = [
 
 function readPrecios() 
 {
+    $('#tickerid1').dropdown('hide');
+    $('#tickerid2').dropdown('hide');
     updateProgress=0;
-    var tckr1 = $("#tickerid1 option:selected").val();
-    var tckr2 = $("#tickerid2 option:selected").val();
+    var tckr1 = $("#tickerid1").val();
+    var tckr2 = $("#tickerid2").val();
     var url = `app.CriptoAjax.historico+tickerid=${tckr1},${tckr2}`;
     console.log(url);
     $.getJSON( url, function( info ) {
