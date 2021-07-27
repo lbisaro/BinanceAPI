@@ -7,7 +7,9 @@
 </style>
 <style>
 
-
+.typeahead {
+    width: 120px;
+}
 .tt-hint {
     color: #999999;
 }
@@ -18,7 +20,7 @@
     box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
     margin-top: 12px;
     padding: 8px 0;
-    width: 200px;
+    width: 120px;
 }
 .tt-suggestion {
     padding: 4px 20px;
