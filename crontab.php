@@ -29,6 +29,10 @@ switch ($parametro) {
         include "crontab/crontab_getprices_binance.php";
         break;
     
+    case 'mailer':
+        include "crontab/crontab_mailer.php";
+        break;
+    
     default:
         break;
 }

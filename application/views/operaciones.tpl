@@ -191,7 +191,7 @@ body {
         $.getJSON( url, function( info ) {
             if (info)
             {
-                console.log(info);
+                
                 $('#last_update').html(`Actualizado <strong>${info.updatedStr}</strong>`);
                 var s=0;
                 if (info.prices)
@@ -288,7 +288,7 @@ body {
                             series.dataFields.valueY = "value" + s;
                             series.dataFields.dateX = "date";
                             series.name = 'EMA14-1h';
-                            series.tooltipText = "{valueY.value}%";
+                            series.tooltipText = "USD {valueY.value}";
 
                             series.tooltip.getFillFromObject = false;
                             series.tooltip.background.fill = am4core.color(colors[s]);
@@ -322,7 +322,8 @@ body {
                         chart.legend.position = "top";
                         chart.legend.scrollable = false;
 
-                        
+                        console.log('Chart Data');
+                        console.log(chart.data);
 
                     }); // end am4core.ready()
                 }
