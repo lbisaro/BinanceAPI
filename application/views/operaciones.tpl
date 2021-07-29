@@ -255,7 +255,7 @@ body {
                             var series = chart.series.push(new am4charts.LineSeries());
                             series.dataFields.valueY = "value" + s;
                             series.dataFields.dateX = "date";
-                            series.name = 'EMA7';
+                            series.name = 'EMA7-1h';
                             series.tooltipText = "{valueY.value}%";
 
                             series.tooltip.getFillFromObject = false;
@@ -287,7 +287,7 @@ body {
                             var series = chart.series.push(new am4charts.LineSeries());
                             series.dataFields.valueY = "value" + s;
                             series.dataFields.dateX = "date";
-                            series.name = 'EMA7';
+                            series.name = 'EMA14-1h';
                             series.tooltipText = "{valueY.value}%";
 
                             series.tooltip.getFillFromObject = false;
