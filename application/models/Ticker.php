@@ -10,6 +10,8 @@ class Ticker extends ModelDB
 
     protected $pKey  = 'tickerid';
 
+    protected $newTicker = '';
+
     function __Construct($id=null)
     {
         parent::__Construct();
@@ -119,6 +121,7 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
             {
                 if (!isset($exists[$tickerid])) //Insert
                 {
+                    $this->newTicker .= $tickerid." ".$date."\n";
                     $toIns .= ($toIns?',':'')."('".$tickerid."','".$date."')";
                 }
             }
@@ -258,5 +261,10 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
 
         return $ret;
     }
+
+    public function getNewTicker()
+    {
+        return $this->newTicker;
+    } 
 
 }
