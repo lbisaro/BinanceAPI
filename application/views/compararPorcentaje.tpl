@@ -1,5 +1,8 @@
 <!-- Styles -->
 <style>
+body {
+    background-color: #454d55;
+}
 #chartdiv {
   width: 100%;
   height: 500px;
@@ -8,7 +11,7 @@
 <style>
 
 .typeahead {
-    width: 120px;
+    width: 100%;
 }
 .tt-hint {
     color: #999999;
@@ -61,17 +64,9 @@
 <div class="container-fluid" id="variacion_del_precio">
     <div class="d-flex justify-content-between">
         <div>
-            <form>
-                <div class="input-group">
-                    <input class="form-control typeahead " id="tickerid1" value="BTCUSDT" autocomplete="off" spellcheck="false">
-                    <div class="input-group-append" id="button-addon4">
-                        <input class="form-control typeahead " id="tickerid2" autocomplete="off" spellcheck="false">
-                    </div>
-                    <div class="input-group-append" id="button-addon4">
-                        <button class="btn btn-success" type="button" onclick="readPrecios()">Comparar</button>
-                    </div>
-                </div>
-            </form>
+            <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#cambiar-moneda">
+              Cambiar Moneda
+            </button>
         </div>
         <div>
             <div id="last_update" class="text-success"></div>  
@@ -80,8 +75,37 @@
             </div>    
         </div>
     </div>
-    <div id="chartdiv">Seleccionar las monedas a comparar....</div>
+    <div id="chartdiv" class="text-light"></div>
 
+</div>
+
+<div id="cambiar-moneda" class="modal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 class="modal-title">Comparar <strong>BTCUSDT</strong></h3>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <div>
+            <form>
+                <div class="input-group">
+                    <input class="form-control typeahead " id="tickerid2" autocomplete="off" spellcheck="false">
+                </div>
+                <input class="form-control typeahead " id="tickerid1" value="BTCUSDT" type="hidden">
+            </form>
+        </div>
+
+
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
+        <button type="button" class="btn btn-success" onclick="readPrecios()">Comparar</button>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Resources -->
@@ -93,12 +117,16 @@
 <script src="https://cdn.amcharts.com/lib/4/themes/dark.js"></script>
 
 <!-- Autocomplete-->
-<script  type="text/javascript" src="https://www.tutorialrepublic.com/examples/js/typeahead/0.11.1/typeahead.bundle.js"></script>
+<script  type="text/javascript" src="public/scripts/typeahead.bundle.js"></script>
 
 <script type="text/javascript">
 
     var updateProgress=0;
     var i1,i2;
+
+    $('#cambiar-moneda').modal({
+        show: true,
+    });
 
     /** AUTOCOMPLETE  */
 
@@ -154,7 +182,10 @@
 
     function readPrecios() 
     {
+        $('#chartdiv').html('Cargando grafico...');
         $('.tt-menu').dropdown('hide');
+        $('#cambiar-moneda').modal('hide');
+
         updateProgress=0;
         var tckr1 = $("#tickerid1").val();
         var tckr2 = $("#tickerid2").val();

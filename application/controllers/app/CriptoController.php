@@ -20,7 +20,7 @@ class CriptoController extends Controller
         $this->addView('variacionPrecio',$arr);
     }
     
-    function graficos($auth)    
+    function compararPorcentaje($auth)    
     {
         $this->addTitle('Comparar');
         $tkr = new Ticker();
@@ -31,7 +31,22 @@ class CriptoController extends Controller
             $arr['availableTickers'] .= "\n   '".$rw['tickerid']."',"; 
         $arr['availableTickers'] .= '
         ];'; 
-        $this->addView('grafico',$arr);
+        $this->addView('compararPorcentaje',$arr);
+
+    }    
+
+    function operaciones($auth)    
+    {
+        $this->addTitle('Operaciones');
+        $tkr = new Ticker();
+        $ds = $tkr->getDataSet('','tickerid');
+
+        $arr['availableTickers'] = 'var availableTickers = [';
+        foreach ($ds as $rw)
+            $arr['availableTickers'] .= "\n   '".$rw['tickerid']."',"; 
+        $arr['availableTickers'] .= '
+        ];'; 
+        $this->addView('operaciones',$arr);
 
     }
 }

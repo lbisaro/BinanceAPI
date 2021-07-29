@@ -1,3 +1,9 @@
+<style type="text/css">
+    body {
+        background-color: #454d55;
+    }
+</style>
+
 <div class="container-fluid" id="variacion_del_precio">
     <div class="d-flex justify-content-between">
         <div>

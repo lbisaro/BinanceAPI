@@ -198,8 +198,9 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
 
     /**
      * @param: tickerid - Puede ser un solo ID o varios separados por coma
+     * @param: prms - Ej.: ema=7,14 para agregar indicadores ema de 7 y 14 periodos
      */
-    function getHistorico($tickerid)
+    function getHistorico($tickerid,$prms)
     {
         $ids = explode(',',$tickerid);
         $tickerid='';
@@ -228,6 +229,25 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
                                                'perc'=> $perc);
             $lastUpdate = $rw['datetime'];     
         }
+
+        if (isset($prms['ema']))
+        {
+            $ema = explode(',',$prms['ema']);
+            foreach ($prices as $tickerid => $tickerPrices)
+            {
+                foreach ($tickerPrices as $k => $v)
+                    $basePrices[] = $v['price'];
+                
+                $ema0 = trader_ema($basePrices, ($ema[0]*60));
+                $ema1 = trader_ema($basePrices, ($ema[1]*60));
+                foreach ($tickerPrices as $k => $v)
+                {
+                    $prices[$tickerid][$k]['ema'.$ema[0]] = ($ema0[$k]?$ema0[$k]:$ret['base0'][$tickerid]);
+                    $prices[$tickerid][$k]['ema'.$ema[1]] = ($ema1[$k]?$ema1[$k]:$ret['base0'][$tickerid]);
+                }
+            }
+        }
+
         if (!empty($prices))
             $ret['prices'] = $prices;
 

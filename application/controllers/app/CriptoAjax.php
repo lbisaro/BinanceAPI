@@ -22,10 +22,13 @@ class CriptoAjax extends ControllerAjax
     function historico()
     {
         $tickerid = $_REQUEST['tickerid'];
+        $prms=array();
+        if ($_REQUEST['ema'])
+            $prms['ema'] = $_REQUEST['ema'];
         $this->ajxRsp->setEchoOut(true);
         $tck = new Ticker();
 
-        $ds = $tck->getHistorico($tickerid);
+        $ds = $tck->getHistorico($tickerid,$prms);
         echo json_encode($ds);
 
     }

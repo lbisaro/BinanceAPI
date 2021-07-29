@@ -17,8 +17,23 @@
         {{mainMenu}}
 
         <li class="nav-item">
-          <a class="nav-link rounded" href="app.cripto.graficos+"><span class="glyphicon glyphicon-random"></span> Graficos</a>
+          <a class="nav-link rounded" href="app.cripto.variacionPrecio+">Variacion del precio</a>
         </li>
+
+        <li class="nav-item dropdown">
+          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+            Graficos
+          </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+            <a class="dropdown-item" href="app.cripto.compararPorcentaje+">Comparar porcentajes</a>
+            <a class="dropdown-item" href="app.cripto.operaciones+">Operaciones</a>
+            <!--
+            <a class="dropdown-item" href="#">Another action</a>
+            <div class="dropdown-divider"></div>
+            <a class="dropdown-item" href="#">Something else here</a>
+            -->
+          </div>
+        </li>        
         <li class="nav-item">
           <a class="nav-link rounded" href="usr.usr.perfil+"><span class="glyphicon glyphicon-user"></span> Cuenta</a>
         </li>
