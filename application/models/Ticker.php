@@ -245,8 +245,10 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
                 $ema1 = trader_ema($basePrices, ($ema[1]*60));
                 foreach ($tickerPrices as $k => $v)
                 {
-                    $prices[$tickerid][$k]['ema'.$ema[0]] = ($ema0[$k]?$ema0[$k]:$ret['base0'][$tickerid]);
-                    $prices[$tickerid][$k]['ema'.$ema[1]] = ($ema1[$k]?$ema1[$k]:$ret['base0'][$tickerid]);
+                    if ($ema0[$k])
+                        $prices[$tickerid][$k]['ema'.$ema[0]] = $ema0[$k];
+                    if ($ema1[$k])
+                        $prices[$tickerid][$k]['ema'.$ema[1]] = $ema1[$k];
                 }
             }
         }
