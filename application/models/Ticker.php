@@ -218,7 +218,7 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
 
         while ($rw = $stmt->fetch())
         {
-            if (!isset($ret['base0'][$rw['tickerid']]))
+            if (!isset($ret['base0'][$rw['tickerid']]) && $rw['price'])
             {
                 $ret['base0'][$rw['tickerid']] = $rw['price'];
                 $perc = toDec(0);
