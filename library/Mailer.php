@@ -27,7 +27,7 @@ class Mailer extends phpmailer
     public $SMTPAuth   = true; 
     public $Host       = "smtp.office365.com";
     public $Username   = "lbisaro@outlook.com.ar"; 
-    public $Password   = "Fmn361612";         
+    public $Password   = "Fmn361612@";         
 /**
 
     public $From       = 'criptalknode@gmail.com';
