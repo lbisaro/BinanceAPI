@@ -224,7 +224,7 @@ body {
                             series.dataFields.valueY = "value" + s;
                             series.dataFields.dateX = "date";
                             series.name = tickerid;
-                            series.tooltipText = "{valueY.value}%";
+                            series.tooltipText = "USD {valueY.value}";
 
                             series.tooltip.getFillFromObject = false;
                             series.tooltip.background.fill = am4core.color(colors[s]);
@@ -256,7 +256,7 @@ body {
                             series.dataFields.valueY = "value" + s;
                             series.dataFields.dateX = "date";
                             series.name = 'EMA7-1h';
-                            series.tooltipText = "{valueY.value}%";
+                            series.tooltipText = "EMA7 {valueY.value}";
 
                             series.tooltip.getFillFromObject = false;
                             series.tooltip.background.fill = am4core.color(colors[s]);
@@ -288,7 +288,7 @@ body {
                             series.dataFields.valueY = "value" + s;
                             series.dataFields.dateX = "date";
                             series.name = 'EMA14-1h';
-                            series.tooltipText = "USD {valueY.value}";
+                            series.tooltipText = "EMA14 {valueY.value}";
 
                             series.tooltip.getFillFromObject = false;
                             series.tooltip.background.fill = am4core.color(colors[s]);
