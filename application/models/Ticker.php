@@ -149,8 +149,14 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
 
     function getVariacionDePrecios()
     {
-        $dateLimit = date('Y-m-d H:i',strtotime('-07 hours')); //Se buscan registros de poco mas de 1 hora
-        $qry = "SELECT * FROM prices_1m WHERE datetime > '".$dateLimit."' ORDER BY datetime"; 
+        $dateLimit = date('Y-m-d H:i',strtotime('-25 hours')); //Se buscan registros de poco mas de 1 hora
+        $qry = "SELECT * 
+                FROM prices_1m 
+                WHERE datetime > '".$dateLimit."' 
+                and (minute(datetime) = 0 or 
+                     datetime > DATE_SUB(now(), INTERVAL 2 HOUR)
+                     ) 
+                ORDER BY datetime"; 
         $ret=array();
         $stmt = $this->db->query($qry);
         $lastDateTime='';
@@ -172,6 +178,8 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
         $date_30m = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 30 minutes'));
         $date_1h = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 1 hour'));
         $date_6h = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 6 hours'));
+        $date_12h = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 12 hours'));
+        $date_24h = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 24 hours'));
         if (!empty($ret))
         {
             foreach ($ret['tickers'] as $tickerid => $rw)
@@ -194,6 +202,10 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
                             $ret['tickers'][$tickerid]['perc_1h']=toDec((($rw['price']/$price)-1)*100);
                         if ($datetime == $date_6h)
                             $ret['tickers'][$tickerid]['perc_6h']=toDec((($rw['price']/$price)-1)*100);
+                        if ($datetime == $date_12h)
+                            $ret['tickers'][$tickerid]['perc_12h']=toDec((($rw['price']/$price)-1)*100);
+                        if ($datetime == $date_24h)
+                            $ret['tickers'][$tickerid]['perc_24h']=toDec((($rw['price']/$price)-1)*100);
                     }
                     $price_last = $price;
                 }

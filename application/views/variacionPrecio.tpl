@@ -26,6 +26,8 @@
                 <th class="text-right">% 30m</th>
                 <th class="text-right">% 1h</th>
                 <th class="text-right">% 6h</th>
+                <th class="text-right">% 12h</th>
+                <th class="text-right">% 24h</th>
             </tr>
         </thead>
         <tbody>
@@ -87,6 +89,10 @@ function readPrecios()
                                 ${(ticker.perc_1h?ticker.perc_1h:'')}</td>
                             <td class="text-right ${(ticker.perc_6h>0?'text-success':'text-danger')}">
                                 ${(ticker.perc_6h?ticker.perc_6h:'')}</td>
+                           <td class="text-right ${(ticker.perc_12h>0?'text-success':'text-danger')}">
+                                ${(ticker.perc_12h?ticker.perc_12h:'')}</td>
+                           <td class="text-right ${(ticker.perc_24h>0?'text-success':'text-danger')}">
+                                ${(ticker.perc_24h?ticker.perc_24h:'')}</td>
                         </tr>`);
                 });
             }
