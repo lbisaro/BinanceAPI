@@ -153,9 +153,6 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
         $qry = "SELECT * 
                 FROM prices_1m 
                 WHERE datetime > '".$dateLimit."' 
-                and (minute(datetime) = 0 or 
-                     datetime > DATE_SUB(now(), INTERVAL 2 HOUR)
-                     ) 
                 ORDER BY datetime"; 
         $ret=array();
         $stmt = $this->db->query($qry);
@@ -228,6 +225,14 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
                 FROM prices_1m 
                 WHERE tickerid in (".$tickerid.")
                 ORDER BY datetime"; 
+
+        /*
+            Busqueda de datos por hora, salvo las ultimas 2 horas que llegan todos los minutos
+                and (minute(datetime) = 0 or 
+                     datetime > DATE_SUB(now(), INTERVAL 2 HOUR)
+                     ) 
+            
+        */
         $ret['getHistorico']=$thickerid;
         $stmt = $this->db->query($qry);
 
