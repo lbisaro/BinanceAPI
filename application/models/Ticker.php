@@ -149,7 +149,7 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
 
     function getVariacionDePrecios()
     {
-        $dateLimit = date('Y-m-d H:i',strtotime('-70 minutes')); //Se buscan registros de poco mas de 1 hora
+        $dateLimit = date('Y-m-d H:i',strtotime('-07 hours')); //Se buscan registros de poco mas de 1 hora
         $qry = "SELECT * FROM prices_1m WHERE datetime > '".$dateLimit."' ORDER BY datetime"; 
         $ret=array();
         $stmt = $this->db->query($qry);
@@ -171,6 +171,7 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
         $date_15m = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 15 minutes'));
         $date_30m = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 30 minutes'));
         $date_1h = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 1 hour'));
+        $date_6h = Date('Y-m-d H:i:s', strtotime($lastDateTime.' - 6 hours'));
         if (!empty($ret))
         {
             foreach ($ret['tickers'] as $tickerid => $rw)
@@ -191,6 +192,8 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
                             $ret['tickers'][$tickerid]['perc_30m']=toDec((($rw['price']/$price)-1)*100);
                         if ($datetime == $date_1h)
                             $ret['tickers'][$tickerid]['perc_1h']=toDec((($rw['price']/$price)-1)*100);
+                        if ($datetime == $date_6h)
+                            $ret['tickers'][$tickerid]['perc_6h']=toDec((($rw['price']/$price)-1)*100);
                     }
                     $price_last = $price;
                 }
