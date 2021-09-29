@@ -16,7 +16,7 @@ class Binance
         $url = 'https://api.binance.com/api/'.$addUrl;
         $qs = http_build_query($params); // query string encode the params
         $request = "{$url}?{$qs}"; // create the request URL
-
+        var_dump($request);
         // Crear un flujo
         $opciones = array(
           'http'=>array(
@@ -59,5 +59,24 @@ class Binance
         }
 
         return $ret;
+    }
+
+    /**
+     * https://binance-docs.github.io/apidocs/spot/en/#kline-candlestick-data
+     * 
+     * @params
+     * symbol       STRING  YES 
+     * interval     ENUM    YES (15m, 1h)
+     * startTime    LONG    NO      usar: date('U',strtotime('......'))*1000;
+     * endTime      LONG    NO      usar: date('U',strtotime('......'))*1000;
+     * limit        INT     NO      Default 500; max 1000. 
+     */
+    function klines($symbol, $params)
+    {
+        if ($symbol)
+            $params['symbol'] = $symbol;
+
+        $klines = $this->httpRequest('v3/klines',$params);
+        return $klines;
     }
 }

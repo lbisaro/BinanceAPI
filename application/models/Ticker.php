@@ -4,8 +4,8 @@ include_once LIB_PATH."ModelDB.php";
 class Ticker extends ModelDB
 {
     protected $query = "SELECT *, 
-                            (SELECT price FROM prices_1m WHERE prices_1m.tickerid = tickers.tickerid ORDER BY datetime DESC limit 1) price,
-                            (SELECT datetime FROM prices_1m WHERE prices_1m.tickerid = tickers.tickerid ORDER BY datetime DESC limit 1) updated
+                            (SELECT price FROM prices WHERE prices.tickerid = tickers.tickerid ORDER BY datetime DESC limit 1) price,
+                            (SELECT datetime FROM prices WHERE prices.tickerid = tickers.tickerid ORDER BY datetime DESC limit 1) updated
                         FROM tickers";
 
     protected $pKey  = 'tickerid';
@@ -131,7 +131,7 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
                 $ins = 'INSERT INTO tickers (tickerid,created) VALUES '.$toIns;
                 $this->db->query($ins);
             }
-            //Actualizando tabla prices_1m
+            //Actualizando tabla prices
             $toIns='';
             foreach ($prices as $tickerid => $price)
             {
@@ -140,7 +140,7 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
             
             if (!empty($toIns))
             {
-                $ins = 'INSERT INTO prices_1m (tickerid,price,datetime) VALUES '.$toIns;
+                $ins = 'INSERT INTO prices (tickerid,price,datetime) VALUES '.$toIns;
                 $this->db->query($ins);
             }
             file_put_contents($fichero, "\n"."addPrices.3 ".date('H:i:s'),FILE_APPEND);
@@ -151,7 +151,7 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
     {
         $dateLimit = date('Y-m-d H:i',strtotime('-25 hours')); //Se buscan registros de poco mas de 1 hora
         $qry = "SELECT * 
-                FROM prices_1m 
+                FROM prices 
                 WHERE datetime > '".$dateLimit."' 
                 ORDER BY datetime"; 
         $ret=array();
@@ -222,7 +222,7 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
         foreach ($ids as $id)
             $tickerid .= ($tickerid?',':'')."'".$id."'";
         $qry = "SELECT * 
-                FROM prices_1m 
+                FROM prices 
                 WHERE tickerid in (".$tickerid.")
                 ORDER BY datetime"; 
 

@@ -1277,4 +1277,10 @@ function utf8ToLatin1($str)
     return $str;
 }
 
+function is_array_assoc(array $arr)
+{
+    if (array() === $arr) return false;
+    return array_keys($arr) !== range(0, count($arr) - 1);
+}
+
 ?>
