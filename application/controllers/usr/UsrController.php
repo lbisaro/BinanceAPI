@@ -43,6 +43,10 @@ class UsrController extends Controller
         $arr['username'] = $auth->get('username');
         $arr['mail'] = $auth->get('mail');
 
+        if ($auth->getConfig('bncak'))
+            $arr['binanceBtn'] = '<button type="button" class="btn btn-danger btn-sm" onclick="cancelarBinance();">Cancelar asociacion con la API</button>';
+        else
+            $arr['binanceBtn'] = '<button type="button" class="btn btn-primary btn-sm" onclick="showBinanceForm();">Asociar API a la cuenta</button>';
     
         $this->addView('usr/perfil',$arr);
     }

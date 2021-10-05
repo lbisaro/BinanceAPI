@@ -49,6 +49,9 @@ date_default_timezone_set('America/Argentina/Buenos_Aires');
     define('AJX_PATH', CTRL_PATH);
     
 
+    // Python Path
+    define('PY_PATH',ROOT_DIR.'/python/');
+
     // Bibliotecas base
     define('LIB_PATH','library/');
     // Hojas de estilo

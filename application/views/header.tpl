@@ -24,7 +24,12 @@
     </head>
 
   <body>
-    
+    <script type="text/javascript">
+        $(document).ready( function () {
+        {{onloadJs}}
+        });
+    </script>
     <div class="main">
-
+        <form>
+            
     <!-- end: header.tpl-->

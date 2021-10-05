@@ -1,1 +1,0 @@
- SCHTASKS /Create /SC MINUTE /MO 1 /TN CriptoUpdate /TR "C:\xampp\htdocs\cripto\BinanceAPI\bashcron.bat"

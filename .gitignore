@@ -1,3 +1,5 @@
 
 config.local.php
 log.txt
+python/
+ca.pem

@@ -105,6 +105,18 @@ class UsrAjax extends ControllerAjax
         }
     }
 
+    function grabarBinance()
+    {
+        $arrDatos = $_REQUEST;
+        $usr = new UsrUsuario($arrDatos['idusuario']);
+        $usr->setConfig('bncak',$arrDatos['api_key']);
+        $usr->setConfig('bncas',$arrDatos['api_secret']);
+
+        $this->ajxRsp->script('hideBinanceForm();');
+        $this->ajxRsp->alert('Los datos se han registrado con exito!!');
+        $this->ajxRsp->redirect(Controller::getLink('Usr','Usr','perfil'));
+        
+    }
 
 }
 ?>

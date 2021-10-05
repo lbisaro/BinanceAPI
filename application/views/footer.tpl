@@ -1,6 +1,6 @@
 
     <!-- start: footer.tpl-->
-    
+        </form>
     </div> <!-- main -->
 
     <div id="loading_msg"  class="ac" style="display:none;">

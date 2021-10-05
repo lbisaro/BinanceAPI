@@ -2,7 +2,6 @@
     <h5 class="bd-title">
         <span class="glyphicon glyphicon-user"></span> Cuenta  
     </h5>
-    <form id="perfil">
         <div class="form-group row">
             <label for="ayn" class="col-sm-2 col-form-label">Nombre y Apellido</label>
             <div class="col-sm-10 my-auto">
@@ -27,7 +26,7 @@
         <div class="form-group row pass-form-hide">
             <label for="mail" class="col-sm-2 col-form-label">Password</label>
             <div class="col-sm-10">
-                <button type="button" class="btn btn-link btn-sm" onclick="showPassForm();">Modificar Password</button>
+                <button type="button" class="btn btn-primary btn-sm" onclick="showPassForm();">Modificar Password</button>
             </div>
         </div>
 
@@ -50,7 +49,7 @@
             <div class="col-sm-2">&nbsp;</div>
             <div class="col-sm-10">
                 <div id="message-error" class="invalid-feedback"></div>
-                <button type="button" class="btn btn-primary" onclick="grabarPassword();">Grabar</button>
+                <button type="button" class="btn btn-success" onclick="grabarPassword();">Grabar</button>
                 <button type="button" class="btn btn-danger" onclick="hidePassForm();">Cancelar</button>
                 <small id="confpass" class="form-text text-muted">
                     El Password debe tener entre 6 y 10 caracteres, 
@@ -61,10 +60,45 @@
                     <br/>Debera renovarse cada 180 dias.
                     <br/>No se deben repetir las ultimas 6 contraseñas utilizadas anteriormente.
                 </small>
-                <input type="hidden" id="idusuario" value="{{idusuario}}">
+             </div>
+        </div>
+
+
+        <div class="form-group row binance-form-hide">
+            <label for="mail" class="col-sm-2 col-form-label">Binance</label>
+            <div class="col-sm-10">
+                {{binanceBtn}}
             </div>
         </div>
-    </form>
+
+        <div class="form-group row binance-form-show">
+            <label for="api_key" class="col-sm-2 col-form-label">API_KEY</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="api_key" placeholder="API_KEY Provista por Binance">
+            </div>
+        </div>
+
+        <div class="form-group row binance-form-show">
+            <label for="api_secret" class="col-sm-2 col-form-label">API_SECRET</label>
+            <div class="col-sm-10">
+                <input type="text" class="form-control" id="api_secret" placeholder="API_SECRET Provista por Binance">
+            </div>
+        </div>
+
+        <div class="form-group row binance-form-show">
+            <div class="col-sm-2">&nbsp;</div>
+            <div class="col-sm-10">
+                <div id="message-error" class="invalid-feedback"></div>
+                <button type="button" class="btn btn-success" onclick="grabarBinance();">Grabar</button>
+                <button type="button" class="btn btn-danger" onclick="hideBinance();">Cancelar</button>
+                <small id="confpass" class="form-text text-muted">
+                    La informacion de claves y su configuracion se gestiona desde la web de binance.com</br>
+                    Ingresando en el apartado <b>Gestion de API</b> desde la cuenta de usuario.
+                </small>
+            </div>
+        </div>
+        <input type="hidden" id="idusuario" value="{{idusuario}}">
+
 </div>
 
 
@@ -74,6 +108,7 @@
 
     $(document).ready( function () {
         $('.pass-form-show').hide();
+        $('.binance-form-show').hide();
         $('.password-policy').hide();
     });
 
@@ -104,6 +139,48 @@
             CtrlAjax.sendCtrl("usr","usr","grabarPassword");
         }
         
+    }
+
+    
+    function showBinanceForm()
+    {
+        $('.binance-form-show').show();
+        $('.binance-form-hide').hide();
+        $('#api_key').focus();
+    }
+
+    function hideBinanceForm()
+    {
+        $('#api_key').val('');
+        $('#api_secret').val('');
+        $('.binance-form-show').hide();
+        $('.binance-form-hide').show();
+    }
+
+    function grabarBinance()
+    {
+        if (!$('#api_key').val() || !$('#api_secret').val())
+        {
+            $('#message-error').html('<p>Se deben definir los campos API_KEY y API_SECRET.</p>');
+            $('#message-error').show();
+        }
+        else
+        {
+            $('#message-error').html('');
+            $('#message-error').hide();            
+            CtrlAjax.sendCtrl("usr","usr","grabarBinance");
+        }
+        
+    }
+
+    function cancelarBinance()
+    {
+        if (confirm('Confirma eliminar los registros de asociacion a cuenta Binance?'))
+        {
+            $('#api_key').val('');
+            $('#api_secret').val('');
+            CtrlAjax.sendCtrl("usr","usr","grabarBinance");
+        }
     }
 
 </script>
