@@ -67,8 +67,11 @@ class Operacion extends ModelDB
         if ($this->data['multiplicador_porc']<1 || $this->data['multiplicador_porc']>20 )
             $err[] = 'Se debe especificar un multiplicador de porcentaje entre 1 y 20';
 
-        $auth = UsrUsuario::getAuthInstance();
-        $this->data['idusuario'] = $auth->get('idusuario');
+        if (!$this->data['idusuario'])
+        {
+            $auth = UsrUsuario::getAuthInstance();
+            $this->data['idusuario'] = $auth->get('idusuario');
+        }
 
 
 
@@ -182,7 +185,7 @@ class Operacion extends ModelDB
 
     function canStart()
     {
-        if ($this->status() == self::OP_STATUS_READY && !$this->data['auto_restart'])
+        if ($this->status() == self::OP_STATUS_READY && $this->data['auto_restart'])
             return true;
         return false;
     }
