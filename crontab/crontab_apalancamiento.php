@@ -116,10 +116,13 @@ foreach ($usuarios as $idusuario)
                     }
                 }
 
-                //Consulta billetera en Binance para ver si se puede recomprar
-
                 //Crear las de venta y recompra por apalancamiento
                 $symbolData = $api->getSymbolData($symbol);
+
+                //Consulta billetera en Binance para ver si se puede recomprar
+                // MONEDA BASE (Ej.: USDT ) $symbolData['quoteAsset']
+                // $account = $api->account();
+                // $account['balances'][$symbolData['quoteAsset']] //Obtener ['free'] y ['locked']
                 
                 //Obteniendo datos de ordenes anteriores
                 $dbOrders = $opr->getOrdenes();
@@ -202,6 +205,11 @@ foreach ($usuarios as $idusuario)
                 if ($opr->autoRestart())
                     $opr->restart();
             }
+        }
+        else
+        {
+            if ($opr->autoRestart())
+                $opr->restart();
         }
     }
 }
