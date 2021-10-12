@@ -58,7 +58,7 @@ class BotAjax extends ControllerAjax
         $arrToSet['inicio_usd'] = $_REQUEST['inicio_usd'];
         $arrToSet['multiplicador_porc'] = $_REQUEST['multiplicador_porc'];
         $arrToSet['multiplicador_compra'] = $_REQUEST['multiplicador_compra'];
-        $arrToSet['auto-restart'] = 1; //Por default, la operacion se reinicia despues de cada venta
+        $arrToSet['auto_restart'] = 1; //Por default, la operacion se reinicia despues de cada venta
 
 
         $opr = new Operacion();

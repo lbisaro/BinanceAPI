@@ -231,11 +231,7 @@ class Operacion extends ModelDB
                                     ") ";
         $ins = 'INSERT INTO operacion_orden (idoperacion,side,origQty,price,orderId) VALUES '.$ins;
         $this->db->query($ins);
-
-        $this->data['auto_restart'] = 1;
-        $this->save();
-        return true;
-        
+       
     }
 
     function restart()
