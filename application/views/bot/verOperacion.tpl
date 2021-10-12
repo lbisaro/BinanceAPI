@@ -42,6 +42,12 @@
         <div class="data" id="estado">{{estado}}</div>
       </div>
     </div>
+    <div class="col">
+      <div class="form-group">
+        <label for="auto-restart">Recompra Automatica</label>
+        <div class="data" id="auto-restart">{{auto-restart}}</div>
+      </div>
+    </div>
   </div>  
 
   <!--
@@ -60,28 +66,29 @@
 <script type="text/javascript">
     
     $(document).ready( function () {
-        //
+        $('#arBtn').click(function () {
+            CtrlAjax.sendCtrl("app","bot","toogleAutoRestart");
+        });
     });
 
-    function checkMatch()
+    function start()
     {
-        var preEstado = $('#estado').html();
-        $('#estado').html('Verificando....');
-        CtrlAjax.sendCtrl("app","bot","checkMatch");
-        $.getJSON('app.BotAjax.checkMatch+idoperacion='+$('#idoperacion').val(), function( data ) {
-            console.log(data);
-            if (data.ordenesPendientes>0)
-            {
-                $('#estado').html('Esperando completar ordenes');
-                $('#estado').addClass('text-warning');
-                setTimeout(function() {checkMatch();},60000);
-            }
-            else if (data.ordenesPendientes == 0)
-            {
-                $('#estado').html(preEstado);
-                $('#estado').addClass('text-primary');
-            }
-        });
+        if (confirm('Desea reiniciar la operacion?'))
+            CtrlAjax.sendCtrl("app","bot","start");
     }
-    
+
+    function setAutoRestartTo(set)
+    {
+        if (set)
+        {
+            $('#arBtn').attr('class','btn btn-sm btn-success');
+            $('#arBtn span').attr('class','glyphicon glyphicon-ok');
+        }
+        else
+        {
+            $('#arBtn').attr('class','btn btn-sm btn-danger');
+            $('#arBtn span').attr('class','glyphicon glyphicon-ban-circle');
+        }
+    }
+
 </script>

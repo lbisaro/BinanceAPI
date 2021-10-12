@@ -58,6 +58,7 @@ class BotAjax extends ControllerAjax
         $arrToSet['inicio_usd'] = $_REQUEST['inicio_usd'];
         $arrToSet['multiplicador_porc'] = $_REQUEST['multiplicador_porc'];
         $arrToSet['multiplicador_compra'] = $_REQUEST['multiplicador_compra'];
+        $arrToSet['auto-restart'] = 1; //Por default, la operacion se reinicia despues de cada venta
 
 
         $opr = new Operacion();
@@ -75,12 +76,17 @@ class BotAjax extends ControllerAjax
         }
     }
 
-    function checkMatch()
+    function toogleAutoRestart()
     {
-        $this->ajxRsp->setEchoOut(true);
-        $idoperacion = $_REQUEST['idoperacion'];
-        $opr = new Operacion($idoperacion);
-        $data = $opr->matchOrdenesEnBinance();
-        echo json_encode($data);
+        $opr = new Operacion($_REQUEST['idoperacion']);
+        $newAutoRestart = $opr->toogleAutoRestart();
+        $this->ajxRsp->script('setAutoRestartTo('.$newAutoRestart.');');        
+    }
+
+    function start()
+    {
+        $opr = new Operacion($_REQUEST['idoperacion']);
+        $opr->start();
+        $this->ajxRsp->redirect('app.bot.verOperacion+id='.$opr->get('idoperacion'));        
     }
 }

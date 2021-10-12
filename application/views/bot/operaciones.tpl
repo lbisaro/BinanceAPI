@@ -2,7 +2,7 @@
     <a href="app.bot.crearOperacion+" class="btn btn-primary float-right" >Nueva operacion</a>
 </div>
 <div class="container" id="operaciones">
-    
+    {{lista}}
 </div>
 
 <script type="text/javascript">

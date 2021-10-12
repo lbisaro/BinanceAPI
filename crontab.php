@@ -25,6 +25,10 @@ $htmlStyle .= '</style>';
 
 
 switch ($parametro) {
+    case 'apalancamiento':
+        include "crontab/crontab_apalancamiento.php";
+        break;
+    
     case 'getprices_binance':
         include "crontab/crontab_getprices_binance.php";
         break;
