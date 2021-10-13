@@ -97,15 +97,26 @@ class BotController extends Controller
 
         $ordenes = $opr->getOrdenes($enCurso=false);
 
-        $dg = new HtmlTableDg(null,null,'table table-hover table-striped');
-        $dg->addHeader('ID');
-        $dg->addHeader('Tipo');
-        $dg->addHeader('Unidades',null,null,'right');
-        $dg->addHeader('Precio',null,null,'right');
-        $dg->addHeader('USD',null,null,'right');
-        $dg->addHeader('Estado');
-        $dg->addHeader('Fecha Hora');
-        $completed = '-';
+        $dgA = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
+        $dgA->addHeader('ID');
+        $dgA->addHeader('Tipo');
+        $dgA->addHeader('Unidades',null,null,'right');
+        $dgA->addHeader('Precio',null,null,'right');
+        $dgA->addHeader('USD',null,null,'right');
+        $dgA->addHeader('Estado');
+        $dgA->addHeader('Fecha Hora');
+
+        $dgB = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
+        $dgB->addHeader('ID');
+        $dgB->addHeader('Tipo');
+        $dgB->addHeader('Unidades',null,null,'right');
+        $dgB->addHeader('Precio',null,null,'right');
+        $dgB->addHeader('USD',null,null,'right');
+        $dgB->addHeader('Estado');
+        $dgB->addHeader('Fecha Hora');
+
+        $totVentas = 0;
+        $gananciaUsd = 0;
         foreach ($ordenes as $rw)
         {
             $usd = toDec($rw['origQty']*$rw['price']);
@@ -117,14 +128,34 @@ class BotController extends Controller
                          $rw['statusStr'],
                          $rw['updatedStr']
                         );
-            if ($rw['completed']!=$completed)
+
+            if (!$rw['completed'])
+                $dgA->addRow($row,$rw['sideClass'],null,null,$id='ord_'.$rw['orderId']);
+            else
+                $dgB->addRow($row,$rw['sideClass'],null,null,$id='ord_'.$rw['orderId']);
+
+            if ($rw['completed'])
             {
-                $dg->addSeparator('<strong>'.(!$rw['completed']?'En curso':'Completas').'</strong>');
-                $completed = $rw['completed'];
+                if ($rw['side']==Operacion::SIDE_SELL)
+                {
+                    $totVentas++;
+                    $gananciaUsd += $usd;
+                }
+                else
+                {
+                    $gananciaUsd -= $usd;
+                }
             }
-            $dg->addRow($row,$rw['sideClass'],null,null,$id='ord_'.$rw['orderId']);
+
         }
-        $arr['ordenes'] = $dg->get();
+        $gananciaPorc = ((($opr->get('inicio_usd')+$gananciaUsd) / $opr->get('inicio_usd')) -1) * 100;
+
+        $arr['ordenesActivas'] = $dgA->get();
+        $arr['ordenesCompletas'] = $dgB->get();
+
+        $arr['est_totVentas'] = $totVentas;
+        $arr['est_gananciaUsd'] = toDec($gananciaUsd,2);
+        $arr['est_gananciaPorc'] = toDec($gananciaPorc,2).'%';
 
         $this->addView('bot/verOperacion',$arr);
     }    
