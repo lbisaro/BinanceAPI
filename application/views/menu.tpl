@@ -35,19 +35,8 @@
           </div>
         </li>        
         -->
-        <li class="nav-item dropdown">
-          <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-            <a class="dropdown-item" href="app.bot.operaciones+">Bot</a>
-          </a>
-          <!--
-          <div class="dropdown-menu" aria-labelledby="navbarDropdown">
-            <a class="dropdown-item" href="app.bot.operaciones+">Operaciones</a>
-            <a class="dropdown-item" href="app.bot.revisarEstrategia+">Revisar estrategia</a>
-            <a class="dropdown-item" href="#">Another action</a>
-            <div class="dropdown-divider"></div>
-            <a class="dropdown-item" href="#">Something else here</a>
-          </div>
-          --> 
+        <li class="nav-item">
+          <a class="nav-link rounded" href="usr.usr.perfil+"><span class="glyphicon glyphicon-user"></span> Cuenta</a>
         </li>        
         <li class="nav-item">
           <a class="nav-link rounded" href="usr.usr.perfil+"><span class="glyphicon glyphicon-user"></span> Cuenta</a>
