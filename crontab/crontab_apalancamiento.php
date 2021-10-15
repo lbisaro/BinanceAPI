@@ -214,8 +214,11 @@ foreach ($usuarios as $idusuario)
         }
         else
         {
-            if ($opr->autoRestart())
+            if ($opr->autoRestart() && $opr->canStart())
+            {
+                logBot('idoperacion: '.$opr->get('idoperacion').'restart()');
                 $opr->restart();
+            }
         }
     }
 }
