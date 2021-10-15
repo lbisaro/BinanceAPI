@@ -23,7 +23,6 @@ $usuarios = $opr->getUsuariosActivos();
     
 foreach ($usuarios as $idusuario)
 {
-    logBot('idusuario: '.$idusuario);
     if (isset($api))
         unset($api);
     $usr->reset();
@@ -62,8 +61,6 @@ foreach ($usuarios as $idusuario)
         $data['compra']=array();
         $data['venta']=array();
 
-        logBot('idoperacion: '.$idoperacion);
-        
         $opr->reset();
         $opr->load($idoperacion);
         $dbOrders = $opr->getOrdenes();
