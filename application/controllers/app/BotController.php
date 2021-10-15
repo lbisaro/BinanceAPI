@@ -148,14 +148,14 @@ class BotController extends Controller
             }
 
         }
-        $gananciaPorc = ((($opr->get('inicio_usd')+$gananciaUsd) / $opr->get('inicio_usd')) -1) * 100;
 
         $arr['ordenesActivas'] = $dgA->get();
         $arr['ordenesCompletas'] = $dgB->get();
 
         $arr['est_totVentas'] = $totVentas;
         $arr['est_gananciaUsd'] = toDec($gananciaUsd,2);
-        $arr['est_gananciaPorc'] = toDec($gananciaPorc,2).'%';
+        //$gananciaPorc = ((($opr->get('inicio_usd')+$gananciaUsd) / $opr->get('inicio_usd')) -1) * 100;
+        //$arr['est_gananciaPorc'] = toDec($gananciaPorc,2).'%';
 
         $this->addView('bot/verOperacion',$arr);
     }    

@@ -100,14 +100,6 @@
         </div>
       </div>    
     </div>
-    <div class="row">
-      <div class="col">
-        <div class="form-group">
-          <label for="symbol">Porcentaje de ganancia sobre compra inicial</label>
-          <div class="data">{{est_gananciaPorc}}</div>
-        </div>
-      </div>    
-    </div>
   </div>
 </div>
 
