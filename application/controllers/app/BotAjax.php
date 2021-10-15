@@ -65,10 +65,8 @@ class BotAjax extends ControllerAjax
         $opr->set($arrToSet);
         if ($opr->save())
         {
-            if ($opr->start())
-            {
-                $this->ajxRsp->redirect(Controller::getLink('app','bot','verOperacion','id='.$opr->get('idoperacion')));
-            }
+            $opr->start();
+            $this->ajxRsp->redirect(Controller::getLink('app','bot','verOperacion','id='.$opr->get('idoperacion')));
         }
         else
         {
