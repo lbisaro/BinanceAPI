@@ -337,4 +337,73 @@ class Operacion extends ModelDB
         $this->save();
         return $this->data['auto_restart'];
     }
+
+    function getEstadistica()
+    {
+        $auth = UsrUsuario::getAuthInstance();
+        $idusuario = $auth->get('idusuario');
+        $qry ="SELECT operacion.*, operacion_orden.side, count(operacion_orden.idoperacionorden) qty, sum(operacion_orden.origQty*operacion_orden.price*-1) usd
+                   FROM operacion_orden
+                   LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion
+                   WHERE idusuario = ".$idusuario." AND operacion_orden.completed >0 AND operacion_orden.side = 0 
+                   GROUP BY idoperacion
+               UNION ALL
+               SELECT operacion.*, operacion_orden.side, count(operacion_orden.idoperacionorden) qty, sum(operacion_orden.origQty*operacion_orden.price) usd
+                   FROM operacion_orden
+                   LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion
+                   WHERE idusuario = ".$idusuario." AND operacion_orden.completed >0 AND operacion_orden.side = 1
+                   GROUP BY idoperacion";
+        $stmt = $this->db->query($qry);
+        $data=array();
+        while ($rw = $stmt->fetch())
+        {
+            if (!isset($data['operaciones'][$rw['idoperacion']]))
+            {
+                $data['operaciones'][$rw['idoperacion']]['idoperacion'] = $rw['idoperacion'];
+                $data['operaciones'][$rw['idoperacion']]['symbol'] = $rw['symbol'];
+                $data['operaciones'][$rw['idoperacion']]['inicio_usd'] = $rw['inicio_usd'];
+                $data['operaciones'][$rw['idoperacion']]['multiplicador_compra'] = $rw['multiplicador_compra'];
+                $data['operaciones'][$rw['idoperacion']]['multiplicador_porc'] = $rw['multiplicador_porc'];
+                $data['operaciones'][$rw['idoperacion']]['ventas'] = 0;
+                $data['operaciones'][$rw['idoperacion']]['compras'] = 0;
+                $data['operaciones'][$rw['idoperacion']]['apalancamientos'] = 0;
+                $data['operaciones'][$rw['idoperacion']]['ganancia_usd'] = 0;
+            }
+
+            if (!isset($data['totales']))
+            {
+                $data['totales']['ventas'] = 0;
+                $data['totales']['compras'] = 0;
+                $data['totales']['apalancamientos'] = 0;
+                $data['totales']['ganancia_usd'] = 0;
+            }
+
+            $data['operaciones'][$rw['idoperacion']]['ganancia_usd'] += $rw['usd'];
+            $data['totales']['ganancia_usd'] += $rw['usd'];
+
+            if ($rw['side']==self::SIDE_SELL)
+            {
+                $data['operaciones'][$rw['idoperacion']]['ventas'] += $rw['qty'];
+                $data['totales']['ventas'] += $rw['qty'];
+            }
+            else
+            {
+                $data['operaciones'][$rw['idoperacion']]['compras'] += $rw['qty'];
+                $data['totales']['compras'] += $rw['qty'];
+            }
+
+        }
+
+        $data['totales']['apalancamientos'] = $data['totales']['compras']-$data['totales']['ventas'];
+        foreach ($data['operaciones'] as $k => $rw)
+            $data['operaciones'][$k]['apalancamientos'] = $rw['compras']-$rw['ventas'];
+
+        $qry = "SELECT operacion_orden.idoperacion, min(updated) as first_update, max(updated) as last_update 
+                FROM operacion_orden 
+                LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion
+                WHERE idusuario = 1 AND completed > 0 
+                GROUP BY operacion_orden.idoperacion";
+
+        return $data;
+    }
 }

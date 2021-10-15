@@ -177,16 +177,22 @@ class BotController extends Controller
     }
 
 
-    function BinanceAPI($auth)
+    function estadisticas($auth)
     {
-        $this->addTitle('pyScript');
+        $this->addTitle('Estadisticas');
     
-
         $arr['data'] = '';
         $arr['hidden'] = '';
+
+        $opr = new Operacion();
+
+        $data = $opr->getEstadistica();
+        debug($data);
     
-        $this->addView('ver',$arr);
+        $this->addView('bot/estadisticas',$arr);
     }
+    
+    
     
     
 }

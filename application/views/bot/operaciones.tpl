@@ -3,6 +3,9 @@
       <li class="nav-item">
         <a href="app.bot.crearOperacion+" class="nav-link " >Nueva operacion</a>
       </li>
+      <li class="nav-item">
+        <a href="app.bot.estadisticas+" class="nav-link " >Estadisticas</a>
+      </li>
     </ul>
    
 </div>
