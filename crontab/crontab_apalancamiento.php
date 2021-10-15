@@ -23,16 +23,24 @@ $usuarios = $opr->getUsuariosActivos();
     
 foreach ($usuarios as $idusuario)
 {
-    //logBot('idusuario: '.$idusuario);
-
+    logBot('idusuario: '.$idusuario);
+    if (isset($api))
+        unset($api);
     $usr->reset();
     $usr->load($idusuario);
     $ak = $usr->getConfig('bncak');
     $as = $usr->getConfig('bncas');
     $api = new BinanceAPI($ak,$as);      
 
-    //        Lista ordenes abiertas en Binance
-    $openOrders = $api->openOrders();
+    //CONTROLAR SI EL USUARIO TIENE LAS CLAVES CORRECTAS
+    try {
+      //        Lista ordenes abiertas en Binance
+      $openOrders = $api->openOrders();
+    } catch (Throwable $e) {
+        $msg = "Error: " . $e->getMessage();
+        logBot('Usuario: '.$idusuario.' '.$usr->get('ayn').' '.$msg);
+        continue;
+    }
     $binanceOpenOrders = array();
     foreach ($openOrders as $order)
     {
@@ -43,7 +51,6 @@ foreach ($usuarios as $idusuario)
     $operaciones = $opr->getDataset('idusuario = '.$idusuario);
     foreach ($operaciones as $operacion) 
     {
-        
         $data=array();
 
         $idoperacion = $operacion['idoperacion'];
@@ -55,6 +62,8 @@ foreach ($usuarios as $idusuario)
         $data['compra']=array();
         $data['venta']=array();
 
+        logBot('idoperacion: '.$idoperacion);
+        
         $opr->reset();
         $opr->load($idoperacion);
         $dbOrders = $opr->getOrdenes();
