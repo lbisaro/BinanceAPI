@@ -288,7 +288,7 @@ class Operacion extends ModelDB
     {
         if ($this->data['idoperacion'])
         {
-            $upd = "UPDATE operacion_orden SET price = ".$price.", status = ".self::OR_STATUS_FILLED." 
+            $upd = "UPDATE operacion_orden SET price = ".$price.", updated = '".date('Y-m-d H:i:s')."', status = ".self::OR_STATUS_FILLED." 
                     WHERE idoperacion = ".$this->data['idoperacion']." 
                     AND orderId = '".$orderId."'";
             $this->db->query($upd);
@@ -367,6 +367,7 @@ class Operacion extends ModelDB
                 $data['operaciones'][$rw['idoperacion']]['ventas'] = 0;
                 $data['operaciones'][$rw['idoperacion']]['compras'] = 0;
                 $data['operaciones'][$rw['idoperacion']]['apalancamientos'] = 0;
+                //$data['operaciones'][$rw['idoperacion']]['apalancamientos_promedio'] = 0;
                 $data['operaciones'][$rw['idoperacion']]['ganancia_usd'] = 0;
             }
 
@@ -375,6 +376,7 @@ class Operacion extends ModelDB
                 $data['totales']['ventas'] = 0;
                 $data['totales']['compras'] = 0;
                 $data['totales']['apalancamientos'] = 0;
+                //$data['totales']['apalancamientos_promedio'] = 0;
                 $data['totales']['ganancia_usd'] = 0;
             }
 
@@ -395,14 +397,45 @@ class Operacion extends ModelDB
         }
 
         $data['totales']['apalancamientos'] = $data['totales']['compras']-$data['totales']['ventas'];
+        //$data['totales']['apalancamientos_promedio'] = toDec($data['totales']['compras']/$data['totales']['ventas'],2);
         foreach ($data['operaciones'] as $k => $rw)
+        {
             $data['operaciones'][$k]['apalancamientos'] = $rw['compras']-$rw['ventas'];
+            //$data['operaciones'][$k]['apalancamientos_promedio'] = toDec($rw['compras']/$rw['ventas'],2);
+        }
 
+        $data['totales']['start'] = date('Y-m-d H:i:s');
+        $data['totales']['end'] = '0000-00-00 00:00:00';
         $qry = "SELECT operacion_orden.idoperacion, min(updated) as first_update, max(updated) as last_update 
                 FROM operacion_orden 
                 LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion
-                WHERE idusuario = 1 AND completed > 0 
+                WHERE idusuario = ".$idusuario." AND completed > 0 
                 GROUP BY operacion_orden.idoperacion";
+        $stmt = $this->db->query($qry);
+        while ($rw = $stmt->fetch())
+        {
+            $data['operaciones'][$rw['idoperacion']]['start'] = $rw['first_update'];
+            $data['operaciones'][$rw['idoperacion']]['end'] = $rw['last_update'];
+            $data['operaciones'][$rw['idoperacion']]['days'] = 0;
+
+            if ($rw['first_update']<$data['totales']['start'])
+                $data['totales']['start'] = $rw['first_update'];
+            if ($rw['last_update']>$data['totales']['end'])
+                $data['totales']['end'] = $rw['last_update'];
+        }
+        
+        foreach ($data['operaciones'] as $k => $rw)
+        {
+            $diff = diferenciaFechas($rw['start'],$rw['end']);
+            $data['operaciones'][$k]['days'] = toDec((($diff->d*24+$diff->h)/24),2);
+            $data['operaciones'][$k]['avg_usd_day'] = toDec($rw['ganancia_usd']/$data['operaciones'][$k]['days'],2);
+        }
+
+        $diff = diferenciaFechas($data['totales']['start'],$data['totales']['end']);
+        $data['totales']['days'] = toDec((($diff->d*24+$diff->h)/24),2);
+        $data['totales']['avg_usd_day'] = toDec($data['totales']['ganancia_usd']/$data['totales']['days'],2);
+
+
 
         return $data;
     }

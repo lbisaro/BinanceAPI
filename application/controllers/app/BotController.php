@@ -187,7 +187,50 @@ class BotController extends Controller
         $opr = new Operacion();
 
         $data = $opr->getEstadistica();
-        debug($data);
+        //debug($data);
+
+        $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
+
+        $dg->addHeader('Op#');
+        $dg->addHeader('Moneda');
+        $dg->addHeader('Ventas',null,null,'center');
+        $dg->addHeader('Compras',null,null,'center');
+        $dg->addHeader('Apalancamientos',null,null,'center');
+        $dg->addHeader('Ganancia',null,null,'right');
+        $dg->addHeader('Inicio',null,null,'center');
+        $dg->addHeader('Fin',null,null,'center');
+        $dg->addHeader('Dias Activo',null,null,'center');
+        $dg->addHeader('Promedio Ganancia Diaria',null,null,'right');
+        foreach ($data['operaciones'] as $rw)
+        {
+            $row = array($rw['idoperacion'],
+                         $rw['symbol'],
+                         $rw['ventas'],
+                         $rw['compras'],
+                         $rw['apalancamientos'],
+                         'USD '.toDec($rw['ganancia_usd']),
+                         dateToStr($rw['start'],true).' hs.',
+                         dateToStr($rw['end'],true).' hs.',
+                         $rw['days'],
+                         'USD '.toDec($rw['avg_usd_day'],2)
+                        );
+            $dg->addRow($row);
+        }
+
+
+        $row = array('',
+             'TOTALES',
+             $data['totales']['ventas'],
+             $data['totales']['compras'],
+             $data['totales']['apalancamientos'],
+             'USD '.toDec($data['totales']['ganancia_usd']),
+             dateToStr($data['totales']['start'],true).' hs.',
+             dateToStr($data['totales']['end'],true).' hs.',
+             $data['totales']['days'],
+             'USD '.toDec($data['totales']['avg_usd_day'],2)
+            );
+        $dg->addFooter($row,'font-weight-bold');
+        $arr['lista'] = $dg->get();
     
         $this->addView('bot/estadisticas',$arr);
     }

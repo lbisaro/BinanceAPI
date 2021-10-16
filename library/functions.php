@@ -1283,4 +1283,12 @@ function is_array_assoc(array $arr)
     return array_keys($arr) !== range(0, count($arr) - 1);
 }
 
+function diferenciaFechas($fechaIni,$fechaFin)
+{
+    $firstDate  = new DateTime($fechaIni);
+    $secondDate = new DateTime($fechaFin);
+    $intvl = $firstDate->diff($secondDate);
+    return $intvl;
+}
+
 ?>

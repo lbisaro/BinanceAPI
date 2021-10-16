@@ -1,1 +1,3 @@
-HOLA
+<div class="container">
+    {{lista}}
+</div>
