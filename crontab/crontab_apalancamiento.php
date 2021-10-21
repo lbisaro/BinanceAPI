@@ -159,6 +159,7 @@ foreach ($usuarios as $idusuario)
                 $msg = ' Sell -> Qty:'.$newQty.' Price:'.$newPrice;
                 logBot('Operacion: '.$idoperacion.' '.$symbol.$msg);
 
+                $errorEnOrden = false;
                 try {
                     $limitOrder = $api->sell($symbol, $newQty, $newPrice);
                     $aOpr['idoperacion']  = $idoperacion;
@@ -170,26 +171,31 @@ foreach ($usuarios as $idusuario)
                 } catch (Throwable $e) {
                     $msg = "Error: " . $e->getMessage();
                     logBot('Operacion: '.$idoperacion.' '.$symbol.' '.$msg);
+                    $errorEnOrden = true;
                 }
-                //Orden para recompra por apalancamiento
-                $newUsd = $lastUsdBuyed*$opr->get('multiplicador_compra');
-                $newPrice = toDec($lastBuyPrice - ( ($lastBuyPrice * $opr->get('multiplicador_porc')) / 100 ),$symbolData['qtyDecsPrice']);
-                $newQty = toDec(($newUsd/$newPrice),($symbolData['qtyDecs']*1));
-    
-                $msg = ' Buy -> Qty:'.$newQty.' Price:'.$newPrice;
-                logBot('Operacion: '.$idoperacion.' '.$symbol.$msg);
 
-                try {
-                    $limitOrder = $api->buy($symbol, $newQty, $newPrice);
-                    $aOpr['idoperacion']  = $idoperacion;
-                    $aOpr['side']         = Operacion::SIDE_BUY;
-                    $aOpr['origQty']      = $newQty;
-                    $aOpr['price']        = $newPrice;
-                    $aOpr['orderId']      = $limitOrder['orderId'];
-                    $opr->insertOrden($aOpr);               
-                } catch (Throwable $e) {
-                    $msg = "Error: " . $e->getMessage();
-                    logBot('Operacion: '.$idoperacion.' '.$symbol.' '.$msg);
+                if (!$errorEnOrden)
+                {
+                    //Orden para recompra por apalancamiento
+                    $newUsd = $lastUsdBuyed*$opr->get('multiplicador_compra');
+                    $newPrice = toDec($lastBuyPrice - ( ($lastBuyPrice * $opr->get('multiplicador_porc')) / 100 ),$symbolData['qtyDecsPrice']);
+                    $newQty = toDec(($newUsd/$newPrice),($symbolData['qtyDecs']*1));
+        
+                    $msg = ' Buy -> Qty:'.$newQty.' Price:'.$newPrice;
+                    logBot('Operacion: '.$idoperacion.' '.$symbol.$msg);
+
+                    try {
+                        $limitOrder = $api->buy($symbol, $newQty, $newPrice);
+                        $aOpr['idoperacion']  = $idoperacion;
+                        $aOpr['side']         = Operacion::SIDE_BUY;
+                        $aOpr['origQty']      = $newQty;
+                        $aOpr['price']        = $newPrice;
+                        $aOpr['orderId']      = $limitOrder['orderId'];
+                        $opr->insertOrden($aOpr);               
+                    } catch (Throwable $e) {
+                        $msg = "Error: " . $e->getMessage();
+                        logBot('Operacion: '.$idoperacion.' '.$symbol.' '.$msg);
+                    }
                 }
             }
             else //La operacion se vendio y debe finalizar
