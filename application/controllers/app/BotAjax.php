@@ -74,6 +74,36 @@ class BotAjax extends ControllerAjax
         }
     }
 
+    function editarOperacion()
+    {
+        $auth = UsrUsuario::getAuthInstance();
+        $ak = $auth->getConfig('bncak');
+        $as = $auth->getConfig('bncas');
+        $api = new BinanceAPI($ak,$as);
+
+        $arrToSet['inicio_usd'] = $_REQUEST['inicio_usd'];
+        $arrToSet['multiplicador_porc'] = $_REQUEST['multiplicador_porc'];
+        $arrToSet['multiplicador_compra'] = $_REQUEST['multiplicador_compra'];
+
+
+        $opr = new Operacion($_REQUEST['idoperacion']);
+        if ($auth->get('idusuario') != $opr->get('idusuario'))
+        {
+            $this->ajxRsp->addError('No esta autorizado a editar la operacion.');
+            return false;
+        }
+        $opr->set($arrToSet);
+        if ($opr->save())
+        {
+            $opr->start();
+            $this->ajxRsp->redirect(Controller::getLink('app','bot','verOperacion','id='.$opr->get('idoperacion')));
+        }
+        else
+        {
+            $this->ajxRsp->addError($opr->getErrLog()); 
+        }
+    }
+
     function toogleAutoRestart()
     {
         $opr = new Operacion($_REQUEST['idoperacion']);

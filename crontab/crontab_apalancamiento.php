@@ -38,7 +38,7 @@ foreach ($usuarios as $idusuario)
       $openOrders = $api->openOrders();
     } catch (Throwable $e) {
         $msg = "Error: " . $e->getMessage();
-        logBot('Usuario: '.$idusuario.' '.$usr->get('ayn').' '.$msg);
+        logBot('u:'.$idusuario.' '.$usr->get('ayn').' '.$msg);
         continue;
     }
     $binanceOpenOrders = array();
@@ -86,7 +86,8 @@ foreach ($usuarios as $idusuario)
 
                     //Busca en Binance si la orden se completo 
                     $trade = $api->orderTradeInfo($order['symbol'],$order['orderId']);
-                    //Si la orden se complero
+                    
+                    //Si la orden se completo
                     if (!empty($trade))
                     {
                         foreach ($trade as $rw)
@@ -113,6 +114,7 @@ foreach ($usuarios as $idusuario)
                     {
                         $opr->deleteOrder($orderId);
                         $api->cancel($data['symbol'], $orderId);
+                        sleep(1);
                     }
                 }
                 foreach ($data['compra'] as $orderId => $rw)
@@ -124,13 +126,22 @@ foreach ($usuarios as $idusuario)
                 }
 
                 //Crear las de venta y recompra por apalancamiento
-                $symbolData = $api->getSymbolData($symbol);
 
                 //Consulta billetera en Binance para ver si se puede recomprar
-                // MONEDA BASE (Ej.: USDT ) $symbolData['quoteAsset']
-                // $account = $api->account();
-                // $account['balances'][$symbolData['quoteAsset']] //Obtener ['free'] y ['locked']
-                
+                $symbolData = $api->getSymbolData($symbol);
+                $account = $api->account();
+                $asset = str_replace($symbolData['quoteAsset'],'',$symbol);
+                $unitsFree = '0.00';
+                $unitsLocked = '0.00';
+                foreach ($account['balances'] as $balances)
+                {
+                    if ($balances['asset'] == $asset)
+                    {
+                        $unitsFree = $balances['free'];
+                        $unitsLocked = $balances['locked'];
+                    }
+                }
+
                 //Obteniendo datos de ordenes anteriores
                 $dbOrders = $opr->getOrdenes();
 
@@ -150,6 +161,9 @@ foreach ($usuarios as $idusuario)
                         $totUsdBuyed += ($order['origQty']*$order['price']);
                     }
                 }
+                //Si la cantidad de unidades compradas segun DB es mayor a la cantidad de unidades en API
+                if (($totUnitsBuyed*1) > ($unitsFree*1))
+                    $totUnitsBuyed = $unitsFree;
                 
                 //Orden para venta
                 $newUsd = $totUsdBuyed * 1.02;
@@ -157,7 +171,7 @@ foreach ($usuarios as $idusuario)
                 $newQty = toDec($totUnitsBuyed,$symbolData['qtyDecs']);
 
                 $msg = ' Sell -> Qty:'.$newQty.' Price:'.$newPrice;
-                logBot('Operacion: '.$idoperacion.' '.$symbol.$msg);
+                logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
 
                 $errorEnOrden = false;
                 try {
@@ -170,7 +184,7 @@ foreach ($usuarios as $idusuario)
                     $opr->insertOrden($aOpr); 
                 } catch (Throwable $e) {
                     $msg = "Error: " . $e->getMessage();
-                    logBot('Operacion: '.$idoperacion.' '.$symbol.' '.$msg);
+                    logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
                     $errorEnOrden = true;
                 }
 
@@ -182,7 +196,7 @@ foreach ($usuarios as $idusuario)
                     $newQty = toDec(($newUsd/$newPrice),($symbolData['qtyDecs']*1));
         
                     $msg = ' Buy -> Qty:'.$newQty.' Price:'.$newPrice;
-                    logBot('Operacion: '.$idoperacion.' '.$symbol.$msg);
+                    logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
 
                     try {
                         $limitOrder = $api->buy($symbol, $newQty, $newPrice);
@@ -194,7 +208,7 @@ foreach ($usuarios as $idusuario)
                         $opr->insertOrden($aOpr);               
                     } catch (Throwable $e) {
                         $msg = "Error: " . $e->getMessage();
-                        logBot('Operacion: '.$idoperacion.' '.$symbol.' '.$msg);
+                        logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
                     }
                 }
             }
@@ -206,6 +220,7 @@ foreach ($usuarios as $idusuario)
                     {
                         $opr->deleteOrder($orderId);
                         $api->cancel($data['symbol'], $orderId);
+                        sleep(1);
                     }
                 }
                 foreach ($data['venta'] as $orderId => $rw)
@@ -223,7 +238,6 @@ foreach ($usuarios as $idusuario)
         {
             if ($opr->autoRestart() && $opr->canStart())
             {
-                logBot('idoperacion: '.$opr->get('idoperacion').'restart()');
                 $opr->restart();
             }
         }

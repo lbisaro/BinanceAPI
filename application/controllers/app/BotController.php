@@ -59,6 +59,27 @@ class BotController extends Controller
         $arr['hidden'] = '';
 
         $this->addView('bot/crearOperacion',$arr);
+    }   
+
+    function editarOperacion($auth)
+    {
+        $idoperacion = $_REQUEST['id'];
+        $this->addTitle('Editar Operacion #'.$idoperacion);
+
+        $opr = new Operacion($idoperacion);
+        if ($opr->get('idusuario') != $auth->get('idusuario'))
+        {
+            $this->addError('No esta autorizado a visualizar esta pagina.');
+            return false;
+        }
+
+        $arr['symbol'] = $opr->get('symbol');
+        $arr['inicio_usd'] = $opr->get('inicio_usd');
+        $arr['multiplicador_compra'] = $opr->get('multiplicador_compra');
+        $arr['multiplicador_porc'] = $opr->get('multiplicador_porc');
+        $arr['idoperacion'] = $opr->get('idoperacion');
+
+        $this->addView('bot/editarOperacion',$arr);
     }    
 
     function verOperacion($auth)
@@ -74,6 +95,7 @@ class BotController extends Controller
             return false;
         }
         $link = '<a href="https://www.binance.com/es/trade/'.$opr->get('symbol').'" target="_blank">'.$opr->get('symbol').'</a>';
+        $arr['idoperacion'] = $idoperacion;
         $arr['symbol'] = $link;
         $arr['inicio_usd'] = 'USD '.$opr->get('inicio_usd');
         $arr['multiplicador_compra'] = $opr->get('multiplicador_compra');

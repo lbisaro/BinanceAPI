@@ -6,56 +6,38 @@
     }
 </style>
 
-<div class="container">
-  <div class="row">
-    <div class="col">
-      <div class="form-group">
-        <label for="symbol">Moneda</label>
-        <div class="data">{{symbol}}</div>
-      </div>
-    </div>    
-    <div class="col">
-      <div class="form-group">
-        <label for="inicio_usd">Cantidad de USD compra inicial</label>
-        <div class="data">{{inicio_usd}}</div>
-      </div>
-    </div>
-  </div>
-  <div class="row">
-    <div class="col">
-      <div class="form-group">
-        <label for="multiplicador_compra">Multiplicador Compras</label>
-        <div class="data">{{multiplicador_compra}}</div>
-      </div>
-    </div>
-    <div class="col">
-      <div class="form-group">
-        <label for="multiplicador_porc">Multiplicador Porcentajes</label>
-        <div class="data">{{multiplicador_porc}}</div>
-      </div>
-    </div>
-  </div>  
-  <div class="row">
-    <div class="col">
-      <div class="form-group">
-        <label for="multiplicador_compra">Estado</label>
-        <div class="data" id="estado">{{estado}}</div>
-      </div>
-    </div>
-    <div class="col">
-      <div class="form-group">
-        <label for="auto-restart">Recompra Automatica</label>
-        <div class="data" id="auto-restart">{{auto-restart}}</div>
-      </div>
-    </div>
-  </div>  
 
-  <!--
-  <div class="form-group" id="btnAddOperacion">
-    <button onclick="crearOperacion()" class="btn btn-success" >Crear Operacion</button>
-  </div>
-  -->
+
+<div style="float: right;">
+  
+</div>
+
+
+<div class="container">
+  <table class="table table-borderless">
+    <tr>
+      <td>Moneda 
+        <span class="data">{{symbol}}</span></td>
+      <td>Cantidad de USD compra inicial 
+        <span class="data">{{inicio_usd}}</span></td>
+      <td style="text-align: right;"><a class="btn btn-info btn-sm" href="app.bot.editarOperacion+id={{idoperacion}}">Modificar</button></td>
+    </tr>
+    <tr>
+      <td>Multiplicador Compras 
+        <span class="data">{{multiplicador_compra}}</td>
+      <td>Multiplicador Porcentajes 
+        <span class="data" colspan="2">{{multiplicador_porc}}</td>
+    </tr>
+    <tr>
+      <td>Estado 
+        <span class="data">{{estado}}</td>
+      <td>Recompra Automatica 
+        <span class="data" colspan="2">{{auto-restart}}</td>
+    </tr>
+  </table>
+
   {{hidden}}
+
 </div>
 <div class="container">
   <ul class="nav nav-tabs">

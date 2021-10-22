@@ -11,7 +11,7 @@
         <div class="input-group-prepend">
             <div class="input-group-text">USD</div>
         </div>
-        <input type="text" class="form-control" id="inicio_usd" onchange="validSymbol()"  placeholder="0.000">
+        <input type="text" class="form-control" id="inicio_usd" placeholder="0.000">
     </div>
   </div>
 
