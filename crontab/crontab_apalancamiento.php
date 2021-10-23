@@ -168,7 +168,7 @@ foreach ($usuarios as $idusuario)
                 //Orden para venta
                 $newUsd = $totUsdBuyed * 1.02;
                 $newPrice = toDec(($newUsd / $totUnitsBuyed),$symbolData['qtyDecsPrice']);
-                $newQty = toDec($totUnitsBuyed,$symbolData['qtyDecs']);
+                $newQty = toDecDown($totUnitsBuyed,$symbolData['qtyDecs']);
 
                 $msg = ' Sell -> Qty:'.$newQty.' Price:'.$newPrice;
                 logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
