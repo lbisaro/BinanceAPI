@@ -142,6 +142,10 @@ class BotController extends Controller
         foreach ($ordenes as $rw)
         {
             $usd = toDec($rw['origQty']*$rw['price']);
+
+            if (!$rw['completed'])
+                $rw['sideStr'] .= ' #'.$rw['compraNum'];
+
             $row = array($rw['orderId'],
                          $rw['sideStr'],
                          ($rw['origQty']*1),
@@ -151,8 +155,6 @@ class BotController extends Controller
                          $rw['updatedStr']
                         );
 
-            if (!$rw['completed'])
-                $rw['sideStr'] .= ' #'.$rw['compraNum'];
             if (!$rw['completed'])
                 $dgA->addRow($row,$rw['sideClass'],null,null,$id='ord_'.$rw['orderId']);
             else
