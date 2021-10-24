@@ -143,7 +143,7 @@ class BotController extends Controller
         {
             $usd = toDec($rw['origQty']*$rw['price']);
 
-            if (!$rw['completed'])
+            if (!$rw['completed'] && $rw['side']==Operacion::SIDE_BUY)
                 $rw['sideStr'] .= ' #'.$rw['compraNum'];
 
             $row = array($rw['orderId'],
