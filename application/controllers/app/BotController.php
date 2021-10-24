@@ -152,6 +152,8 @@ class BotController extends Controller
                         );
 
             if (!$rw['completed'])
+                $rw['sideStr'] .= ' #'.$rw['compraNum'];
+            if (!$rw['completed'])
                 $dgA->addRow($row,$rw['sideClass'],null,null,$id='ord_'.$rw['orderId']);
             else
                 $dgB->addRow($row,$rw['sideClass'],null,null,$id='ord_'.$rw['orderId']);

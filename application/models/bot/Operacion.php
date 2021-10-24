@@ -261,12 +261,18 @@ class Operacion extends ModelDB
         $stmt = $this->db->query($qry);
 
         $ds = array();
+        $compraNum = 0;
         while ($rw = $stmt->fetch())
         {
             $rw['sideStr'] = ($rw['side']==self::SIDE_BUY ? 'Compra' : 'Venta');
             $rw['sideClass'] = ($rw['side']==self::SIDE_BUY ? 'text-success' : 'text-danger');
             $rw['statusStr'] = $this->getTipoStatusOr($rw['status']);
             $rw['updatedStr'] = dateToStr($rw['updated'],true);
+            if ($rw['side']==self::SIDE_BUY && !$rw['completed'])
+            {
+                $compraNum++;
+                $rw['compraNum'] = $compraNum;
+            }
             $ds[$rw['idoperacionorden']] = $rw;
         }
         return $ds;
