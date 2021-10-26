@@ -143,7 +143,7 @@ class BotController extends Controller
             if (!$rw['completed'] && $rw['side']==Operacion::SIDE_BUY)
                 $rw['sideStr'] .= ' #'.$rw['compraNum'];
 
-            $link = '<a href="app.bot.verOrden+symbol'.$opr->get('symbol').'&orderId='.$rw['orderId'].'" target="_blank">'.$rw['orderId'].'</a>';
+            $link = '<a href="app.bot.verOrden+symbol='.$opr->get('symbol').'&orderId='.$rw['orderId'].'" target="_blank">'.$rw['orderId'].'</a>';
         
             $row = array($link,
                          $rw['sideStr'],
