@@ -122,7 +122,12 @@ class BotAjax extends ControllerAjax
     {
         $file = $_REQUEST['file'];
         $folder = LOG_PATH.'bot/';
-        $content = file_get_contents($folder.$file);
+        $content = '';
+        $archivo = fopen($folder.$file,'r');
+        while ($linea = fgets($archivo)) 
+        {
+            $content = $linea.$content;    
+        }
         if (!empty($content))
         {
             $this->ajxRsp->assign('contenido','innerHTML',nl2br($content));
