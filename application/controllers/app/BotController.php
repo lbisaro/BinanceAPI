@@ -143,7 +143,9 @@ class BotController extends Controller
             if (!$rw['completed'] && $rw['side']==Operacion::SIDE_BUY)
                 $rw['sideStr'] .= ' #'.$rw['compraNum'];
 
-            $row = array($rw['orderId'],
+            $link = '<a href="app.bot.verOrden+symbol'.$opr->get('symbol').'&orderId='.$rw['orderId'].'" target="_blank">'.$rw['orderId'].'</a>';
+        
+            $row = array($link,
                          $rw['sideStr'],
                          ($rw['origQty']*1),
                          ($rw['price']*1),
@@ -256,6 +258,34 @@ class BotController extends Controller
         $arr['lista'] = $dg->get();
     
         $this->addView('bot/estadisticas',$arr);
+    }
+    
+    
+    function verOrden($auth)
+    {
+        $this->addTitle('Ver Orden Binance');
+
+
+        $ak = $auth->getConfig('bncak');
+        $as = $auth->getConfig('bncas');
+        
+        $api = new BinanceAPI($ak,$as);
+
+        $symbol = $_REQUEST['symbol'];
+        $orderId = $_REQUEST['orderId'];
+                
+        $orderStatus = $api->orderStatus($symbol,$orderId);
+        $orderTradeInfo = $api->orderTradeInfo($symbol,$orderId);
+
+        pr($symbol);
+        pr($orderId);
+        pr($orderStatus);
+        pr($orderTradeInfo);
+
+        $arr['data'] = '';
+        $arr['hidden'] = '';
+    
+        $this->addView('ver',$arr);
     }
     
     
