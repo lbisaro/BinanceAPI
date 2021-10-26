@@ -102,9 +102,6 @@ class BotController extends Controller
         $arr['multiplicador_porc'] = $opr->get('multiplicador_porc').'%';
         $arr['estado'] = $opr->get('strEstado');
 
-        if ($opr->canStart())
-            $arr['estado'] .= ' <button id="startBtn" onclick="start();" class="btn btn-sm btn-success">Iniciar</button>';
-
         if ($opr->autoRestart())
             $autoRestart = '<button id="arBtn" class="btn btn-sm btn-success">
                 <span class="glyphicon glyphicon-ok"></span>

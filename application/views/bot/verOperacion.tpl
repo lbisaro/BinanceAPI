@@ -101,12 +101,6 @@
         });
     });
 
-    function start()
-    {
-        if (confirm('Desea reiniciar la operacion?'))
-            CtrlAjax.sendCtrl("app","bot","start");
-    }
-
     function setAutoRestartTo(set)
     {
         if (set)

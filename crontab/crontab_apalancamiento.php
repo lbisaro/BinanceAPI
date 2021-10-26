@@ -9,7 +9,10 @@ if (!is_dir(LOG_PATH.'bot'))
     mkdir(LOG_PATH.'bot');
 function logBot($msg)
 {
-    $logFile = LOG_PATH.'bot/bot_'.date('Ymd').'.log';
+    if (strstr(strtolower($msg),'error'))
+        $logFile = LOG_PATH.'bot/bot_error'.date('Ymd').'.log';
+    else
+        $logFile = LOG_PATH.'bot/bot_'.date('Ymd').'.log';
     $msg = "\n".date('H:i:s').' '.$msg;
     file_put_contents($logFile, $msg,FILE_APPEND);  
     echo $msg; 
