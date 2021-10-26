@@ -117,4 +117,20 @@ class BotAjax extends ControllerAjax
         $opr->start();
         $this->ajxRsp->redirect('app.bot.verOperacion+id='.$opr->get('idoperacion'));        
     }
+
+    function showLog()
+    {
+        $file = $_REQUEST['file'];
+        $folder = LOG_PATH.'bot/';
+        $content = file_get_contents($folder.$file);
+        if (!empty($content))
+        {
+            $this->ajxRsp->assign('contenido','innerHTML',nl2br($content));
+        }
+        else
+        {
+            $this->ajxRsp->assign('contenido','innerHTML','<div class="alert alert-danger">No se ha encontrado contenido en el log.</div>');
+        }
+        $this->ajxRsp->script("activate('".$file."')");
+    }
 }

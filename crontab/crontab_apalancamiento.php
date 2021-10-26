@@ -3,7 +3,8 @@
 include_once MDL_PATH."binance/BinanceAPI.php";
 include_once MDL_PATH."bot/Operacion.php";
 
-file_put_contents(STATUS_FILE, 'START '.date('Y-m-d H:i:s'));
+$procStart = date('Y-m-d H:i:s');
+file_put_contents(STATUS_FILE, 'START '.$procStart);
 
 //LOG del Crontab BOT
 if (!is_dir(LOG_PATH.'bot'))
@@ -99,8 +100,14 @@ foreach ($usuarios as $idusuario)
                     //Si la orden se completo
                     if (!empty($trade))
                     {
+                        $orderQty=0;
+                        $orderUsd=0;
                         foreach ($trade as $rw)
-                            $price += $rw['price'];
+                        {
+                            $orderQty += $rw['qty'];
+                            $orderUsd += ($rw['qty']*$rw['price']);
+                        }
+                        $price = $orderUsd/$orderQty;
                         $price = toDec($price/count($trade),7);
                         $data[$strSide][$order['orderId']]['price'] = $price;
                         $data[$strSide][$order['orderId']]['status'] = Operacion::OR_STATUS_FILLED;
@@ -256,5 +263,10 @@ foreach ($usuarios as $idusuario)
         }
     }
 }
+
 //logBot('END');
-file_put_contents(STATUS_FILE, "\n".'END '.date('H:i:s'),FILE_APPEND);
+$procEnd = date('Y-m-d H:i:s');
+file_put_contents(STATUS_FILE, "\n".'END '.$procEnd,FILE_APPEND);
+
+$diff = diferenciaFechas($procStart,$procEnd);
+file_put_contents(STATUS_FILE, "\n".'DURATION '.$diff->firmat('s'),FILE_APPEND);

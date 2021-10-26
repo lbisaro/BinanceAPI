@@ -289,6 +289,49 @@ class BotController extends Controller
     }
     
     
+    function log($auth)
+    {
+        $folder = LOG_PATH.'bot/';
+        $logFiles=array();
+        $errorFiles=array();
+
+        $scandir = scandir($folder,SCANDIR_SORT_DESCENDING);
+        foreach ($scandir as $file)
+        {
+            if ($file != '.' && $file != '..' && $file != 'status.log')
+            {
+                if (strstr($file,'error'))
+                    $errorFiles[] = $file;
+                else
+                    $logFiles[] = $file;
+            }
+        }
+
+        $status = file_get_contents($folder.'status.log');
+        $arr['files'] = '';
+        if (!empty($errorFiles))
+        {
+            $arr['files'] .='<div class="list-group">';
+            foreach ($errorFiles as $file)
+                $arr['files'] .= '<a class="list-group-item list-group-item-danger" id="'.$file.'" onclick="show(\''.$file.'\');">'.$file.'</a>';
+            $arr['files'] .='</div>';
+        }
+        if (!empty($logFiles))
+        {
+            $arr['files'] .='<div class="list-group">';
+            foreach ($logFiles as $file)
+                $arr['files'] .= '<a class="list-group-item list-group-item-action" id="'.$file.'" onclick="show(\''.$file.'\');">'.$file.'</a>';
+            $arr['files'] .='</div>';
+        }
+        
+    
+        $arr['status'] = nl2br($status);
+        
+    
+        $this->addView('bot/verLogs',$arr);
+    }
+    
+    
     
     
 }
