@@ -269,4 +269,4 @@ $procEnd = date('Y-m-d H:i:s');
 file_put_contents(STATUS_FILE, "\n".'END '.$procEnd,FILE_APPEND);
 
 $diff = diferenciaFechas($procStart,$procEnd);
-file_put_contents(STATUS_FILE, "\n".'DURATION '.$diff->firmat('s'),FILE_APPEND);
+file_put_contents(STATUS_FILE, "\n".'DURATION '.$diff->format('%s').' secconds.',FILE_APPEND);
