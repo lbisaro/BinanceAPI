@@ -10,7 +10,7 @@
     <div class="row">
         <div class="col">
             <h3>Status</h3>
-            <p>{{status}}</p>
+            <code>{{status}}</code>
         </div>
         <div class="col-9"><h3>Contenido del log</h3></div>
     </div>
