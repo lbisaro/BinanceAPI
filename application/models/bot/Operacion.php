@@ -344,6 +344,12 @@ class Operacion extends ModelDB
         return $this->data['auto_restart'];
     }
 
+    function autoRestartOff()
+    {
+        $this->data['auto_restart'] = 0;
+        $this->save();
+    }
+
     function getEstadistica()
     {
         $auth = UsrUsuario::getAuthInstance();

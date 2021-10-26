@@ -3,6 +3,7 @@
 include_once MDL_PATH."binance/BinanceAPI.php";
 include_once MDL_PATH."bot/Operacion.php";
 
+file_put_contents(STATUS_FILE, 'START '.date('Y-m-d H:i:s'));
 
 //LOG del Crontab BOT
 if (!is_dir(LOG_PATH.'bot'))
@@ -10,9 +11,10 @@ if (!is_dir(LOG_PATH.'bot'))
 function logBot($msg)
 {
     if (strstr(strtolower($msg),'error'))
-        $logFile = LOG_PATH.'bot/bot_error'.date('Ymd').'.log';
+        $logFile = LOG_PATH.'bot/bot_error_'.date('Ymd').'.log';
     else
         $logFile = LOG_PATH.'bot/bot_'.date('Ymd').'.log';
+
     $msg = "\n".date('H:i:s').' '.$msg;
     file_put_contents($logFile, $msg,FILE_APPEND);  
     echo $msg; 
@@ -67,6 +69,10 @@ foreach ($usuarios as $idusuario)
 
         $opr->reset();
         $opr->load($idoperacion);
+
+        if (!$opr->autoRestart())
+            continue;
+
         $dbOrders = $opr->getOrdenes();
         //Match Binance y Db
         $oCompra = null;
@@ -214,6 +220,10 @@ foreach ($usuarios as $idusuario)
                         logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
                     }
                 }
+                else
+                {
+                    $opr->autoRestartOff();
+                }
             }
             else //La operacion se vendio y debe finalizar
             {
@@ -247,3 +257,4 @@ foreach ($usuarios as $idusuario)
     }
 }
 //logBot('END');
+file_put_contents(STATUS_FILE, "\n".'END '.date('H:i:s'),FILE_APPEND);
