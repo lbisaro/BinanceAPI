@@ -265,7 +265,6 @@ class BotController extends Controller
     {
         $this->addTitle('Ver Orden Binance');
 
-
         $ak = $auth->getConfig('bncak');
         $as = $auth->getConfig('bncas');
         
@@ -307,7 +306,15 @@ class BotController extends Controller
             }
         }
 
+        $ak = $auth->getConfig('bncak');
+        $as = $auth->getConfig('bncas');
+        $api = new BinanceAPI($ak,$as);
+
         $status = file_get_contents($folder.'status.log');
+
+        $timeOffset = $api->getTimeOffset();
+        $status .= "\nServer Time Offset: ".toDec($timeOffset);
+
         $arr['files'] = '';
         if (!empty($errorFiles))
         {

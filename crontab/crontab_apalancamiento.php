@@ -4,7 +4,8 @@ include_once MDL_PATH."binance/BinanceAPI.php";
 include_once MDL_PATH."bot/Operacion.php";
 
 $procStart = date('Y-m-d H:i:s');
-file_put_contents(STATUS_FILE, 'START '.$procStart);
+$procStartU = microtime(true);
+file_put_contents(STATUS_FILE, $procStart);
 
 //LOG del Crontab BOT
 if (!is_dir(LOG_PATH.'bot'))
@@ -95,21 +96,14 @@ foreach ($usuarios as $idusuario)
                     $data['eliminar'] = ($strSide=='compra'?'venta':'compra');
 
                     //Busca en Binance si la orden se completo 
-                    $trade = $api->orderTradeInfo($order['symbol'],$order['orderId']);
+                    $orderStatus = $api->orderStatus($order['symbol'],$order['orderId']);
                     
                     //Si la orden se completo
-                    if (!empty($trade))
+                    if (!empty($orderStatus) && $orderStatus['status']=='FILLED')
                     {
-                        $orderQty=0;
-                        $orderUsd=0;
-                        foreach ($trade as $rw)
-                        {
-                            $orderQty += $rw['qty'];
-                            $orderUsd += ($rw['qty']*$rw['price']);
-                        }
-                        $price = $orderUsd/$orderQty;
-                        $price = toDec($price/count($trade),7);
-                        $data[$strSide][$order['orderId']]['price'] = $price;
+
+                        $data[$strSide][$order['orderId']]['origQty'] = $orderStatus['executedQty'];
+                        $data[$strSide][$order['orderId']]['price'] = toDec(($orderStatus['cummulativeQuoteQty']/$orderStatus['executedQty']),7);
                         $data[$strSide][$order['orderId']]['status'] = Operacion::OR_STATUS_FILLED;
                     }
                     else
@@ -137,7 +131,7 @@ foreach ($usuarios as $idusuario)
                 {
                     if ($rw['price']>0)
                     {
-                        $opr->completeOrder($orderId,$rw['price']);
+                        $opr->completeOrder($orderId,$rw['price'],$rw['origQty']);
                     }
                 }
 
@@ -247,7 +241,7 @@ foreach ($usuarios as $idusuario)
                 {
                     if ($rw['price']>0)
                     {
-                        $opr->completeOrder($orderId,$rw['price']);
+                        $opr->completeOrder($orderId,$rw['price'],$rw['origQty']);
                     }
                 }
                 if ($opr->autoRestart())
@@ -265,8 +259,6 @@ foreach ($usuarios as $idusuario)
 }
 
 //logBot('END');
-$procEnd = date('Y-m-d H:i:s');
-file_put_contents(STATUS_FILE, "\n".'END '.$procEnd,FILE_APPEND);
+$procEndU = microtime(true);
 
-$diff = diferenciaFechas($procStart,$procEnd);
-file_put_contents(STATUS_FILE, "\n".'DURATION '.$diff->format('%s').' secconds.',FILE_APPEND);
+file_put_contents(STATUS_FILE, "\n".'Proceso: '.toDec($procEndU-$procStartU,2).'s',FILE_APPEND);

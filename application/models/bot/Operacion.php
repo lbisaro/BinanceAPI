@@ -11,10 +11,12 @@ class Operacion extends ModelDB
     const SIDE_SELL = 1;
 
     //Operacion status
+    const OP_STATUS_ERROR       = 5;
     const OP_STATUS_READY       = 10;
     const OP_STATUS_OPEN        = 20;
     const OP_STATUS_RECALCULATE = 30;
     const OP_STATUS_WAITING     = 40;
+    const OP_STATUS_COMPLETED   = 90;
 
     //Order status
     const OR_STATUS_NEW = 0;
@@ -121,10 +123,12 @@ class Operacion extends ModelDB
 
     function getTipoStatus($id='ALL')
     {
-        $arr[self::OP_STATUS_READY]         = 'Completa';
+        $arr[self::OP_STATUS_ERROR]         = 'Error';
+        $arr[self::OP_STATUS_READY]         = 'Nueva';
         $arr[self::OP_STATUS_OPEN]          = 'Abierta';
         $arr[self::OP_STATUS_RECALCULATE]   = 'Esperando recalculo';
         $arr[self::OP_STATUS_WAITING]       = 'Esperando completar orden';
+        $arr[self::OP_STATUS_COMPLETED]     = 'Completa';
 
         if ($id=='ALL')
             return $arr;
@@ -151,36 +155,55 @@ class Operacion extends ModelDB
             return false;
         $qry = 'SELECT * 
                 FROM operacion_orden 
-                WHERE idoperacion = '.$this->data['idoperacion'];
+                WHERE idoperacion = '.$this->data['idoperacion'].' AND completed = 0';
         $stmt = $this->db->query($qry);
-        $ready = true;
+        
+        $ready = false;
         $openBuy = 0;
         $openSell = 0;
+        $closedBuy = 0;
+        $closedSell = 0;
 
         $qty = 0;
         while ($rw = $stmt->fetch())
         {
             $qty++;
-            if ($rw['status'] == self::OR_STATUS_NEW)
-                $ready = false;
             if ($rw['side'] == self::SIDE_BUY && $rw['status'] == self::OR_STATUS_NEW)
                 $openBuy++;
+            if ($rw['side'] == self::SIDE_BUY && $rw['status'] == self::OR_STATUS_FILLED)
+                $closedBuy++;
             if ($rw['side'] == self::SIDE_SELL && $rw['status'] == self::OR_STATUS_NEW)
                 $openSell++;
+            if ($rw['side'] == self::SIDE_SELL && $rw['status'] == self::OR_STATUS_FILLED)
+                $closedSell++;
         }
 
-        if ($ready)
-            return self::OP_STATUS_READY; // No hay ordenes abiertas
-        elseif ($openBuy==0 && $qty==1)
-            return self::OP_STATUS_RECALCULATE; //Recien inicia la compra
-        elseif ($openBuy==1 && $qty==1)
-            return self::OP_STATUS_WAITING;
-        elseif ($openBuy==1 && $openSell==1)
-            return self::OP_STATUS_OPEN;
-        elseif (($openBuy==0 && $openSell==1) || ($openBuy==1 && $openSell==0))
-            return self::OP_STATUS_RECALCULATE;
-        
-        return false;
+        //Prepara un binario para definir el estado
+        $bin = ($openBuy>0?'1':'0');
+        $bin .= ($closedBuy>0?'1':'0');
+        $bin .= ($openSell>0?'1':'0');
+        $bin .= ($closedSell>0?'1':'0');
+
+        $arr['0000'] = self::OP_STATUS_READY;
+        $arr['0001'] = self::
+        $arr['0010'] = self::
+        $arr['0011'] = self::
+        $arr['0100'] = self::
+        $arr['0101'] = self::
+        $arr['0110'] = self::
+        $arr['0111'] = self::
+        $arr['1000'] = self::
+        $arr['1001'] = self::
+        $arr['1010'] = self::
+        $arr['1011'] = self::
+        $arr['1100'] = self::
+        $arr['1101'] = self::
+        $arr['1110'] = self::
+        $arr['1111'] = self::
+        if (isset($arr[$bin]))
+            return $arr[$bin];
+
+        return self::OP_STATUS_ERROR;
     }
 
     function canStart()
@@ -239,7 +262,7 @@ class Operacion extends ModelDB
         if ($this->data['idoperacion'])
         {
             $upd = "UPDATE operacion_orden SET completed = 1 
-                    WHERE idoperacion = ".$this->data['idoperacion']."";
+                    WHERE idoperacion = ".$this->data['idoperacion']." AND completed = 0";
             $this->db->query($upd);      
 
             $this->start();
@@ -290,11 +313,11 @@ class Operacion extends ModelDB
                         
     }
 
-    function completeOrder($orderId,$price)
+    function completeOrder($orderId,$price,$origQty)
     {
         if ($this->data['idoperacion'])
         {
-            $upd = "UPDATE operacion_orden SET price = ".$price.", updated = '".date('Y-m-d H:i:s')."', status = ".self::OR_STATUS_FILLED." 
+            $upd = "UPDATE operacion_orden SET price = ".$price.", origQty = ".$origQty.", updated = '".date('Y-m-d H:i:s')."', status = ".self::OR_STATUS_FILLED." 
                     WHERE idoperacion = ".$this->data['idoperacion']." 
                     AND orderId = '".$orderId."'";
             $this->db->query($upd);

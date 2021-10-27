@@ -66,6 +66,8 @@ class BinanceAPI
         $this->api_key = $api_key;
         $this->api_secret = $api_secret;
         $this->useTestnet = $useTestnet;
+
+        $this->useServerTime();
     }
 
     /**
@@ -3054,5 +3056,9 @@ class BinanceAPI
         return $this->httpRequest("v3/myTrades", "GET", $parameters, true);
     }    
 
+    function getTimeOffset()
+    {
+        return $this->info['timeOffset'];;
+    }
 
 }

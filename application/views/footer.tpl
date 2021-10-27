@@ -1,5 +1,6 @@
 
     <!-- start: footer.tpl-->
+            </div>
         </form>
     </div> <!-- main -->
 
