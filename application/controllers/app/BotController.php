@@ -38,7 +38,8 @@ class BotController extends Controller
             $data = array($link,
                           $opr->get('inicio_usd'),
                           $opr->get('multiplicador_compra'),
-                          $opr->get('multiplicador_porc'),
+                          $opr->get('multiplicador_porc').
+                                     ($opr->get('multiplicador_porc_inc')?' Incremental':''),
                           $opr->get('strEstado'),
                           $autoRestart
                           );
@@ -77,6 +78,10 @@ class BotController extends Controller
         $arr['inicio_usd'] = $opr->get('inicio_usd');
         $arr['multiplicador_compra'] = $opr->get('multiplicador_compra');
         $arr['multiplicador_porc'] = $opr->get('multiplicador_porc');
+        if ($opr->get('multiplicador_porc_inc'))
+            $arr['mpi_selected_1'] = 'SELECTED';
+        else
+            $arr['mpi_selected_0'] = 'SELECTED';
         $arr['idoperacion'] = $opr->get('idoperacion');
 
         $this->addView('bot/editarOperacion',$arr);
@@ -99,7 +104,8 @@ class BotController extends Controller
         $arr['symbol'] = $link;
         $arr['inicio_usd'] = 'USD '.$opr->get('inicio_usd');
         $arr['multiplicador_compra'] = $opr->get('multiplicador_compra');
-        $arr['multiplicador_porc'] = $opr->get('multiplicador_porc').'%';
+        $arr['multiplicador_porc'] = $opr->get('multiplicador_porc').'%'.
+                                     ($opr->get('multiplicador_porc_inc')?' Incremental':'');
         $arr['estado'] = $opr->get('strEstado');
 
         if ($opr->autoRestart())

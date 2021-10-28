@@ -37,6 +37,16 @@
     </div>
   </div>
 
+  <div class="form-group">
+    <label for="multiplicador_porc">Multiplicador Porcentajes Incremental</label>
+    <div class="input-group mb-2">
+      <select id="multiplicador_porc_inc" class="form-control" >
+          <option value="0" {{mpi_selected_0}}>No - Incrementa cada apalancamiento al mismo valor</option>
+          <option value="1" {{mpi_selected_1}}>Si - Incrementa cada apalancamiento al doble del anterior</option>
+      </select>
+    </div>
+  </div>
+
   <input type="hidden" id="idoperacion" name="idoperacion" value="{{idoperacion}}">
 
 

@@ -7,22 +7,11 @@ $procStart = date('Y-m-d H:i:s');
 $procStartU = microtime(true);
 file_put_contents(STATUS_FILE, $procStart);
 
-//LOG del Crontab BOT
-if (!is_dir(LOG_PATH.'bot'))
-    mkdir(LOG_PATH.'bot');
-function logBot($msg)
-{
-    if (strstr(strtolower($msg),'error'))
-        $logFile = LOG_PATH.'bot/bot_error_'.date('Ymd').'.log';
-    else
-        $logFile = LOG_PATH.'bot/bot_'.date('Ymd').'.log';
 
-    $msg = "\n".date('H:i:s').' '.$msg;
-    file_put_contents($logFile, $msg,FILE_APPEND);  
-    echo $msg; 
-}
+define('PORCENTAJE_VENTA_UP',2);
+define('PORCENTAJE_VENTA_DOWN',1.5);
 
-//logBot('START');
+//Operacion::logBot('START');
 
 $opr = new Operacion();
 $usr = new UsrUsuario();
@@ -45,7 +34,7 @@ foreach ($usuarios as $idusuario)
       $openOrders = $api->openOrders();
     } catch (Throwable $e) {
         $msg = "Error: " . $e->getMessage();
-        logBot('u:'.$idusuario.' '.$usr->get('ayn').' '.$msg);
+        Operacion::logBot('u:'.$idusuario.' '.$msg);
         continue;
     }
     $binanceOpenOrders = array();
@@ -59,7 +48,6 @@ foreach ($usuarios as $idusuario)
     foreach ($operaciones as $operacion) 
     {
         $data=array();
-
         $idoperacion = $operacion['idoperacion'];
         $data['symbol']=$operacion['symbol'];
         $symbol = $data['symbol'];
@@ -72,10 +60,12 @@ foreach ($usuarios as $idusuario)
         $opr->reset();
         $opr->load($idoperacion);
 
-        if (!$opr->autoRestart())
+
+        if ($opr->status() == Operacion::OP_STATUS_ERROR)
             continue;
 
         $dbOrders = $opr->getOrdenes();
+        
         //Match Binance y Db
         $oCompra = null;
         $oVenta = null;
@@ -131,7 +121,7 @@ foreach ($usuarios as $idusuario)
                 {
                     if ($rw['price']>0)
                     {
-                        $opr->completeOrder($orderId,$rw['price'],$rw['origQty']);
+                        $opr->updateOrder($orderId,$rw['price'],$rw['origQty']);
                     }
                 }
 
@@ -159,6 +149,7 @@ foreach ($usuarios as $idusuario)
                 $totUsdBuyed=0;
                 $totUnitsBuyed=0;
                 $lastUsdBuyed = 0;
+                $maxCompraNum = 1; 
                 foreach ($dbOrders as $order)
                 {
                     if ($order['side']==Operacion::SIDE_BUY)
@@ -169,6 +160,9 @@ foreach ($usuarios as $idusuario)
                         
                         $totUnitsBuyed += $order['origQty'];
                         $totUsdBuyed += ($order['origQty']*$order['price']);
+
+                        if ($order['compraNum']>$maxCompraNum)
+                            $maxCompraNum = $order['compraNum'];
                     }
                 }
                 //Si la cantidad de unidades compradas segun DB es mayor a la cantidad de unidades en API
@@ -176,12 +170,19 @@ foreach ($usuarios as $idusuario)
                     $totUnitsBuyed = $unitsFree;
                 
                 //Orden para venta
-                $newUsd = $totUsdBuyed * 1.02;
+                if ($maxCompraNum==1) 
+                    $porcentaje = PORCENTAJE_VENTA_UP;
+                else
+                    $porcentaje = PORCENTAJE_VENTA_DOWN;
+$msg = 'maxCompraNum: '.$maxCompraNum.' porcentaje: '.$porcentaje.'%';
+Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
+
+                $newUsd = $totUsdBuyed * (1+($porcentaje/100));
                 $newPrice = toDec(($newUsd / $totUnitsBuyed),$symbolData['qtyDecsPrice']);
                 $newQty = toDecDown($totUnitsBuyed,$symbolData['qtyDecs']);
 
                 $msg = ' Sell -> Qty:'.$newQty.' Price:'.$newPrice;
-                logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
+                Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
 
                 $errorEnOrden = false;
                 try {
@@ -194,19 +195,26 @@ foreach ($usuarios as $idusuario)
                     $opr->insertOrden($aOpr); 
                 } catch (Throwable $e) {
                     $msg = "Error: " . $e->getMessage();
-                    logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
+                    Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
                     $errorEnOrden = true;
                 }
 
                 if (!$errorEnOrden)
                 {
                     //Orden para recompra por apalancamiento
-                    $newUsd = $lastUsdBuyed*$opr->get('multiplicador_compra');
-                    $newPrice = toDec($lastBuyPrice - ( ($lastBuyPrice * $opr->get('multiplicador_porc')) / 100 ),$symbolData['qtyDecsPrice']);
+                    $multiplicador_porc = $opr->get('multiplicador_porc');
+                    if ($opr->get('multiplicador_porc_inc'))
+                        $multiplicador_porc = pow($multiplicador_porc,$maxCompraNum); 
+
+$msg = 'multiplicador_porc: '.$opr->get('multiplicador_porc').' multiplicador final: '.$multiplicador_porc.'%';
+Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
+                    
+                    $newUsd = $lastUsdBuyed*$opr->get('multiplicador_porc');
+                    $newPrice = toDec($lastBuyPrice - ( ($lastBuyPrice * $multiplicador_porc) / 100 ),$symbolData['qtyDecsPrice']);
                     $newQty = toDec(($newUsd/$newPrice),($symbolData['qtyDecs']*1));
         
                     $msg = ' Buy -> Qty:'.$newQty.' Price:'.$newPrice;
-                    logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
+                    Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
 
                     try {
                         $limitOrder = $api->buy($symbol, $newQty, $newPrice);
@@ -218,11 +226,15 @@ foreach ($usuarios as $idusuario)
                         $opr->insertOrden($aOpr);               
                     } catch (Throwable $e) {
                         $msg = "Error: " . $e->getMessage();
-                        logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
+                        Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
+                        $errorEnOrden = true;
                     }
                 }
-                else
+
+                if ($errorEnOrden)
                 {
+                    $msg = "AutoRestart: OFF";
+                    Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
                     $opr->autoRestartOff();
                 }
             }
@@ -241,7 +253,7 @@ foreach ($usuarios as $idusuario)
                 {
                     if ($rw['price']>0)
                     {
-                        $opr->completeOrder($orderId,$rw['price'],$rw['origQty']);
+                        $opr->updateOrder($orderId,$rw['price'],$rw['origQty']);
                     }
                 }
                 if ($opr->autoRestart())
@@ -250,6 +262,7 @@ foreach ($usuarios as $idusuario)
         }
         else
         {
+
             if ($opr->autoRestart() && $opr->canStart())
             {
                 $opr->restart();
@@ -258,7 +271,7 @@ foreach ($usuarios as $idusuario)
     }
 }
 
-//logBot('END');
+//Operacion::logBot('END');
 $procEndU = microtime(true);
 
-file_put_contents(STATUS_FILE, "\n".'Proceso: '.toDec($procEndU-$procStartU,2).'s',FILE_APPEND);
+file_put_contents(STATUS_FILE, "\n".'Proceso: '.toDec($procEndU-$procStartU,4).' seg.',FILE_APPEND);

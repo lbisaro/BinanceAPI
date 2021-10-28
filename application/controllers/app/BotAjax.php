@@ -57,6 +57,7 @@ class BotAjax extends ControllerAjax
         $arrToSet['symbol'] = $_REQUEST['symbol'];
         $arrToSet['inicio_usd'] = $_REQUEST['inicio_usd'];
         $arrToSet['multiplicador_porc'] = $_REQUEST['multiplicador_porc'];
+        $arrToSet['multiplicador_porc_inc'] = ($_REQUEST['multiplicador_porc_inc']?1:0);
         $arrToSet['multiplicador_compra'] = $_REQUEST['multiplicador_compra'];
         $arrToSet['auto_restart'] = 1; //Por default, la operacion se reinicia despues de cada venta
 
@@ -65,8 +66,16 @@ class BotAjax extends ControllerAjax
         $opr->set($arrToSet);
         if ($opr->save())
         {
-            $opr->start();
-            $this->ajxRsp->redirect(Controller::getLink('app','bot','verOperacion','id='.$opr->get('idoperacion')));
+            if ($opr->start())
+            {
+                $this->ajxRsp->redirect('app.bot.verOperacion+id='.$opr->get('idoperacion'));        
+            }
+            else
+            {
+                $opr->delete();
+                $this->ajxRsp->addError('No fue posible crear la operacion.');
+                $this->ajxRsp->addError($opr->getErrLog());
+            }
         }
         else
         {
@@ -84,7 +93,8 @@ class BotAjax extends ControllerAjax
         $arrToSet['inicio_usd'] = $_REQUEST['inicio_usd'];
         $arrToSet['multiplicador_porc'] = $_REQUEST['multiplicador_porc'];
         $arrToSet['multiplicador_compra'] = $_REQUEST['multiplicador_compra'];
-
+        $arrToSet['multiplicador_porc_inc'] = ($_REQUEST['multiplicador_porc_inc']?1:0);
+        
 
         $opr = new Operacion($_REQUEST['idoperacion']);
         if ($auth->get('idusuario') != $opr->get('idusuario'))
@@ -114,8 +124,10 @@ class BotAjax extends ControllerAjax
     function start()
     {
         $opr = new Operacion($_REQUEST['idoperacion']);
-        $opr->start();
-        $this->ajxRsp->redirect('app.bot.verOperacion+id='.$opr->get('idoperacion'));        
+        if ($opr->start())
+            $this->ajxRsp->redirect('app.bot.verOperacion+id='.$opr->get('idoperacion'));        
+        else
+            $this->ajxRsp->addError($opr->getErrLog());
     }
 
     function showLog()

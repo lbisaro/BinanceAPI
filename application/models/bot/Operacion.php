@@ -11,10 +11,10 @@ class Operacion extends ModelDB
     const SIDE_SELL = 1;
 
     //Operacion status
-    const OP_STATUS_ERROR       = 5;
+    const OP_STATUS_ERROR       = 1;
     const OP_STATUS_READY       = 10;
     const OP_STATUS_OPEN        = 20;
-    const OP_STATUS_RECALCULATE = 30;
+    const OP_STATUS_APALANCAOFF = 30;
     const OP_STATUS_WAITING     = 40;
     const OP_STATUS_COMPLETED   = 90;
 
@@ -25,6 +25,9 @@ class Operacion extends ModelDB
 
     function __Construct($id=null)
     {
+        if (!is_dir(LOG_PATH.'bot'))
+            mkdir(LOG_PATH.'bot');
+
         parent::__Construct();
 
         //($db,$tabl,$id)
@@ -124,14 +127,16 @@ class Operacion extends ModelDB
     function getTipoStatus($id='ALL')
     {
         $arr[self::OP_STATUS_ERROR]         = 'Error';
-        $arr[self::OP_STATUS_READY]         = 'Nueva';
-        $arr[self::OP_STATUS_OPEN]          = 'Abierta';
-        $arr[self::OP_STATUS_RECALCULATE]   = 'Esperando recalculo';
-        $arr[self::OP_STATUS_WAITING]       = 'Esperando completar orden';
+        $arr[self::OP_STATUS_READY]         = 'Lista para iniciar';
+        $arr[self::OP_STATUS_OPEN]          = 'Abierta - Esperando confirmar compra';
+        $arr[self::OP_STATUS_APALANCAOFF]   = 'En curso - Apalancamiento insuficiente';
+        $arr[self::OP_STATUS_WAITING]       = 'En curso';
         $arr[self::OP_STATUS_COMPLETED]     = 'Completa';
 
         if ($id=='ALL')
             return $arr;
+        elseif ($id==0)
+            return self::OP_STATUS_ERROR;
         elseif (isset($arr[$id]))
             return $arr[$id];
         return 'Desconocido'.($id?' ['.$id.']':'');
@@ -185,21 +190,22 @@ class Operacion extends ModelDB
         $bin .= ($closedSell>0?'1':'0');
 
         $arr['0000'] = self::OP_STATUS_READY;
-        $arr['0001'] = self::
-        $arr['0010'] = self::
-        $arr['0011'] = self::
-        $arr['0100'] = self::
-        $arr['0101'] = self::
-        $arr['0110'] = self::
-        $arr['0111'] = self::
-        $arr['1000'] = self::
-        $arr['1001'] = self::
-        $arr['1010'] = self::
-        $arr['1011'] = self::
-        $arr['1100'] = self::
-        $arr['1101'] = self::
-        $arr['1110'] = self::
-        $arr['1111'] = self::
+        $arr['0001'] = self::OP_STATUS_ERROR;
+        $arr['0010'] = self::OP_STATUS_ERROR;
+        $arr['0011'] = self::OP_STATUS_ERROR;
+        $arr['0100'] = self::OP_STATUS_ERROR;
+        $arr['0101'] = self::OP_STATUS_COMPLETED;
+        $arr['0110'] = self::OP_STATUS_APALANCAOFF;
+        $arr['0111'] = self::OP_STATUS_ERROR;
+        $arr['1000'] = self::OP_STATUS_OPEN;
+        $arr['1001'] = self::OP_STATUS_ERROR;
+        $arr['1010'] = self::OP_STATUS_ERROR;
+        $arr['1011'] = self::OP_STATUS_ERROR;
+        $arr['1100'] = self::OP_STATUS_ERROR;
+        $arr['1101'] = self::OP_STATUS_ERROR;
+        $arr['1110'] = self::OP_STATUS_WAITING;
+        $arr['1111'] = self::OP_STATUS_ERROR;
+
         if (isset($arr[$bin]))
             return $arr[$bin];
 
@@ -232,28 +238,47 @@ class Operacion extends ModelDB
         $ak = $auth->getConfig('bncak');
         $as = $auth->getConfig('bncas');
         $api = new BinanceAPI($ak,$as);        
-        $data = $api->getSymbolData($symbol);
+    
+        try {
+            $data = $api->getSymbolData($symbol);
+        } catch (Throwable $e) {
+            $msg = $e->getMessage();
+            $this->errLog->add($e->getMessage());
+            return false;
+        }
+        if (empty($data))
+        {
+            $this->errLog->add('No fue posible encontrar informacion sobre la moneda '.$symbol);
+            return false;            
+        }
 
         //Orden para compra inicial
         $usd = $this->data['inicio_usd'];
         $qty = toDec($usd/$data['price'],$data['qtyDecs']);
-        $order = $api->marketBuy($symbol, $qty);
-        $opr[1]['idoperacion']  = $this->data['idoperacion'];
-        $opr[1]['side']         = self::SIDE_BUY;
-        $opr[1]['origQty']      = $qty;
-        $opr[1]['price']        = 0;
-        $opr[1]['orderId']      = $order['orderId'];
+        try {
+            $order = $api->marketBuy($symbol, $qty);
+            $opr[1]['idoperacion']  = $this->data['idoperacion'];
+            $opr[1]['side']         = self::SIDE_BUY;
+            $opr[1]['origQty']      = $qty;
+            $opr[1]['price']        = 0;
+            $opr[1]['orderId']      = $order['orderId'];
 
-        $ins='';
-        foreach ($opr as $op)
-            $ins .= ($ins?',':'')." (".$op['idoperacion'].",".
-                                    "".$op['side'].",".
-                                    "".$op['origQty'].",".
-                                    "".$op['price'].",".
-                                    "'".$op['orderId']."' ".
-                                    ") ";
-        $ins = 'INSERT INTO operacion_orden (idoperacion,side,origQty,price,orderId) VALUES '.$ins;
-        $this->db->query($ins);
+            $ins='';
+            foreach ($opr as $op)
+                $ins .= ($ins?',':'')." (".$op['idoperacion'].",".
+                                        "".$op['side'].",".
+                                        "".$op['origQty'].",".
+                                        "".$op['price'].",".
+                                        "'".$op['orderId']."' ".
+                                        ") ";
+            $ins = 'INSERT INTO operacion_orden (idoperacion,side,origQty,price,orderId) VALUES '.$ins;
+            $this->db->query($ins);
+            return true;
+        } catch (Throwable $e) {
+            $msg = $e->getMessage();
+            $this->errLog->add($e->getMessage());
+            return false;
+        }
        
     }
 
@@ -261,10 +286,13 @@ class Operacion extends ModelDB
     {
         if ($this->data['idoperacion'])
         {
-            $upd = "UPDATE operacion_orden SET completed = 1 
-                    WHERE idoperacion = ".$this->data['idoperacion']." AND completed = 0";
-            $this->db->query($upd);      
+            if ($this->status() == self::OP_STATUS_COMPLETED)
+            {
+                $upd = "UPDATE operacion_orden SET completed = 1 
+                        WHERE idoperacion = ".$this->data['idoperacion']." AND completed = 0";
+                $this->db->query($upd);      
 
+            }
             $this->start();
             
         }
@@ -313,7 +341,7 @@ class Operacion extends ModelDB
                         
     }
 
-    function completeOrder($orderId,$price,$origQty)
+    function updateOrder($orderId,$price,$origQty)
     {
         if ($this->data['idoperacion'])
         {
@@ -474,4 +502,32 @@ class Operacion extends ModelDB
 
         return $data;
     }
+
+    //LOG del Crontab BOT
+    static function logBot($msg)
+    {
+        if (strstr(strtolower($msg),'error'))
+            $logFile = LOG_PATH.'bot/bot_error_'.date('Ymd').'.log';
+        else
+            $logFile = LOG_PATH.'bot/bot_'.date('Ymd').'.log';
+
+        $msg = "\n".date('H:i:s').' '.$msg;
+        file_put_contents($logFile, $msg,FILE_APPEND);  
+        echo $msg; 
+    }
+
+    function delete()
+    {
+        $idoperacion = $this->data['idoperacion'];
+        if (!empty($idoperacion))
+        {
+            $ordenes = $this->getOrdenes($enCurso=false);
+            if (empty($ordenes))
+            {
+                $del = "DELETE FROM operacion WHERE idoperacion = '".$idoperacion."'";
+                $this->db->query($del);                
+            }
+        }
+    }
+
 }
