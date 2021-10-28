@@ -9,7 +9,8 @@ file_put_contents(STATUS_FILE, $procStart);
 
 
 define('PORCENTAJE_VENTA_UP',2);
-define('PORCENTAJE_VENTA_DOWN',1.5);
+define('PORCENTAJE_VENTA_DOWN',1.75);
+
 
 //Operacion::logBot('START');
 
@@ -140,6 +141,10 @@ foreach ($usuarios as $idusuario)
                         $unitsFree = $balances['free'];
                         $unitsLocked = $balances['locked'];
                     }
+                    if ($balances['asset'] == $symbolData['quoteAsset'])
+                    {
+                        $usdFreeToBuy = $balances['free'];
+                    }
                 }
 
                 //Obteniendo datos de ordenes anteriores
@@ -174,14 +179,12 @@ foreach ($usuarios as $idusuario)
                     $porcentaje = PORCENTAJE_VENTA_UP;
                 else
                     $porcentaje = PORCENTAJE_VENTA_DOWN;
-$msg = 'maxCompraNum: '.$maxCompraNum.' porcentaje: '.$porcentaje.'%';
-Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
 
                 $newUsd = $totUsdBuyed * (1+($porcentaje/100));
                 $newPrice = toDec(($newUsd / $totUnitsBuyed),$symbolData['qtyDecsPrice']);
                 $newQty = toDecDown($totUnitsBuyed,$symbolData['qtyDecs']);
 
-                $msg = ' Sell -> Qty:'.$newQty.' Price:'.$newPrice;
+                $msg = ' Sell -> Qty:'.$newQty.' Price:'.$newPrice.' USD:'.toDec($newPrice).' +'.$porcentaje.'%';
                 Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
 
                 $errorEnOrden = false;
@@ -204,39 +207,44 @@ Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
                     //Orden para recompra por apalancamiento
                     $multiplicador_porc = $opr->get('multiplicador_porc');
                     if ($opr->get('multiplicador_porc_inc'))
-                        $multiplicador_porc = pow($multiplicador_porc,$maxCompraNum); 
-
-$msg = 'multiplicador_porc: '.$opr->get('multiplicador_porc').' multiplicador final: '.$multiplicador_porc.'%';
-Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
+                        $multiplicador_porc = $multiplicador_porc*$maxCompraNum; 
                     
                     $newUsd = $lastUsdBuyed*$opr->get('multiplicador_porc');
                     $newPrice = toDec($lastBuyPrice - ( ($lastBuyPrice * $multiplicador_porc) / 100 ),$symbolData['qtyDecsPrice']);
                     $newQty = toDec(($newUsd/$newPrice),($symbolData['qtyDecs']*1));
         
-                    $msg = ' Buy -> Qty:'.$newQty.' Price:'.$newPrice;
-                    Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
-
-                    try {
-                        $limitOrder = $api->buy($symbol, $newQty, $newPrice);
-                        $aOpr['idoperacion']  = $idoperacion;
-                        $aOpr['side']         = Operacion::SIDE_BUY;
-                        $aOpr['origQty']      = $newQty;
-                        $aOpr['price']        = $newPrice;
-                        $aOpr['orderId']      = $limitOrder['orderId'];
-                        $opr->insertOrden($aOpr);               
-                    } catch (Throwable $e) {
-                        $msg = "Error: " . $e->getMessage();
+                    if ($newUsd < $usdFreeToBuy) //Hay billetera para comprar
+                    {
+                        $msg = ' Buy -> Qty:'.$newQty.' Price:'.$newPrice.' USD:'.toDec($newPrice).' -'.$multiplicador_porc.'%';
                         Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
-                        $errorEnOrden = true;
+
+                        try {
+                            $limitOrder = $api->buy($symbol, $newQty, $newPrice);
+                            $aOpr['idoperacion']  = $idoperacion;
+                            $aOpr['side']         = Operacion::SIDE_BUY;
+                            $aOpr['origQty']      = $newQty;
+                            $aOpr['price']        = $newPrice;
+                            $aOpr['orderId']      = $limitOrder['orderId'];
+                            $opr->insertOrden($aOpr);               
+                        } catch (Throwable $e) {
+                            $msg = "Error: " . $e->getMessage();
+                            Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
+                            $errorEnOrden = true;
+                        }
+                    }
+                    else
+                    {
+                        $msg = ' Buy -> Qty:'.$newQty.' Price:'.$newPrice.' APALANCAMIENTO INSUFICIENTE';
+                        Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
                     }
                 }
 
-                if ($errorEnOrden)
-                {
-                    $msg = "AutoRestart: OFF";
-                    Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
-                    $opr->autoRestartOff();
-                }
+                //if ($errorEnOrden)
+                //{
+                //    $msg = "AutoRestart: OFF";
+                //    Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
+                //    $opr->autoRestartOff();
+                //}
             }
             else //La operacion se vendio y debe finalizar
             {
