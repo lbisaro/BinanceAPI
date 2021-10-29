@@ -104,7 +104,7 @@ foreach ($usuarios as $idusuario)
                 }
             }
         }
-
+        $ordenEliminadaEnBinance = false;
         if ($data['update'])
         {
             if ($data['actualizar'] == 'compra') //La operacion recompro por apalancamiento o es la primera compra
@@ -114,8 +114,17 @@ foreach ($usuarios as $idusuario)
                     foreach ($data['venta'] as $orderId => $rw)
                     {
                         $opr->deleteOrder($orderId);
-                        $api->cancel($data['symbol'], $orderId);
-                        sleep(1);
+                        if ($rw['status']=='UNKNOWN')
+                        {
+                            $ordenEliminadaEnBinance = true;
+                            $msg = ' ORDEN DE VENTA ELIMINADA EN BINANCE (orderId = '.$orderId.')';
+                            Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
+                        }
+                        else 
+                        {
+                            $api->cancel($data['symbol'], $orderId);
+                            sleep(1);
+                        }
                     }
                 }
                 foreach ($data['compra'] as $orderId => $rw)
@@ -124,7 +133,18 @@ foreach ($usuarios as $idusuario)
                     {
                         $opr->updateOrder($orderId,$rw['price'],$rw['origQty']);
                     }
+                    if ($rw['status']=='UNKNOWN')
+                    {
+                        $opr->deleteOrder($orderId);
+                        $ordenEliminadaEnBinance = true;
+                        $msg = ' ORDEN DE COMPRA ELIMINADA EN BINANCE (orderId = '.$orderId.')';
+                        Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
+                    }
+
                 }
+
+                if ($ordenEliminadaEnBinance)
+                    continue;
 
                 //Crear las de venta y recompra por apalancamiento
 
