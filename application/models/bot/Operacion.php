@@ -235,6 +235,7 @@ class Operacion extends ModelDB
         {
             $auth = UsrUsuario::getAuthInstance();
         }
+        $idusuario = $auth->get('idusuario');
         $ak = $auth->getConfig('bncak');
         $as = $auth->getConfig('bncas');
         $api = new BinanceAPI($ak,$as);        
@@ -273,6 +274,9 @@ class Operacion extends ModelDB
                                         ") ";
             $ins = 'INSERT INTO operacion_orden (idoperacion,side,origQty,price,orderId) VALUES '.$ins;
             $this->db->query($ins);
+            $msg = ' Buy -> Qty:'.$qty.' Price: MARKET';
+            self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg);
+
             return true;
         } catch (Throwable $e) {
             $msg = $e->getMessage();
