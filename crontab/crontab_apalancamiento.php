@@ -226,7 +226,7 @@ foreach ($usuarios as $idusuario)
                     if ($opr->get('multiplicador_porc_inc'))
                         $multiplicador_porc = $multiplicador_porc*$maxCompraNum; 
                     
-                    $newUsd = $lastUsdBuyed*$opr->get('multiplicador_porc');
+                    $newUsd = $lastUsdBuyed*$opr->get('multiplicador_compra');
                     $newPrice = toDec($lastBuyPrice - ( ($lastBuyPrice * $multiplicador_porc) / 100 ),$symbolData['qtyDecsPrice']);
                     $newQty = toDec(($newUsd/$newPrice),($symbolData['qtyDecs']*1));
         
