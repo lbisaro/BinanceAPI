@@ -188,6 +188,7 @@ foreach ($usuarios as $idusuario)
                     }
                 }
                 //Si la cantidad de unidades compradas segun DB es mayor a la cantidad de unidades en API
+                //Toma la cantidad de unidades en la API
                 if (($totUnitsBuyed*1) > ($unitsFree*1))
                     $totUnitsBuyed = $unitsFree;
                 
