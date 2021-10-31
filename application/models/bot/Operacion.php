@@ -275,7 +275,7 @@ class Operacion extends ModelDB
             $ins = 'INSERT INTO operacion_orden (idoperacion,side,origQty,price,orderId) VALUES '.$ins;
             $this->db->query($ins);
             $msg = ' Buy -> Qty:'.$qty.' Price: MARKET';
-            self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg);
+            self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
 
             return true;
         } catch (Throwable $e) {
@@ -508,7 +508,7 @@ class Operacion extends ModelDB
     }
 
     //LOG del Crontab BOT
-    static function logBot($msg)
+    static function logBot($msg,$echo=true)
     {
         if (strstr(strtolower($msg),'error'))
             $logFile = LOG_PATH.'bot/bot_error_'.date('Ymd').'.log';
@@ -516,8 +516,9 @@ class Operacion extends ModelDB
             $logFile = LOG_PATH.'bot/bot_'.date('Ymd').'.log';
 
         $msg = "\n".date('H:i:s').' '.$msg;
-        file_put_contents($logFile, $msg,FILE_APPEND);  
-        echo $msg; 
+        file_put_contents($logFile, $msg,FILE_APPEND);
+        if ($echo)  
+            echo $msg; 
     }
 
     function delete()
