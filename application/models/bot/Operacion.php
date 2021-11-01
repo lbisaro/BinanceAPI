@@ -290,15 +290,18 @@ class Operacion extends ModelDB
     {
         if ($this->data['idoperacion'])
         {
-            if ($this->status() == self::OP_STATUS_COMPLETED)
-            {
-                $upd = "UPDATE operacion_orden SET completed = 1 
-                        WHERE idoperacion = ".$this->data['idoperacion']." AND completed = 0";
-                $this->db->query($upd);      
+            $this->complete();
+            $this->start();  
+        }
+    }
 
-            }
-            $this->start();
-            
+    function complete()
+    {
+        if ($this->status() == self::OP_STATUS_COMPLETED)
+        {
+            $upd = "UPDATE operacion_orden SET completed = 1 
+                    WHERE idoperacion = ".$this->data['idoperacion']." AND completed = 0";
+            $this->db->query($upd);      
         }
     }
 

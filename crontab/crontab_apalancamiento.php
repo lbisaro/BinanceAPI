@@ -293,6 +293,10 @@ foreach ($usuarios as $idusuario)
             {
                 $opr->restart();
             }
+            elseif (!$opr->autoRestart() && $opr->status() == Operacion::OP_STATUS_COMPLETED)
+            {
+                $opr->complete();
+            }
         }
     }
 }
