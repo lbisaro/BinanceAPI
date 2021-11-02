@@ -23,6 +23,10 @@ class Operacion extends ModelDB
     const OR_STATUS_FILLED = 10;
 
 
+    const PORCENTAJE_VENTA_UP = 2;
+    const PORCENTAJE_VENTA_DOWN = 1.75;
+
+
     function __Construct($id=null)
     {
         if (!is_dir(LOG_PATH.'bot'))
@@ -257,7 +261,7 @@ class Operacion extends ModelDB
         $usd = $this->data['inicio_usd'];
         $qty = toDec($usd/$data['price'],$data['qtyDecs']);
         try {
-            $order = $api->marketBuy($symbol, $qty);
+            //$order = $api->marketBuy($symbol, $qty);
             $opr[1]['idoperacion']  = $this->data['idoperacion'];
             $opr[1]['side']         = self::SIDE_BUY;
             $opr[1]['origQty']      = $qty;

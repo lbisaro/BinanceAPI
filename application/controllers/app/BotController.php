@@ -59,6 +59,9 @@ class BotController extends Controller
         $arr['data'] = '';
         $arr['hidden'] = '';
 
+        $arr['PORCENTAJE_VENTA_UP'] = toDec(Operacion::PORCENTAJE_VENTA_UP);
+        $arr['PORCENTAJE_VENTA_DOWN'] = toDec(Operacion::PORCENTAJE_VENTA_DOWN);
+
         $this->addView('bot/crearOperacion',$arr);
     }   
 

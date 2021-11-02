@@ -8,10 +8,6 @@ $procStartU = microtime(true);
 file_put_contents(STATUS_FILE, $procStart);
 
 
-define('PORCENTAJE_VENTA_UP',2);
-define('PORCENTAJE_VENTA_DOWN',1.75);
-
-
 //Operacion::logBot('START');
 
 $opr = new Operacion();
@@ -194,9 +190,9 @@ foreach ($usuarios as $idusuario)
                 
                 //Orden para venta
                 if ($maxCompraNum==1) 
-                    $porcentaje = PORCENTAJE_VENTA_UP;
+                    $porcentaje = Operacion::PORCENTAJE_VENTA_UP;
                 else
-                    $porcentaje = PORCENTAJE_VENTA_DOWN;
+                    $porcentaje = Operacion::PORCENTAJE_VENTA_DOWN;
 
                 $newUsd = $totUsdBuyed * (1+($porcentaje/100));
                 $newPrice = toDec(($newUsd / $totUnitsBuyed),$symbolData['qtyDecsPrice']);
