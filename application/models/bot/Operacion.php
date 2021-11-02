@@ -261,7 +261,7 @@ class Operacion extends ModelDB
         $usd = $this->data['inicio_usd'];
         $qty = toDec($usd/$data['price'],$data['qtyDecs']);
         try {
-            //$order = $api->marketBuy($symbol, $qty);
+            $order = $api->marketBuy($symbol, $qty);
             $opr[1]['idoperacion']  = $this->data['idoperacion'];
             $opr[1]['side']         = self::SIDE_BUY;
             $opr[1]['origQty']      = $qty;
