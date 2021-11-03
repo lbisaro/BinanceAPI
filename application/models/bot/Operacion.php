@@ -313,7 +313,7 @@ class Operacion extends ModelDB
                     WHERE idoperacion = ".$this->data['idoperacion']." AND completed = 0";
             $this->db->query($upd);      
             $msg = ' COMPLETE ORDER';
-            self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+            self::logBot('u:'.$this->data['idusuario'].' o:'.$this->data['idoperacion'].' s:'.$this->data['symbol'].' '.$msg,$echo=false);
 
         }
     }
