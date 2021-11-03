@@ -523,12 +523,15 @@ class Operacion extends ModelDB
     //LOG del Crontab BOT
     static function logBot($msg,$echo=true)
     {
-        if (strstr(strtolower($msg),'error'))
-            $logFile = LOG_PATH.'bot/bot_error_'.date('Ymd').'.log';
-        else
-            $logFile = LOG_PATH.'bot/bot_'.date('Ymd').'.log';
-
         $msg = "\n".date('H:i:s').' '.$msg;
+
+        if (strstr(strtolower($msg),'error'))
+        {
+            $logFile = LOG_PATH.'bot/bot_error_'.date('Ymd').'.log';
+            file_put_contents($logFile, $msg,FILE_APPEND);
+        }        
+        
+        $logFile = LOG_PATH.'bot/bot_'.date('Ymd').'.log';
         file_put_contents($logFile, $msg,FILE_APPEND);
         if ($echo)  
             echo $msg; 
