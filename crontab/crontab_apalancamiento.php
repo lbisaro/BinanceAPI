@@ -11,6 +11,7 @@ file_put_contents(STATUS_FILE, $procStart);
 //Operacion::logBot('START');
 
 $usr = new UsrUsuario();
+$opr = new Operacion();
 //Lista usuarios con ordenes existentes
 $usuarios = $opr->getUsuariosActivos();
     
@@ -22,7 +23,6 @@ foreach ($usuarios as $idusuario)
     if (isset($api))
         unset($api);
     
-    $opr = new Operacion();
 
     $usr->reset();
     $usr->load($idusuario);
