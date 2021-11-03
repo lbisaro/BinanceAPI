@@ -27,6 +27,9 @@ class CriptoController extends Controller
         else
         {
             $api = new BinanceAPI($ak,$as);
+
+            $prices = $api->prices();
+
             $account = $api->account();
             $dg = new HtmlTableDg(null,null,'table table-hover table-striped');
             $dg->addHeader('Asset');
@@ -48,21 +51,34 @@ class CriptoController extends Controller
             {
                 if (!isset($balance[$rw['asset']]) && ( $rw['free'] > 0 || $rw['locked'] > 0 ) )
                 {
-                    $rw['free'] = $rw['free']*1;
-                    $rw['locked'] = $rw['locked']*1;
+                    $rw['free'] = toDec($rw['free']*$prices[$rw['asset'].'USDT']);
+                    $rw['locked'] = toDec($rw['locked']*$prices[$rw['asset'].'USDT']);
                     $balance[$rw['asset']] = $rw;
                 }
             }
 
+            $totTotal = 0;
+            $totLocked = 0;
+            $totFree = 0;
             foreach ($balance as $rw)
             {
+                $total = $rw['free']+$rw['locked'];
+                $locked = $rw['locked'];
+                $free = $rw['free'];
                 $row = array();
                 $row[] = ($rw['usd_flag']?'<strong>'.$rw['asset'].'</strong>':$rw['asset']);
-                $row[] = $rw['free']+$rw['locked'];
-                $row[] = $rw['locked'];
-                $row[] = $rw['free'];
+                $row[] = ($total>0?$total:'');
+                $row[] = ($locked>0?$locked:'');
+                $row[] = ($free>0?$free:'');
                 $dg->addRow($row);
+    
+                $totTotal += $total;
+                $totLocked += $locked;
+                $totFree += $free;
+
             }
+
+            $dg->addFooter(array('Totales',$totTotal,$totLocked,$totFree));
 
             $arr['data'] = $dg->get();
         }
