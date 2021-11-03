@@ -3,7 +3,13 @@ include_once LIB_PATH."ModelDB.php";
 
 class Operacion extends ModelDB
 {
-    protected $query = "SELECT * FROM operacion";
+    protected $query = "SELECT operacion.*,
+                               ( SELECT count(idoperacionorden) 
+                                   FROM operacion_orden 
+                                  WHERE operacion.idoperacion = operacion_orden.idoperacion
+                                    AND completed = 0 AND status = 10 AND side = 0) 
+                                compras   
+                        FROM operacion";
 
     protected $pKey  = 'idoperacion';
 

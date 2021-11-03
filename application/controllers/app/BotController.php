@@ -34,13 +34,17 @@ class BotController extends Controller
             $opr->set($rw);
             $link = '<a class="" href="'.Controller::getLink('app','bot','verOperacion','id='.$opr->get('idoperacion')).'">'.$opr->get('symbol').'</a>';
             $autoRestart = '<span class="glyphicon glyphicon-'.($opr->autoRestart()?'ok text-success':'ban-circle text-danger').'"></span>';
-
+            $compras = $opr->get('compras');
+            if ($compras < 1)
+                $strCompras = '';
+            else
+                $strCompras = ' <br/>Compras x '.$compras;
             $data = array($link,
                           $opr->get('inicio_usd'),
                           $opr->get('multiplicador_compra'),
                           $opr->get('multiplicador_porc').
                                      ($opr->get('multiplicador_porc_inc')?' Incremental':''),
-                          $opr->get('strEstado'),
+                          $opr->get('strEstado').$strCompras,
                           $autoRestart
                           );
             $dg->addRow($data);

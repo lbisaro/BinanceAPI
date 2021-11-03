@@ -21,14 +21,13 @@ foreach ($usuarios as $idusuario)
         unset($opr);
     $opr = new Operacion();
 
-    if (isset($api))
-        unset($api);
-    
-
     $usr->reset();
     $usr->load($idusuario);
     $ak = $usr->getConfig('bncak');
     $as = $usr->getConfig('bncas');
+
+    if (isset($api))
+        unset($api);
     $api = new BinanceAPI($ak,$as);      
 
     //CONTROLAR SI EL USUARIO TIENE LAS CLAVES CORRECTAS
