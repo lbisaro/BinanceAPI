@@ -188,6 +188,9 @@ foreach ($usuarios as $idusuario)
                             $maxCompraNum = $order['compraNum'];
                     }
                 }
+
+                $strControlUnitsBuyed = ' - totUnitsBuyed: '.$totUnitsBuyed.' - unitsFree: '.$unitsFree;
+                $strControlUsdFreeToBuy = ' - usdFreeToBuy: '.$usdFreeToBuy;
                 //Si la cantidad de unidades compradas segun DB es mayor a la cantidad de unidades en API
                 //Toma la cantidad de unidades en la API
                 if (($totUnitsBuyed*1) > ($unitsFree*1))
@@ -216,7 +219,7 @@ foreach ($usuarios as $idusuario)
                     $aOpr['orderId']      = $limitOrder['orderId'];
                     $opr->insertOrden($aOpr); 
                 } catch (Throwable $e) {
-                    $msg = "Error: " . $e->getMessage();
+                    $msg = "Error: " . $e->getMessage().$strControlUnitsBuyed;
                     Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
                     $errorEnOrden = true;
                 }
@@ -246,14 +249,14 @@ foreach ($usuarios as $idusuario)
                             $aOpr['orderId']      = $limitOrder['orderId'];
                             $opr->insertOrden($aOpr);               
                         } catch (Throwable $e) {
-                            $msg = "Error: " . $e->getMessage();
+                            $msg = "Error: " . $e->getMessage().$strControlUsdFreeToBuy;
                             Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
                             $errorEnOrden = true;
                         }
                     }
                     else
                     {
-                        $msg = ' Buy -> Qty:'.$newQty.' Price:'.$newPrice.' APALANCAMIENTO INSUFICIENTE';
+                        $msg = ' Buy -> Qty:'.$newQty.' Price:'.$newPrice.' APALANCAMIENTO INSUFICIENTE '.$strControlUsdFreeToBuy;
                         Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
                     }
                 }
