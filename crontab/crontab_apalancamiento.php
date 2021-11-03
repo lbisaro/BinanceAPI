@@ -10,15 +10,20 @@ file_put_contents(STATUS_FILE, $procStart);
 
 //Operacion::logBot('START');
 
-$opr = new Operacion();
 $usr = new UsrUsuario();
 //Lista usuarios con ordenes existentes
 $usuarios = $opr->getUsuariosActivos();
     
 foreach ($usuarios as $idusuario)
 {
+    if (isset($opr))
+        unset($opr);
+
     if (isset($api))
         unset($api);
+    
+    $opr = new Operacion();
+
     $usr->reset();
     $usr->load($idusuario);
     $ak = $usr->getConfig('bncak');
