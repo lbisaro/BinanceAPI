@@ -19,6 +19,7 @@ foreach ($usuarios as $idusuario)
 {
     if (isset($opr))
         unset($opr);
+    $opr = new Operacion();
 
     if (isset($api))
         unset($api);
