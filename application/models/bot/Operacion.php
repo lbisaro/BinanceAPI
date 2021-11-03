@@ -312,6 +312,9 @@ class Operacion extends ModelDB
             $upd = "UPDATE operacion_orden SET completed = 1 
                     WHERE idoperacion = ".$this->data['idoperacion']." AND completed = 0";
             $this->db->query($upd);      
+            $msg = ' COMPLETE ORDER';
+            self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+
         }
     }
 
