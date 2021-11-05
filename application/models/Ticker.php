@@ -1,11 +1,10 @@
 <?php
 include_once LIB_PATH."ModelDB.php";
+include_once MDL_PATH."binance/BinanceAPI.php";
 
 class Ticker extends ModelDB
 {
-    protected $query = "SELECT *, 
-                            (SELECT price FROM prices WHERE prices.tickerid = tickers.tickerid ORDER BY datetime DESC limit 1) price,
-                            (SELECT datetime FROM prices WHERE prices.tickerid = tickers.tickerid ORDER BY datetime DESC limit 1) updated
+    protected $query = "SELECT *
                         FROM tickers";
 
     protected $pKey  = 'tickerid';
@@ -97,8 +96,6 @@ class Ticker extends ModelDB
 
     function addPrices(array $prices)
     {
-$fichero = ROOT_DIR.'/log.txt';
-file_put_contents($fichero, "\n"."addPrices.0 ".date('H:i:s'),FILE_APPEND);
 
         $ds = $this->getDataSet();
         $exists = array();
@@ -107,7 +104,6 @@ file_put_contents($fichero, "\n"."addPrices.0 ".date('H:i:s'),FILE_APPEND);
             foreach ($ds as $rw)
                 $exists[$rw['tickerid']]=$rw;
         }
-file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
 
         //Se resta un minuto a la fecha actual para guardar el precio como cierre del minuto anterior
         $date = date('Y-m-d H:i',strtotime('-1 minute')); 
@@ -216,6 +212,85 @@ file_put_contents($fichero, "\n"."addPrices.1 ".date('H:i:s'),FILE_APPEND);
      * @param: prms - Ej.: ema=7,14 para agregar indicadores ema de 7 y 14 periodos
      */
     function getHistorico($tickerid,$prms)
+    {
+        $auth = UsrUsuario::getAuthInstance();
+        $idusuario = $auth->get('idusuario');
+        $ak = $auth->getConfig('bncak');
+        $as = $auth->getConfig('bncas');
+        $api = new BinanceAPI($ak,$as);        
+
+        $ids = explode(',',$tickerid);
+        $tickerid='';
+
+        foreach ($ids as $id)
+        {
+            $candelistics = $api->candlesticks($id, $interval = "1d", $limit = null, $startTime = null, $endTime = null);
+
+            foreach ($candelistics as $timestamp => $candel)
+            {
+                if (!isset($ret['base0'][$id]) && (float)$candel['close'])
+                {
+                    $ret['base0'][$id] = (float)$candel['close'];
+                    $perc = toDec(0);
+                }
+                else
+                {
+                    $perc =  toDec((((float)$candel['close']/$ret['base0'][$id])-1)*100);
+                }
+                $prices[$id][] = array('date'=>date('c',($timestamp/1000)),
+                                       'price'=> (float)$candel['close'],
+                                       'perc'=> $perc);
+                $lastUpdate = date('Y-m-d H:i',($timestamp/1000));
+            }
+
+            $tickerid .= ($tickerid?',':'')."'".$id."'";
+        }
+
+        /*
+            Busqueda de datos por hora, salvo las ultimas 2 horas que llegan todos los minutos
+                and (minute(datetime) = 0 or 
+                     datetime > DATE_SUB(now(), INTERVAL 2 HOUR)
+                     ) 
+            
+        */
+        $ret['getHistorico']=$thickerid;
+
+        if (isset($prms['ema']))
+        {
+            $ema = explode(',',$prms['ema']);
+            foreach ($prices as $tickerid => $tickerPrices)
+            {
+                foreach ($tickerPrices as $k => $v)
+                    $basePrices[] = $v['price'];
+                
+                $ema0 = trader_ema($basePrices, ($ema[0]*60));
+                $ema1 = trader_ema($basePrices, ($ema[1]*60));
+                foreach ($tickerPrices as $k => $v)
+                {
+                    if ($ema0[$k])
+                        $prices[$tickerid][$k]['ema'.$ema[0]] = $ema0[$k];
+                    if ($ema1[$k])
+                        $prices[$tickerid][$k]['ema'.$ema[1]] = $ema1[$k];
+                }
+            }
+        }
+
+        if (!empty($prices))
+            $ret['prices'] = $prices;
+
+        $ret['updated'] = $lastUpdate;
+        $ret['updatedStr'] = date('d/m/y h:i',strtotime($lastUpdate));
+        if (isset($ret['updated']))
+            $ret['updatedStr'] = date('d/m/y h:i',strtotime($ret['updated']));
+
+        return $ret;
+    }
+
+    /**
+     * @param: tickerid - Puede ser un solo ID o varios separados por coma
+     * @param: prms - Ej.: ema=7,14 para agregar indicadores ema de 7 y 14 periodos
+     */
+    function getHistorico__($tickerid,$prms)
     {
         $ids = explode(',',$tickerid);
         $tickerid='';

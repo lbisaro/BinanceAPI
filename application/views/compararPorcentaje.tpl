@@ -154,12 +154,12 @@ body {
 
     $(document).ready(function() {
         
-        i1 = setInterval(readPrecios,60000); //Refresca la tabla cada 1 minuto
-        i2 = setInterval(function () {
-            updateProgress += parseInt(100/60);
-            $('#updatePB').css('width',updateProgress+'%');
-            $('#updatePB').attr('aria-valuenow',updateProgress);
-        },1000);
+        //i1 = setInterval(readPrecios,60000); //Refresca la tabla cada 1 minuto
+        //i2 = setInterval(function () {
+        //    updateProgress += parseInt(100/60);
+        //    $('#updatePB').css('width',updateProgress+'%');
+        //    $('#updatePB').attr('aria-valuenow',updateProgress);
+        //},1000);
 
         $('#tickerid2').focus();
 

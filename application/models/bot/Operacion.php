@@ -1,5 +1,6 @@
 <?php
 include_once LIB_PATH."ModelDB.php";
+include_once MDL_PATH."binance/BinanceAPI.php";
 
 class Operacion extends ModelDB
 {
