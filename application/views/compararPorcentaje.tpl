@@ -194,75 +194,83 @@ body {
         $.getJSON( url, function( info ) {
             if (info)
             {
-                $('#last_update').html(`Actualizado <strong>${info.updatedStr}</strong>`);
-                var s=0;
-                if (info.prices)
+                if (info.error)
                 {
-                    am4core.ready(function() {
+                    $('#chartdiv').html('<div class="alert alert-danger">ERROR: '+info.error+'</div>');
+                }
+                else
+                {
 
-                        // Themes begin
-                        am4core.useTheme(am4themes_dark);
-                        //am4core.useTheme(am4themes_animated);
-                        // Themes end
+                    $('#last_update').html(`Actualizado <strong>${info.updatedStr}</strong>`);
+                    var s=0;
+                    if (info.prices)
+                    {
+                        am4core.ready(function() {
 
-                        // Create chart instance
-                        var chart = am4core.create("chartdiv", am4charts.XYChart);
+                            // Themes begin
+                            am4core.useTheme(am4themes_dark);
+                            //am4core.useTheme(am4themes_animated);
+                            // Themes end
 
-                        // Create axes
-                        var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
-                            dateAxis.dataFields.category = "datetime";
-                        var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-                            valueAxis.dataFields.category = "percent";
-                            valueAxis.title.text = "% respecto al inicio";
-     
-                        //
-                        chart.cursor = new am4charts.XYCursor();
-                        chart.cursor.xAxis = dateAxis;
+                            // Create chart instance
+                            var chart = am4core.create("chartdiv", am4charts.XYChart);
+
+                            // Create axes
+                            var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+                                dateAxis.dataFields.category = "datetime";
+                            var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
+                                valueAxis.dataFields.category = "percent";
+                                valueAxis.title.text = "% respecto al inicio";
+         
+                            //
+                            chart.cursor = new am4charts.XYCursor();
+                            chart.cursor.xAxis = dateAxis;
 
 
-                        //Adding data
-                        $.each(info.prices, function(tickerid, prices) {
-                            var series = chart.series.push(new am4charts.LineSeries());
-                            series.dataFields.valueY = "value" + s;
-                            series.dataFields.dateX = "date";
-                            series.name = tickerid;
-                            series.tooltipText = "{valueY.value}%";
+                            //Adding data
+                            $.each(info.prices, function(tickerid, prices) {
+                                var series = chart.series.push(new am4charts.LineSeries());
+                                series.dataFields.valueY = "value" + s;
+                                series.dataFields.dateX = "date";
+                                series.name = tickerid;
+                                series.tooltipText = "{valueY.value}%";
 
-                            series.tooltip.getFillFromObject = false;
-                            series.tooltip.background.fill = am4core.color(colors[s]);
-                            series.tooltip.label.fill = am4core.color('#fff');
+                                series.tooltip.getFillFromObject = false;
+                                series.tooltip.background.fill = am4core.color(colors[s]);
+                                series.tooltip.label.fill = am4core.color('#fff');
 
-                            series.strokeWidth = 2; // 3px
-                            series.stroke = am4core.color(colors[s]); 
+                                series.strokeWidth = 2; // 3px
+                                series.stroke = am4core.color(colors[s]); 
+                                
+                                var segment = series.segments.template;
+                                segment.interactionsEnabled = true;
+                                
+                                var hoverState = segment.states.create("hover");
+                                hoverState.properties.strokeWidth = 1;
+                                
+                                var dimmed = segment.states.create("dimmed");
+                                dimmed.properties.stroke = am4core.color("#dadada");
+                                
+                                var data = [];
+                                for (var i = 1; i < prices.length; i++) {
+                                    var dataItem = { date: new Date(prices[i].date) };
+                                    dataItem["value" + s] = prices[i].perc;
+                                    data.push(dataItem);
+                                }
+                                
+                                series.data = data;
+                                s++;       
+                            });
+
+                            chart.legend = new am4charts.Legend();
+
+                            chart.legend.position = "top";
+                            chart.legend.scrollable = false;
+
                             
-                            var segment = series.segments.template;
-                            segment.interactionsEnabled = true;
-                            
-                            var hoverState = segment.states.create("hover");
-                            hoverState.properties.strokeWidth = 1;
-                            
-                            var dimmed = segment.states.create("dimmed");
-                            dimmed.properties.stroke = am4core.color("#dadada");
-                            
-                            var data = [];
-                            for (var i = 1; i < prices.length; i++) {
-                                var dataItem = { date: new Date(prices[i].date) };
-                                dataItem["value" + s] = prices[i].perc;
-                                data.push(dataItem);
-                            }
-                            
-                            series.data = data;
-                            s++;       
-                        });
 
-                        chart.legend = new am4charts.Legend();
-
-                        chart.legend.position = "top";
-                        chart.legend.scrollable = false;
-
-                        
-
-                    }); // end am4core.ready()
+                        }); // end am4core.ready()
+                    }
                 }
             }
         });

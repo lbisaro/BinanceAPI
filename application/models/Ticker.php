@@ -224,7 +224,12 @@ class Ticker extends ModelDB
 
         foreach ($ids as $id)
         {
-            $candelistics = $api->candlesticks($id, $interval = "1d", $limit = null, $startTime = null, $endTime = null);
+            $id = strtoupper($id);
+            try {
+                $candelistics = $api->candlesticks($id, $interval = "1d", $limit = null, $startTime = null, $endTime = null);
+            } catch (Throwable $e) {
+                $ret['error'] = 'No fue posible encontrar precios para la moneda '.$id;
+            }
 
             foreach ($candelistics as $timestamp => $candel)
             {
