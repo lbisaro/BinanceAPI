@@ -1,54 +1,12 @@
-<!-- Styles -->
 <style>
-body {
-    background-color: #454d55;
-}
-#chartdiv {
-  width: 100%;
-  height: 500px;
-}
+    body {
+        background-color: #454d55;
+    }
+    #chartdiv {
+        width: 100%;
+        height: 500px;
+    }
 </style>
-<style>
-
-.typeahead {
-    width: 100%;
-}
-.tt-hint {
-    color: #999999;
-}
-.tt-menu {
-    background-color: #FFFFFF;
-    border: 1px solid rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-    margin-top: 12px;
-    padding: 8px 0;
-    width: 120px;
-}
-.tt-suggestion {
-    padding: 4px 20px;
-    color: #888;
-    border-radius: 5px;
-    font-size: 1em;
-}
-.tt-suggestion:hover {
-    cursor: pointer;
-    background-color: #0097CF;
-    color: #ddd;
-}
-.tt-suggestion:hover .tt-highlight {
-    color: #fff;
-}
-.tt-highlight {
-    font-weight: normal;
-    color: #0097CF;
-}
-
-.tt-suggestion p {
-    margin: 0;
-}
-</style>
-<!-- Autocomplete-->
 
 
 <!-- FUENTE: 
@@ -61,52 +19,85 @@ body {
 -->
 
 
-<div class="container-fluid" id="variacion_del_precio">
+<div class="container-fluid" >
     <div class="d-flex justify-content-between">
-        <div>
-            <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#cambiar-moneda">
-              Cambiar Moneda
-            </button>
-        </div>
-        <div>
-            <div id="last_update" class="text-success"></div>  
-            <div class="progress">
-              <div id="updatePB" class="progress-bar progress-bar-striped bg-success" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-            </div>    
-        </div>
+        <form>
+            <div class="container text-light" >
+                
+                <div class="row">
+                    <div class="col">
+                        Moneda 1
+                    </div>
+                    <div class="col">
+                        Moneda 2                
+                    </div>
+                    <div class="col">
+                        Base
+                    </div>
+                    <div class="col">
+                        Intervalo
+                    </div>
+                     <div class="col">
+                        Velas
+                    </div>
+                    <div class="col">
+                        
+                    </div>
+                </div>           
+                <div class="row">
+                    <div class="col">
+                        <div class="input-group">
+                            <input class="form-control form-control-sm force-uppercase" id="asset1" >
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="input-group">
+                            <input class="form-control form-control-sm force-uppercase" id="asset2" value="BTC" >
+                        </div>                
+                    </div>
+                    <div class="col">
+                        <div class="input-group">
+                            <input class="form-control form-control-sm force-uppercase" id="assetQuote" value="USDT" >
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="input-group">
+                            <select class="custom-select custom-select-sm" id="interval">
+                                <option value="1m" >1m</option>
+                                <option value="3m" >3m</option>
+                                <option value="5m" >5m</option>
+                                <option value="15m" >15m</option>
+                                <option value="30m" >30m</option>
+                                <option value="1h" >1h</option>
+                                <option value="2h" >2h</option>
+                                <option value="4h" >4h</option>
+                                <option value="6h" >6h</option>
+                                <option value="8h" >8h</option>
+                                <option value="12h" >12h</option>
+                                <option value="1d" SELECTED >1d</option>
+                                <option value="3d" >3d</option>
+                                <option value="1w" >1w</option>
+                                <option value="1M" >1M</option>
+                            </select>
+                        </div>
+                    </div>
+                     <div class="col">
+                        <div class="input-group">
+                            <input class="form-control form-control-sm" id="limit" value="500" >
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="input-group">
+                            <button type="button" class="btn btn-sm btn-success" onclick="readPrecios()">Comparar</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
     </div>
     <div id="chartdiv" class="text-light"></div>
-
 </div>
 
-<div id="cambiar-moneda" class="modal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 class="modal-title">Comparar <strong>BTCUSDT</strong></h3>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div>
-            <form>
-                <div class="input-group">
-                    <input class="form-control typeahead " id="tickerid2" autocomplete="off" spellcheck="false">
-                </div>
-                <input class="form-control typeahead " id="tickerid1" value="BTCUSDT" type="hidden">
-            </form>
-        </div>
-
-
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-        <button type="button" class="btn btn-success" onclick="readPrecios()">Comparar</button>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- Resources -->
 <!-- Chart code -->
@@ -124,34 +115,6 @@ body {
     var updateProgress=0;
     var i1,i2;
 
-    $('#cambiar-moneda').modal({
-        show: true,
-    });
-
-    /** AUTOCOMPLETE  */
-
-    //Tickers ID list
-    {{availableTickers}}
-
-    // Constructing the suggestion engine
-    var availableTickers = new Bloodhound({
-        datumTokenizer: Bloodhound.tokenizers.whitespace,
-        queryTokenizer: Bloodhound.tokenizers.whitespace,
-        local: availableTickers
-    });
-
-    // Initializing the typeahead
-    $('.typeahead').typeahead({
-        hint: true,
-        highlight: true, /* Enable substring highlighting */
-        minLength: 1 /* Specify minimum characters required for showing result */
-    },
-    {
-        name: 'AvailableTickers',
-        source: availableTickers
-    });
-    /** AUTOCOMPLETE -END */
-
     $(document).ready(function() {
         
         //i1 = setInterval(readPrecios,60000); //Refresca la tabla cada 1 minuto
@@ -161,11 +124,15 @@ body {
         //    $('#updatePB').attr('aria-valuenow',updateProgress);
         //},1000);
 
-        $('#tickerid2').focus();
+        $('#asset1').focus();
 
-        $('.typeahead').change(function () {
-            readPrecios();
+        $('.force-uppercase').each(function () {
+            $(this).change(function () {
+                var str = $(this).val().toUpperCase();
+                $(this).val(str);
+            });
         });
+
     });
 
     var colors = [
@@ -183,14 +150,13 @@ body {
     function readPrecios() 
     {
         $('#chartdiv').html('Cargando grafico...');
-        $('.tt-menu').dropdown('hide');
-        $('#cambiar-moneda').modal('hide');
-
+        
         updateProgress=0;
-        var tckr1 = $("#tickerid1").val();
-        var tckr2 = $("#tickerid2").val();
-        var url = `app.CriptoAjax.historico+tickerid=${tckr2},${tckr1}`;
-        console.log(url);
+        var tckr1 = $("#asset1").val()+$("#assetQuote").val();
+        var tckr2 = $("#asset2").val()+$("#assetQuote").val();
+        var limit = $("#limit").val();
+        var interval = $('#interval option:selected').val();
+        var url = `app.CriptoAjax.historico+tickerid=${tckr2},${tckr1}&interval=${interval}&limit=${limit}`;
         $.getJSON( url, function( info ) {
             if (info)
             {

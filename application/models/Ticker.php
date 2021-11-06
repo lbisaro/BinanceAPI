@@ -213,6 +213,12 @@ class Ticker extends ModelDB
      */
     function getHistorico($tickerid,$prms)
     {
+        //Parametros por default
+        $interval  = ($prms['interval']?$prms['interval']:'1h');
+        $limit     = ($prms['limit']?$prms['limit']:null);
+        $startTime = ($prms['startTime']?$prms['startTime']:null);
+        $startTime = ($prms['endTime']?$prms['endTime']:null);
+
         $auth = UsrUsuario::getAuthInstance();
         $idusuario = $auth->get('idusuario');
         $ak = $auth->getConfig('bncak');
@@ -226,7 +232,7 @@ class Ticker extends ModelDB
         {
             $id = strtoupper($id);
             try {
-                $candelistics = $api->candlesticks($id, $interval = "1d", $limit = null, $startTime = null, $endTime = null);
+                $candelistics = $api->candlesticks($id, $interval, $limit, $startTime, $endTime);
             } catch (Throwable $e) {
                 $ret['error'] = 'No fue posible encontrar precios para la moneda '.$id;
             }
@@ -251,13 +257,6 @@ class Ticker extends ModelDB
             $tickerid .= ($tickerid?',':'')."'".$id."'";
         }
 
-        /*
-            Busqueda de datos por hora, salvo las ultimas 2 horas que llegan todos los minutos
-                and (minute(datetime) = 0 or 
-                     datetime > DATE_SUB(now(), INTERVAL 2 HOUR)
-                     ) 
-            
-        */
         $ret['getHistorico']=$thickerid;
 
         if (isset($prms['ema']))
@@ -268,81 +267,8 @@ class Ticker extends ModelDB
                 foreach ($tickerPrices as $k => $v)
                     $basePrices[] = $v['price'];
                 
-                $ema0 = trader_ema($basePrices, ($ema[0]*60));
-                $ema1 = trader_ema($basePrices, ($ema[1]*60));
-                foreach ($tickerPrices as $k => $v)
-                {
-                    if ($ema0[$k])
-                        $prices[$tickerid][$k]['ema'.$ema[0]] = $ema0[$k];
-                    if ($ema1[$k])
-                        $prices[$tickerid][$k]['ema'.$ema[1]] = $ema1[$k];
-                }
-            }
-        }
-
-        if (!empty($prices))
-            $ret['prices'] = $prices;
-
-        $ret['updated'] = $lastUpdate;
-        $ret['updatedStr'] = date('d/m/y h:i',strtotime($lastUpdate));
-        if (isset($ret['updated']))
-            $ret['updatedStr'] = date('d/m/y h:i',strtotime($ret['updated']));
-
-        return $ret;
-    }
-
-    /**
-     * @param: tickerid - Puede ser un solo ID o varios separados por coma
-     * @param: prms - Ej.: ema=7,14 para agregar indicadores ema de 7 y 14 periodos
-     */
-    function getHistorico__($tickerid,$prms)
-    {
-        $ids = explode(',',$tickerid);
-        $tickerid='';
-        foreach ($ids as $id)
-            $tickerid .= ($tickerid?',':'')."'".$id."'";
-        $qry = "SELECT * 
-                FROM prices 
-                WHERE tickerid in (".$tickerid.")
-                ORDER BY datetime"; 
-
-        /*
-            Busqueda de datos por hora, salvo las ultimas 2 horas que llegan todos los minutos
-                and (minute(datetime) = 0 or 
-                     datetime > DATE_SUB(now(), INTERVAL 2 HOUR)
-                     ) 
-            
-        */
-        $ret['getHistorico']=$thickerid;
-        $stmt = $this->db->query($qry);
-
-        while ($rw = $stmt->fetch())
-        {
-            if (!isset($ret['base0'][$rw['tickerid']]) && $rw['price'])
-            {
-                $ret['base0'][$rw['tickerid']] = $rw['price'];
-                $perc = toDec(0);
-            }
-            else
-            {
-                $perc =  toDec((($rw['price']/$ret['base0'][$rw['tickerid']])-1)*100);
-            }
-            $prices[$rw['tickerid']][] = array('date'=>date('c',strToTime($rw['datetime'])),
-                                               'price'=> (float)$rw['price'],
-                                               'perc'=> $perc);
-            $lastUpdate = $rw['datetime'];     
-        }
-
-        if (isset($prms['ema']))
-        {
-            $ema = explode(',',$prms['ema']);
-            foreach ($prices as $tickerid => $tickerPrices)
-            {
-                foreach ($tickerPrices as $k => $v)
-                    $basePrices[] = $v['price'];
-                
-                $ema0 = trader_ema($basePrices, ($ema[0]*60));
-                $ema1 = trader_ema($basePrices, ($ema[1]*60));
+                $ema0 = trader_ema($basePrices, ($ema[0]));
+                $ema1 = trader_ema($basePrices, ($ema[1]));
                 foreach ($tickerPrices as $k => $v)
                 {
                     if ($ema0[$k])

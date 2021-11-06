@@ -21,8 +21,10 @@ class CriptoAjax extends ControllerAjax
     }
     function historico()
     {
-        $tickerid = $_REQUEST['tickerid'];
         $prms=array();
+        $tickerid = $_REQUEST['tickerid'];
+        $prms['interval'] = $_REQUEST['interval'];
+        $prms['limit'] = $_REQUEST['limit'];
         if ($_REQUEST['ema'])
             $prms['ema'] = $_REQUEST['ema'];
         $this->ajxRsp->setEchoOut(true);

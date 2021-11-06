@@ -39,7 +39,7 @@
           <a class="nav-link rounded" href="app.Cripto.home+"><span class="glyphicon glyphicon-btc"></span> Billetera</a>
         </li>        
         <li class="nav-item">
-          <a class="nav-link rounded" href="app.Cripto.compararPorcentaje+"><span class="glyphicon glyphicon-sort"></span> Compara % BTC</a>
+          <a class="nav-link rounded" href="app.Cripto.compararPorcentaje+"><span class="glyphicon glyphicon-sort"></span> Compara %</a>
         </li>        
         <li class="nav-item">
           <a class="nav-link rounded" href="app.bot.operaciones+"><span class="glyphicon glyphicon-modal-window"></span> Bot</a>
