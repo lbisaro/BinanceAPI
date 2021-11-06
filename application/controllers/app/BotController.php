@@ -414,10 +414,7 @@ class BotController extends Controller
         {
             if ($file != '.' && $file != '..' && $file != 'status.log')
             {
-                if (strstr($file,'error'))
-                    $errorFiles[] = $file;
-                else
-                    $logFiles[] = $file;
+                $logFiles[] = $file;
             }
         }
 
@@ -435,14 +432,18 @@ class BotController extends Controller
         {
             $arr['files'] .='<div class="list-group">';
             foreach ($errorFiles as $file)
-                $arr['files'] .= '<a class="list-group-item list-group-item-danger" id="'.$file.'" onclick="show(\''.$file.'\');">'.$file.'</a>';
             $arr['files'] .='</div>';
         }
         if (!empty($logFiles))
         {
             $arr['files'] .='<div class="list-group">';
             foreach ($logFiles as $file)
-                $arr['files'] .= '<a class="list-group-item list-group-item-action" id="'.$file.'" onclick="show(\''.$file.'\');">'.$file.'</a>';
+            {
+                if (substr($file,0,9)=='bot_error')
+                    $arr['files'] .= '<a class="list-group-item list-group-item-danger" id="'.$file.'" onclick="show(\''.$file.'\');">'.$file.'</a>';
+                else
+                    $arr['files'] .= '<a class="list-group-item list-group-item-action" id="'.$file.'" onclick="show(\''.$file.'\');">'.$file.'</a>';
+            }
             $arr['files'] .='</div>';
         }
         
