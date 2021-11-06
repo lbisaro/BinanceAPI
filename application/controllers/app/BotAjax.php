@@ -142,10 +142,11 @@ class BotAjax extends ControllerAjax
             $salto='';
             if (!(substr($linea,-1)==="\n"))
                 $salto .= "\n";
+            if (strstr(strtolower($linea),'error'))
+                $linea = '<span class="text-danger">'.$linea.'</span>';
             $content = $linea.$salto.$content; 
         }
 
-        $content = str_ireplace('error','<b class="text-danger">ERROR</b>',$content);
         $content = str_ireplace('Buy ','<b class="text-success">BUY </b>',$content);
         $content = str_ireplace('Sell ','<b class="text-danger">SELL </b>',$content);
         if (!empty($content))
