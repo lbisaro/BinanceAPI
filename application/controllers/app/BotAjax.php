@@ -154,4 +154,14 @@ class BotAjax extends ControllerAjax
         }
         $this->ajxRsp->script("activate('".$file."')");
     }
+
+    function detenerOperacion()
+    {
+        $idoperacion = $_REQUEST['idoperacion'];
+        $opr = new Operacion($idoperacion);
+        if ($opr->detener())
+            $this->ajxRsp->redirect(Controller::getLink('app','bot','verOperacion','id='.$idoperacion));
+        else
+            $this->ajxRsp->addError($opr->getErrLog());
+    }
 }

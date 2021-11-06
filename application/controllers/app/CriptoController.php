@@ -15,7 +15,7 @@ class CriptoController extends Controller
     
     function home($auth)
     {
-        $this->addTitle('Home');
+        $this->addTitle('Billetera');
 
         $ak = $auth->getConfig('bncak');
         $as = $auth->getConfig('bncas');
@@ -99,7 +99,7 @@ class CriptoController extends Controller
     
     function compararPorcentaje($auth)    
     {
-        $this->addTitle('Comparar');
+        $this->addTitle('Comparar %');
         $tkr = new Ticker();
         $ds = $tkr->getDataSet('','tickerid');
 
@@ -114,7 +114,7 @@ class CriptoController extends Controller
 
     function operaciones($auth)    
     {
-        $this->addTitle('Operaciones');
+        $this->addTitle('Bot');
         $tkr = new Ticker();
         $ds = $tkr->getDataSet('','tickerid');
 

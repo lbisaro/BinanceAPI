@@ -20,7 +20,10 @@
         <span class="data">{{symbol}}</span></td>
       <td>Cantidad de USD compra inicial 
         <span class="data">{{inicio_usd}}</span></td>
-      <td style="text-align: right;"><a class="btn btn-info btn-sm" href="app.bot.editarOperacion+id={{idoperacion}}">Modificar</button></td>
+      <td style="text-align: right;">
+        {{addButtons}}
+        <a class="btn btn-info btn-sm" href="app.bot.editarOperacion+id={{idoperacion}}">Modificar</button>
+        </td>
     </tr>
     <tr>
       <td>Multiplicador Compras 

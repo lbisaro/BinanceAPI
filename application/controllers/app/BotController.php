@@ -15,7 +15,7 @@ class BotController extends Controller
     
     function operaciones($auth)
     {
-        $this->addTitle('Operaciones');
+        $this->addTitle('Bot');
 
         $opr = new Operacion();
         $ds = $opr->getDataset('idusuario = '.$auth->get('idusuario'),'symbol');
@@ -195,9 +195,109 @@ class BotController extends Controller
         //$gananciaPorc = ((($opr->get('inicio_usd')+$gananciaUsd) / $opr->get('inicio_usd')) -1) * 100;
         //$arr['est_gananciaPorc'] = toDec($gananciaPorc,2).'%';
 
+        if ($opr->status() == Operacion::OP_STATUS_ERROR)
+            $arr['addButtons'] = '<a class="btn btn-danger btn-sm" href="app.bot.detenerOperacion+id={{idoperacion}}">Detener</button>';
+
         $this->addView('bot/verOperacion',$arr);
     }    
-    
+
+    function detenerOperacion($auth)
+    {
+        $idoperacion = $_REQUEST['id'];
+        $this->addTitle('Detener Operacion #'.$idoperacion);
+
+        $opr = new Operacion($idoperacion);
+
+        if ($opr->get('idusuario') != $auth->get('idusuario'))
+        {
+            $this->addError('No esta autorizado a visualizar esta pagina.');
+            return false;
+        }
+        $link = '<a href="https://www.binance.com/es/trade/'.$opr->get('symbol').'" target="_blank">'.$opr->get('symbol').'</a>';
+        $arr['idoperacion'] = $idoperacion;
+        $arr['symbol'] = $link;
+        $arr['inicio_usd'] = 'USD '.$opr->get('inicio_usd');
+        $arr['multiplicador_compra'] = $opr->get('multiplicador_compra');
+        $arr['multiplicador_porc'] = $opr->get('multiplicador_porc').'%'.
+                                     ($opr->get('multiplicador_porc_inc')?' Incremental':'');
+        $arr['estado'] = $opr->get('strEstado');
+
+        if ($opr->autoRestart())
+            $autoRestart = '<span class="glyphicon glyphicon-ok"></span>';
+        else
+            $autoRestart = '<span class="glyphicon glyphicon-ban-circle"></span>';
+
+        $arr['auto-restart'] = $autoRestart;
+        $arr['hidden'] = Html::getTagInput('idoperacion',$opr->get('idoperacion'),'hidden');
+
+        $ordenes = $opr->getOrdenes($enCurso=false);
+
+        $dgA = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
+        $dgA->addHeader('ID');
+        $dgA->addHeader('Tipo');
+        $dgA->addHeader('Unidades',null,null,'right');
+        $dgA->addHeader('Precio',null,null,'right');
+        $dgA->addHeader('USD',null,null,'right');
+        $dgA->addHeader('Estado');
+        $dgA->addHeader('Fecha Hora');
+
+        $dgB = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
+        $dgB->addHeader('ID');
+        $dgB->addHeader('Tipo');
+        $dgB->addHeader('Unidades',null,null,'right');
+        $dgB->addHeader('Precio',null,null,'right');
+        $dgB->addHeader('USD',null,null,'right');
+        $dgB->addHeader('Estado');
+        $dgB->addHeader('Fecha Hora');
+
+        $totVentas = 0;
+        $gananciaUsd = 0;
+        foreach ($ordenes as $rw)
+        {
+            $usd = toDec($rw['origQty']*$rw['price']);
+
+            if (!$rw['completed'] && $rw['side']==Operacion::SIDE_BUY)
+                $rw['sideStr'] .= ' #'.$rw['compraNum'];
+
+            $link = '<a href="app.bot.verOrden+symbol='.$opr->get('symbol').'&orderId='.$rw['orderId'].'" target="_blank">'.$rw['orderId'].'</a>';
+        
+            $row = array($link,
+                         $rw['sideStr'],
+                         ($rw['origQty']*1),
+                         ($rw['price']*1),
+                         ($rw['side']==Operacion::SIDE_BUY?'-':'').$usd,
+                         $rw['statusStr'],
+                         $rw['updatedStr']
+                        );
+
+            if (!$rw['completed'])
+                $dgA->addRow($row,$rw['sideClass'],null,null,$id='ord_'.$rw['orderId']);
+            else
+                $dgB->addRow($row,$rw['sideClass'],null,null,$id='ord_'.$rw['orderId']);
+
+            if ($rw['completed'])
+            {
+                if ($rw['side']==Operacion::SIDE_SELL)
+                {
+                    $totVentas++;
+                    $gananciaUsd += $usd;
+                }
+                else
+                {
+                    $gananciaUsd -= $usd;
+                }
+            }
+
+        }
+
+        $arr['ordenesActivas'] = $dgA->get();
+        $arr['idoperacion'] = $opr->get('idoperacion');
+
+        if ($opr->status() == Operacion::OP_STATUS_ERROR)
+            $arr['addButtons'] = '<button class="btn btn-danger btn-block" onclick="detenerOperacion();">Detener la operacion para finalizarla manualmente en Binance.com</button>';
+
+        $this->addView('bot/detenerOperacion',$arr);
+    }       
 
     function revisarEstrategia($auth)    
     {
@@ -303,6 +403,8 @@ class BotController extends Controller
     
     function log($auth)
     {
+        $this->addTitle('Log');
+
         $folder = LOG_PATH.'bot/';
         $logFiles=array();
         $errorFiles=array();

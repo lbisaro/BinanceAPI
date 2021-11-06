@@ -555,4 +555,23 @@ class Operacion extends ModelDB
         }
     }
 
+    function detener()
+    {
+        if ($this->data['idoperacion'])
+        {
+            if ($this->status() == self::OP_STATUS_ERROR)
+            {
+                $this->autoRestartOff();
+                $del = 'DELETE FROM operacion_orden 
+                              WHERE idoperacion = '.$this->data['idoperacion'].'
+                                AND completed = 0';
+                $this->db->query($del);
+                return true;
+            }
+            else
+            {
+                $this->errLog->add('Para detener una Operacion, la misma debe estar en estado de Error.');
+            }
+        }
+    }
 }
