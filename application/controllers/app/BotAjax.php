@@ -144,6 +144,10 @@ class BotAjax extends ControllerAjax
                 $salto .= "\n";
             $content = $linea.$salto.$content; 
         }
+
+        $content = str_ireplace('error','<b class="text-danger">ERROR</b>',$content);
+        $content = str_ireplace('Buy ','<b class="text-success">BUY </b>',$content);
+        $content = str_ireplace('Sell ','<b class="text-danger">SELL </b>',$content);
         if (!empty($content))
         {
             $this->ajxRsp->assign('contenido','innerHTML','<code class="text-dark">'.nl2br($content).'</code>');
