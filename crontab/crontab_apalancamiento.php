@@ -133,7 +133,19 @@ foreach ($usuarios as $idusuario)
                     {
                         $opr->deleteOrder($orderId);
                         $api->cancel($data['symbol'], $orderId);
+                        $msg = ' Cancelar ORDEN DE VENTA en Binance (orderId = '.$orderId.')';
+                        Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
+
+                        //Control sobre la API de Binance para confirmar que la orden fue eliminada
                         sleep(1);
+                        $orderStatus = $api->orderStatus($order['symbol'],$orderId);
+                        while ($orderStatus['status']!='CANCELED')
+                        {
+                            $msg = ' ORDEN DE VENTA PENDIENTE DE ELIMINAR EN BINANCE (orderId = '.$orderId.')';
+                            Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
+                            sleep(1);
+                            $orderStatus = $api->orderStatus($order['symbol'],$orderId);
+                        }
                     }
                 }
                 foreach ($data['compra'] as $orderId => $rw)
@@ -147,6 +159,9 @@ foreach ($usuarios as $idusuario)
                 //Crear las de venta y recompra por apalancamiento
 
                 //Consulta billetera en Binance para ver si se puede recomprar
+
+
+
                 $symbolData = $api->getSymbolData($symbol);
                 $account = $api->account();
                 $asset = str_replace($symbolData['quoteAsset'],'',$symbol);
@@ -276,7 +291,19 @@ foreach ($usuarios as $idusuario)
                     {
                         $opr->deleteOrder($orderId);
                         $api->cancel($data['symbol'], $orderId);
+                        $msg = ' Cancelar ORDEN DE COMPRA en Binance (orderId = '.$orderId.')';
+                        Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
+                        
+                        //Control sobre la API de Binance para confirmar que la orden fue eliminada
                         sleep(1);
+                        $orderStatus = $api->orderStatus($order['symbol'],$orderId);
+                        while ($orderStatus['status']!='CANCELED')
+                        {
+                            $msg = ' ORDEN DE COMPRA PENDIENTE DE ELIMINAR EN BINANCE (orderId = '.$orderId.')';
+                            Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
+                            sleep(1);
+                            $orderStatus = $api->orderStatus($order['symbol'],$orderId);
+                        }
                     }
                 }
                 foreach ($data['venta'] as $orderId => $rw)
