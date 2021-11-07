@@ -147,8 +147,10 @@ class BotAjax extends ControllerAjax
             $content = $linea.$salto.$content; 
         }
 
-        $content = str_ireplace('Buy ','<b class="text-success">BUY </b>',$content);
-        $content = str_ireplace('Sell ','<b class="text-danger">SELL </b>',$content);
+        $content = str_ireplace('Buy ','<b class="badge badge-success">BUY </b>',$content);
+        $content = str_ireplace('Sell ','<b class="badge badge-danger">SELL </b>',$content);
+        $content = str_ireplace('PENDIENTE DE ELIMINAR ','<b class="badge badge-warning">PENDIENTE DE ELIMINAR </b>',$content);
+        $content = str_ireplace('START ORDER ','<b class="badge badge-info">START ORDER </b>',$content);
         if (!empty($content))
         {
             $this->ajxRsp->assign('contenido','innerHTML','<code class="text-dark">'.nl2br($content).'</code>');

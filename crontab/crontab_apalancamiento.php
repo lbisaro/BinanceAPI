@@ -159,9 +159,6 @@ foreach ($usuarios as $idusuario)
                 //Crear las de venta y recompra por apalancamiento
 
                 //Consulta billetera en Binance para ver si se puede recomprar
-
-
-
                 $symbolData = $api->getSymbolData($symbol);
                 $account = $api->account();
                 $asset = str_replace($symbolData['quoteAsset'],'',$symbol);

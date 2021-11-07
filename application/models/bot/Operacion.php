@@ -285,7 +285,7 @@ class Operacion extends ModelDB
                                         ") ";
             $ins = 'INSERT INTO operacion_orden (idoperacion,side,origQty,price,orderId) VALUES '.$ins;
             $this->db->query($ins);
-            $msg = ' Buy -> Qty:'.$qty.' Price: MARKET';
+            $msg = ' START ORDER Buy -> Qty:'.$qty.' Price: MARKET';
             self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
 
             return true;
