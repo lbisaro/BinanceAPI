@@ -453,15 +453,9 @@ class BotController extends Controller
         {
             foreach ($ds as $rw)
             {
-                $opt_usuario[$rw['idusuario']] = $rw['ayn'];
                 $opt_symbol[$rw['symbol']] = $rw['symbol'];
                 $opt_idoperacion[$rw['idoperacion']] = $rw['idoperacion'].' - '.$rw['symbol'];
             }
-            
-            $arr['idusuario_options'] = '';
-            foreach ($opt_usuario as $k=>$v)
-                $arr['idusuario_options'] .= '<option value="'.$k.'">'.$v.'</option>';
-            
             $arr['symbol_options'] = '';
             foreach ($opt_symbol as $k=>$v)
                 $arr['symbol_options'] .= '<option value="'.$k.'">'.$v.'</option>';
@@ -470,8 +464,17 @@ class BotController extends Controller
             foreach ($opt_idoperacion as $k=>$v)
                 $arr['idoperacion_options'] .= '<option value="'.$k.'">'.$v.'</option>';
         }
+
+        $usr = new UsrUsuario();
+        $ds = $usr->getDataset('','ayn');
+        if (!empty($ds))
+        {
+            $arr['idusuario_options'] = '';
+            foreach ($ds as $rw)
+                $arr['idusuario_options'] .= '<option value="'.$rw['idusuario'].'">'. $rw['ayn'].'</option>';
+        }                 
+            
         
-    
         $arr['status'] = nl2br($status);
         
     
