@@ -132,6 +132,15 @@ class BotAjax extends ControllerAjax
 
     function showLog()
     {
+        $prms=array();
+        if ($_REQUEST['idusuario'])
+            $prms['idusuario']=$_REQUEST['idusuario'];
+        if ($_REQUEST['idoperacion'])
+            $prms['idoperacion']=$_REQUEST['idoperacion'];
+        if ($_REQUEST['symbol'])
+            $prms['symbol']=$_REQUEST['symbol'];
+        
+
         $file = $_REQUEST['file'];
         $folder = LOG_PATH.'bot/';
         $content = '';
@@ -144,7 +153,17 @@ class BotAjax extends ControllerAjax
                 $salto .= "\n";
             if (strstr(strtolower($linea),'error'))
                 $linea = '<span class="text-danger">'.$linea.'</span>';
-            $content = $linea.$salto.$content; 
+
+            $show = true;
+            if ($prms['idusuario'] && !strpos($linea,' u:'.$prms['idusuario'].' ') )
+                $show = false;
+            if ($prms['idoperacion'] && !strpos($linea,' o:'.$prms['idoperacion'].' ') )
+                $show = false;
+            if ($prms['symbol'] && !strpos($linea,' s:'.$prms['symbol'].' ') )
+                $show = false;
+
+            if ($show)
+                $content = $linea.$salto.$content; 
         }
 
         $content = str_ireplace('Buy ','<b class="badge badge-success">BUY </b>',$content);

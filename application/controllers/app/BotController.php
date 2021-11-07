@@ -446,6 +446,30 @@ class BotController extends Controller
             }
             $arr['files'] .='</div>';
         }
+
+        $opr = new Operacion();
+        $ds = $opr->getDataset('','usuario.ayn, symbol');
+        if (!empty($ds))
+        {
+            foreach ($ds as $rw)
+            {
+                $opt_usuario[$rw['idusuario']] = $rw['ayn'];
+                $opt_symbol[$rw['symbol']] = $rw['symbol'];
+                $opt_idoperacion[$rw['idoperacion']] = '#'.$rw['idoperacion'].' - '.$rw['symbol'];
+            }
+            
+            $arr['idusuario_options'] = '';
+            foreach ($opt_usuario as $k=>$v)
+                $arr['idusuario_options'] .= '<option value="'.$k.'">'.$v.'</option>';
+            
+            $arr['symbol_options'] = '';
+            foreach ($opt_symbol as $k=>$v)
+                $arr['symbol_options'] .= '<option value="'.$k.'">'.$v.'</option>';
+            
+            $arr['idoperacion_options'] = '';
+            foreach ($opt_idoperacion as $k=>$v)
+                $arr['idoperacion_options'] .= '<option value="'.$k.'">'.$v.'</option>';
+        }
         
     
         $arr['status'] = nl2br($status);

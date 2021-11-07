@@ -12,7 +12,40 @@
             <h3>Status</h3>
             <code class="text-primary">{{status}}</code>
         </div>
-        <div class="col-9"><h3>Contenido del log</h3></div>
+        <div class="col-9">
+            <h3>Contenido del log</h3>
+            <div class="row">
+                <div class="col-4">
+                    <label for="idusuario">Usuario</label>
+                </div>
+                <div class="col-4">
+                    <label for="symbol">Moneda</label>
+                </div>
+                <div class="col-4">
+                    <label for="idoperacion">Operacion</label>
+                </div>
+            </div>  
+            <div class="row">
+                <div class="col-4">
+                    <select id="idusuario" class="form-control form-control-sm" onchange="show();">
+                        <option value="0">Todos</option>
+                        {{idusuario_options}}
+                    </select>
+                </div>
+                <div class="col-4">
+                    <select id="symbol" class="form-control form-control-sm" onchange="show();">
+                        <option value="0">Todos</option>
+                        {{symbol_options}}
+                    </select>
+                </div>
+                <div class="col-4">
+                    <select id="idoperacion" class="form-control form-control-sm" onchange="show();">
+                        <option value="0">Todas</option>
+                        {{idoperacion_options}}
+                    </select>
+                </div>
+            </div>    
+        </div>
     </div>
     <div class="row">
         <div class="col">
@@ -26,7 +59,7 @@
         </div>
     </div>
 </div>
-
+<input type="hidden" id="file"/>
 <script type="text/javascript">
     
     $(document).ready( function () {
@@ -40,7 +73,9 @@
 
     function show(file)
     {
-        CtrlAjax.sendCtrl("app","bot","showLog","file="+file);
+        if (file)
+            $('#file').val(file);
+        CtrlAjax.sendCtrl("app","bot","showLog");
     }
 
     function activate(file)

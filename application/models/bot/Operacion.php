@@ -9,8 +9,11 @@ class Operacion extends ModelDB
                                    FROM operacion_orden 
                                   WHERE operacion.idoperacion = operacion_orden.idoperacion
                                     AND completed = 0 AND status = 10 AND side = 0) 
-                                compras   
-                        FROM operacion";
+                                compras,
+                                usuario.username,
+                                usuario.ayn  
+                        FROM operacion
+                        LEFT JOIN usuario ON usuario.idusuario = operacion.idusuario";
 
     protected $pKey  = 'idoperacion';
 

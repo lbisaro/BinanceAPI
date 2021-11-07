@@ -15,7 +15,7 @@ $opr = new Operacion();
 //Lista usuarios con ordenes existentes
 $usuarios = $opr->getUsuariosActivos();
     
-foreach ($usuarios as $idusuario)
+foreach ($usuarios as $idusuario => $usuarioData)
 {
     if (isset($opr))
         unset($opr);
