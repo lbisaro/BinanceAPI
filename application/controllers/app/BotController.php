@@ -448,14 +448,14 @@ class BotController extends Controller
         }
 
         $opr = new Operacion();
-        $ds = $opr->getDataset('','usuario.ayn, symbol');
+        $ds = $opr->getDataset('','symbol');
         if (!empty($ds))
         {
             foreach ($ds as $rw)
             {
                 $opt_usuario[$rw['idusuario']] = $rw['ayn'];
                 $opt_symbol[$rw['symbol']] = $rw['symbol'];
-                $opt_idoperacion[$rw['idoperacion']] = '#'.$rw['idoperacion'].' - '.$rw['symbol'];
+                $opt_idoperacion[$rw['idoperacion']] = $rw['idoperacion'].' - '.$rw['symbol'];
             }
             
             $arr['idusuario_options'] = '';
