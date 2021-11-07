@@ -2,6 +2,7 @@
 include_once LIB_PATH."Controller.php";
 include_once LIB_PATH."ControllerAjax.php";
 include_once MDL_PATH."binance/BinanceAPI.php";
+include_once MDL_PATH."Ticker.php";
 include_once MDL_PATH."bot/Operacion.php";
 
 /**
@@ -13,23 +14,110 @@ class BotAjax extends ControllerAjax
 {
     function revisarEstrategia()
     {
-        $tickerid = $_REQUEST['tickerid'];
-        $csvFile = "c:\\dropbox\\cripto\\python\\scalper_".$tickerid.".csv";
         $this->ajxRsp->setEchoOut(true);
         
-        $fila = 1;
-        $ds=array();
-        if (($gestor = fopen($csvFile, "r")) !== FALSE) {
-            while (($datos = fgetcsv($gestor, 1000, ";")) !== FALSE) {
-                array_shift($datos);
-                $ds[] = $datos;
-                $fila++;
+        $idoperacion = $_REQUEST['idoperacion'];
+        $opr = new Operacion($idoperacion);
+        $symbol = $opr->get('symbol');
+
+        $ordenes = $opr->getOrdenes($enCurso=false);
+        if (!empty($ordenes))
+        {
+            $iniDate = date('Y-m-d H:i:s');
+            foreach ($ordenes as $rw)
+            {
+                if ($rw['updated']<$iniDate)
+                    $iniDate = $rw['updated'];
+                
+                $updated = substr($rw['updated'],0,14).':00';
+                $prices[$updated]['price'] = $rw['price'];
+                $prices[$updated]['datetime'] = $updated;
+                if ($rw['side']==Operacion::SIDE_SELL)
+                {
+                    if ($rw['status'] != Operacion::OR_STATUS_NEW)
+                        $prices[$updated]['venta'] = $rw['price'];
+                    else
+                        $prices[$updated]['ventaAbierta'] = $rw['price'];
+                }
+                else
+                {
+                    if ($rw['status'] != Operacion::OR_STATUS_NEW)
+                        $prices[$updated]['compra'] = $rw['price'];
+                    else
+                        $prices[$updated]['compraAbierta'] = $rw['price'];
+                }
             }
-            fclose($gestor);
+            
+            //Agrega 1 hora antes de la primer operacion
+            $iniDate = date('Y-m-d H:i:s',strToTime($iniDate.' - 1 hours'));
+
+            $tck = new Ticker();
+            $prms=array('startTime'=>$iniDate,
+                        'interval'=>'1h');
+            $ds = $tck->getHistorico($symbol,$prms);
+
+            foreach ($ds['prices'][$symbol] as $rw)
+            {   
+
+                $date = date('Y-m-d H:i',strtotime($rw['date']));
+                $prices[$date]['datetime'] = $date;
+                $prices[$date]['price'] = $rw['price'];
+            }
+
+            ksort($prices);
+
+            $lastCompraVenta = 0;
+            $compraAbierta = 0;
+            $ventaAbierta = 0;
+            foreach ($prices as $k => $rw)
+            {
+
+                $compra = $venta = 0;
+                if ($compra = $rw['compra'])
+                {
+                    $lastCompraVenta = $compra;
+                }
+                elseif ($venta = $rw['venta'])
+                {
+                    $lastCompraVenta = $venta;
+                }
+
+                if ($rw['compraAbierta'])
+                    $compraAbierta = $rw['compraAbierta'];
+                if ($rw['ventaAbierta'])
+                    $ventaAbierta = $rw['ventaAbierta'];
+
+                $prices[$k]['compraAbierta'] = $compraAbierta;
+                $prices[$k]['ventaAbierta'] = $ventaAbierta;
+                $prices[$k]['compraVenta'] = $lastCompraVenta;
+                if ($venta)
+                    $lastCompraVenta = 0;
+            }
+
+            unset($ds);
+            $ds[] = array('strFechaHoraActual',
+                          'Precio',
+                          'Compra',
+                          'Venta',
+                          'Compra Venta',
+                          'Compra Abierta',
+                          'Venta Abierta'
+                          );
+            foreach ($prices as $rw)
+            {
+                $ds[] = array($rw['datetime'],
+                              toDec($rw['price'],8),
+                              $rw['compra'],
+                              $rw['venta'],
+                              $rw['compraVenta'],
+                              toDec($rw['compraAbierta'],8),
+                              toDec($rw['ventaAbierta'],8)
+                              );
+                
+            }
         }
         echo json_encode($ds);        
     }
-
 
     function symbolData()
     {

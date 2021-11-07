@@ -301,15 +301,20 @@ class BotController extends Controller
 
     function revisarEstrategia($auth)    
     {
-        $this->addTitle('Operaciones');
-        $tkr = new Ticker();
-        $ds = $tkr->getDataSet('','tickerid');
-        
-        $arr['availableTickers'] = 'var availableTickers = [';
-        foreach ($ds as $rw)
-            $arr['availableTickers'] .= "\n   '".$rw['tickerid']."',"; 
-        $arr['availableTickers'] .= '
-        ];'; 
+        $idoperacion = $_REQUEST['id'];
+        $this->addTitle('Revisar Estrategia');
+        $this->addTitle('Operacion #'.$idoperacion);
+
+        $opr = new Operacion($idoperacion);
+
+        if ($opr->get('idusuario') != $auth->get('idusuario'))
+        {
+            $this->addError('No esta autorizado a visualizar esta pagina.');
+            return false;
+        }
+
+        $arr['idoperacion'] = $opr->get('idoperacion');
+        $arr['symbol'] = $opr->get('symbol');
         $this->addView('bot/revisarEstrategia',$arr);
 
     }
@@ -461,6 +466,7 @@ class BotController extends Controller
                 $arr['symbol_options'] .= '<option value="'.$k.'">'.$v.'</option>';
             
             $arr['idoperacion_options'] = '';
+            asort($opt_idoperacion);
             foreach ($opt_idoperacion as $k=>$v)
                 $arr['idoperacion_options'] .= '<option value="'.$k.'">'.$v.'</option>';
         }

@@ -13,7 +13,7 @@
             <code class="text-primary">{{status}}</code>
         </div>
         <div class="col-9">
-            <h3>Contenido del log</h3>
+            <h3>Filtro de datos</h3>
             <div class="row">
                 <div class="col-4">
                     <label for="idusuario">Usuario</label>
@@ -53,6 +53,7 @@
             {{files}}
         </div>
         <div class="col-9" id="contenido">
+            <h3>Contenido del log</h3>
             <div class="alert alert-light" role="alert">
                 Seleccione un archivo de la lista para ver el contenido.    
             </div>

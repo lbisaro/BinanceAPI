@@ -1,54 +1,11 @@
 <!-- Styles -->
 <style>
-body {
-    background-color: #454d55;
-}
 #chartdiv {
   width: 100%;
   height: 500px;
 }
 </style>
-<style>
 
-.typeahead {
-    width: 100%;
-}
-.tt-hint {
-    color: #999999;
-}
-.tt-menu {
-    background-color: #FFFFFF;
-    border: 1px solid rgba(0, 0, 0, 0.2);
-    border-radius: 8px;
-    box-shadow: 0 5px 10px rgba(0, 0, 0, 0.2);
-    margin-top: 12px;
-    padding: 8px 0;
-    width: 120px;
-}
-.tt-suggestion {
-    padding: 4px 20px;
-    color: #888;
-    border-radius: 5px;
-    font-size: 1em;
-}
-.tt-suggestion:hover {
-    cursor: pointer;
-    background-color: #0097CF;
-    color: #ddd;
-}
-.tt-suggestion:hover .tt-highlight {
-    color: #fff;
-}
-.tt-highlight {
-    font-weight: normal;
-    color: #0097CF;
-}
-
-.tt-suggestion p {
-    margin: 0;
-}
-</style>
-<!-- Autocomplete-->
 
 
 <!-- FUENTE: 
@@ -64,48 +21,13 @@ body {
 <div class="container-fluid" id="variacion_del_precio">
     <div class="d-flex justify-content-between">
         <div>
-            <button type="button" class="btn btn-success btn-sm" data-toggle="modal" data-target="#cambiar-moneda">
-              Cambiar Moneda
-            </button>
-        </div>
-        <div>
-            <div id="last_update" class="text-success"></div>  
-            <div class="progress">
-              <div id="updatePB" class="progress-bar progress-bar-striped bg-success" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-            </div>    
+            <h3>{{symbol}}</h3>
         </div>
     </div>
-    <div id="chartdiv" class="text-light"></div>
+    <div id="chartdiv"></div>
 
 </div>
 
-<div id="cambiar-moneda" class="modal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h3 class="modal-title">Cambiar Moneda</h3>
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-          <span aria-hidden="true">&times;</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        <div>
-            <form>
-                <div class="input-group">
-                    <input class="form-control typeahead " id="tickerid" autocomplete="off" spellcheck="false">
-                </div>
-            </form>
-        </div>
-
-
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cerrar</button>
-        <button type="button" class="btn btn-success" onclick="readPrecios()">Comparar</button>
-      </div>
-    </div>
-  </div>
-</div>
 
 <!-- Resources -->
 <!-- Chart code -->
@@ -113,43 +35,13 @@ body {
 <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
 <script src="https://cdn.amcharts.com/lib/4/lang/es_ES.js"></script>
 <script src="https://cdn.amcharts.com/lib/4/fonts/notosans-sc.js"></script>
-<script src="https://cdn.amcharts.com/lib/4/themes/dark.js"></script>
-
-<!-- Autocomplete-->
-<script  type="text/javascript" src="public/scripts/typeahead.bundle.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
 
 <script type="text/javascript">
 
     var updateProgress=0;
     var i1,i2;
 
-    $('#cambiar-moneda').modal({
-        show: true,
-    });
-
-    /** AUTOCOMPLETE  */
-
-    //Tickers ID list
-    {{availableTickers}}
-
-    // Constructing the suggestion engine
-    var availableTickers = new Bloodhound({
-        datumTokenizer: Bloodhound.tokenizers.whitespace,
-        queryTokenizer: Bloodhound.tokenizers.whitespace,
-        local: availableTickers
-    });
-
-    // Initializing the typeahead
-    $('.typeahead').typeahead({
-        hint: true,
-        highlight: true, /* Enable substring highlighting */
-        minLength: 1 /* Specify minimum characters required for showing result */
-    },
-    {
-        name: 'AvailableTickers',
-        source: availableTickers
-    });
-    /** AUTOCOMPLETE -END */
 
     $(document).ready(function() {
         
@@ -159,12 +51,8 @@ body {
         //    $('#updatePB').css('width',updateProgress+'%');
         //    $('#updatePB').attr('aria-valuenow',updateProgress);
         //},1000);
+        readPrecios();
 
-        $('#tickerid').focus();
-
-        $('.typeahead').change(function () {
-            readPrecios();
-        });
     });
 
     var colors = [
@@ -172,9 +60,9 @@ body {
       '#aaaaaa',//1
       '#acc236',//2
       '#166a8f',//3
-      '#acc236',//4
-      '#166a8f',//5
-      '#acc236',//6
+      '#aaaaff',//4
+      '#aaffaa',//5
+      '#ffaaaa',//6
       '#166a8f',//7
       '#58595b',//8
       '#4dc9f6',//9
@@ -187,12 +75,9 @@ body {
     function readPrecios() 
     {
         $('#chartdiv').html('Cargando grafico...');
-        $('.tt-menu').dropdown('hide');
-        $('#cambiar-moneda').modal('hide');
-
+        
         updateProgress=0;
-        var tckr = $("#tickerid").val();
-        var url = `app.BotAjax.revisarEstrategia+tickerid=${tckr}`;
+        var url = 'app.BotAjax.revisarEstrategia+idoperacion={{idoperacion}}';
         $.getJSON( url, function( info ) {
             if (info)
             {
@@ -203,7 +88,7 @@ body {
                 {
 
                     // Themes begin
-                    am4core.useTheme(am4themes_dark);
+                    am4core.useTheme(am4themes_animated);
                     // Themes end
 
                     // Create chart instance
@@ -222,41 +107,22 @@ body {
                     //Precio
                     series = createSeries(1);
                     series.data = createData(1);
-                    
-                    //Ema_1H
-                    series = createSeries(2);
-                    series.data = createData(2);
-                    series = createSeries(3);
-                    series.data = createData(3);
-                    
-                    //Ema_15m
-                    //series = createSeries(4);
-                    //series.data = createData(4);
-                    //series = createSeries(5);
-                    //series.data = createData(5);
-                    
-                    //Ema_5m
-                    //series = createSeries(6);
-                    //series.data = createData(6);
-                    //series = createSeries(7);
-                    //series.data = createData(7);
-
                     //Compra
-                    //series = createSeries(8);
-                    //series.data = createData(8);
-
+                    //series = createSeries(2);
+                    //series.data = createData(2);
                     //Venta
-                    //series = createSeries(9);
-                    //series.data = createData(9);
-
-                    //CompraVenta
-                    series = createSeries(10);
-                    series.data = createData(10);
-
-                    //StopLimit
-                    series = createSeries(11);
-                    series.data = createData(11);
-
+                    //series = createSeries(3);
+                    //series.data = createData(3);
+                    //Compra Venta
+                    series = createSeries(4);
+                    series.data = createData(4);
+                    //Compra Abierta
+                    series = createSeries(5);
+                    series.data = createData(5);                    
+                    //Compra Abierta
+                    series = createSeries(6);
+                    series.data = createData(6);
+                    
                     // Add scrollbar
                     var scrollbarX = new am4charts.XYChartScrollbar();
                     scrollbarX.series.push(series);
@@ -283,9 +149,9 @@ body {
                             srs.tooltip.label.fill = am4core.color('#fff');
 
 
-                            srs.strokeWidth = (s==10||s==11?2:0.5); // 3px
+                            srs.strokeWidth = (s==1?0.5:2); // px
                             srs.stroke = am4core.color(colors[s]); 
-                            srs.connect = false;
+                            srs.connect = (s==1?true:false); 
 
 
                         return srs;

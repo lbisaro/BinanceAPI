@@ -10,15 +10,6 @@ include_once MDL_PATH."Ticker.php";
  */
 class CriptoAjax extends ControllerAjax
 {
-    function variacionPrecio()
-    {
-        $this->ajxRsp->setEchoOut(true);
-        $tck = new Ticker();
-
-        $ds = $tck->getVariacionDePrecios();
-        echo json_encode($ds);
-
-    }
     function historico()
     {
         $prms=array();

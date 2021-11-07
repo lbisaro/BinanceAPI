@@ -1,7 +1,4 @@
 <style>
-    body {
-        background-color: #454d55;
-    }
     #chartdiv {
         width: 100%;
         height: 500px;
@@ -22,7 +19,7 @@
 <div class="container-fluid" >
     <div class="d-flex justify-content-between">
         <form>
-            <div class="container text-light" >
+            <div class="container" >
                 
                 <div class="row">
                     <div class="col">
@@ -83,7 +80,7 @@
                     </div>
                      <div class="col">
                         <div class="input-group">
-                            <input class="form-control form-control-sm" id="limit" value="500" >
+                            <input class="form-control form-control-sm" id="limit" value="200" >
                         </div>
                     </div>
                     <div class="col">
@@ -105,10 +102,7 @@
 <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
 <script src="https://cdn.amcharts.com/lib/4/lang/es_ES.js"></script>
 <script src="https://cdn.amcharts.com/lib/4/fonts/notosans-sc.js"></script>
-<script src="https://cdn.amcharts.com/lib/4/themes/dark.js"></script>
-
-<!-- Autocomplete-->
-<script  type="text/javascript" src="public/scripts/typeahead.bundle.js"></script>
+<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
 
 <script type="text/javascript">
 
@@ -174,7 +168,7 @@
                         am4core.ready(function() {
 
                             // Themes begin
-                            am4core.useTheme(am4themes_dark);
+                            am4core.useTheme(am4themes_animated);
                             //am4core.useTheme(am4themes_animated);
                             // Themes end
 

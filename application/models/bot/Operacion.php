@@ -11,16 +11,7 @@ class Operacion extends ModelDB
                                     AND completed = 0 AND status = 10 AND side = 0) 
                                 compras  
                         FROM operacion";
-/*
 
-,
-                                usuario.username,
-                                usuario.ayn
-
-
-                        LEFT JOIN usuario ON usuario.idusuario = operacion.idusuario
-
-*/
     protected $pKey  = 'idoperacion';
 
     const SIDE_BUY = 0;
