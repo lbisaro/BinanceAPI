@@ -30,7 +30,6 @@ class BotAjax extends ControllerAjax
                     $iniDate = $rw['updated'];
                 
                 $updated = substr($rw['updated'],0,14).':00';
-                //$prices[$updated]['price'] = $rw['price'];
                 $prices[$updated]['datetime'] = $updated;
                 if ($rw['side']==Operacion::SIDE_SELL)
                 {
@@ -49,7 +48,7 @@ class BotAjax extends ControllerAjax
             }
             
             //Agrega 1 hora antes de la primer operacion
-            //$iniDate = date('Y-m-d H:i:s',strToTime($iniDate.' - 1 hours'));
+            $iniDate = date('Y-m-d H:i:s',strToTime($iniDate.' -3 hour'));
             
             $tck = new Ticker();
             $prms=array('startTime'=>$iniDate,
@@ -58,12 +57,20 @@ class BotAjax extends ControllerAjax
 
             foreach ($ds['prices'][$symbol] as $rw)
             {   
-
                 $date = date('Y-m-d H:i',strtotime($rw['date']));
+                if (!isset($minKline))
+                    $minKline = $date;
                 $prices[$date]['datetime'] = $date;
                 $prices[$date]['price'] = ($rw['high']+$rw['low'])/2;
                 $prices[$date]['high'] = $rw['high'];
                 $prices[$date]['low'] = $rw['low'];
+            }
+
+            //Eliminando registros de compra y venta anteriores a la primer vela 
+            foreach ($prices as $k=>$v)
+            {
+                if ($k<$minKline)
+                    unset($prices[$k]);
             }
 
             ksort($prices);

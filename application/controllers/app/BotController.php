@@ -106,6 +106,7 @@ class BotController extends Controller
             $this->addError('No esta autorizado a visualizar esta pagina.');
             return false;
         }
+
         $link = '<a href="https://www.binance.com/es/trade/'.$opr->get('symbol').'" target="_blank">'.$opr->get('symbol').'</a>';
         $arr['idoperacion'] = $idoperacion;
         $arr['symbol'] = $link;

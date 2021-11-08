@@ -217,7 +217,12 @@ class Ticker extends ModelDB
         $interval  = ($prms['interval']?$prms['interval']:'1h');
         $limit     = ($prms['limit']?$prms['limit']:null);
         $startTime = ($prms['startTime']?$prms['startTime']:null);
-        $startTime = ($prms['endTime']?$prms['endTime']:null);
+        $endTime = ($prms['endTime']?$prms['endTime']:null);
+
+        if ($startTime)
+            $startTime = date('U',strtotime($startTime)).'000';
+        if ($endTime)
+            $endTime = date('U',strtotime($endTime)).'000';
 
         $auth = UsrUsuario::getAuthInstance();
         $idusuario = $auth->get('idusuario');
