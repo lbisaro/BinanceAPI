@@ -155,9 +155,20 @@
                             srs.tooltip.label.fill = am4core.color('#fff');
 
                             if (s==1 || s==7 || s==8)
-                                srs.strokeWidth = 0.8; // px
-                            else
+                            {
+                                srs.strokeWidth = 1; // px
+                            }
+                            else if (s==5 || s==6)
+                            {
+                                srs.strokeWidth = 3;
+                                srs.strokeDasharray = 4;
                                 srs.strokeWidth = 1.5; // px
+                            }
+                            else
+                            {
+                                srs.strokeWidth = 1.5; // px
+                            }
+
                             srs.stroke = am4core.color(colors[s]); 
                             srs.connect = true; 
 
