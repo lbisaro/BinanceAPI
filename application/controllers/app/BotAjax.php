@@ -30,7 +30,7 @@ class BotAjax extends ControllerAjax
                     $iniDate = $rw['updated'];
                 
                 $updated = substr($rw['updated'],0,14).':00';
-                $prices[$updated]['price'] = $rw['price'];
+                //$prices[$updated]['price'] = $rw['price'];
                 $prices[$updated]['datetime'] = $updated;
                 if ($rw['side']==Operacion::SIDE_SELL)
                 {
@@ -49,8 +49,8 @@ class BotAjax extends ControllerAjax
             }
             
             //Agrega 1 hora antes de la primer operacion
-            $iniDate = date('Y-m-d H:i:s',strToTime($iniDate.' - 1 hours'));
-
+            //$iniDate = date('Y-m-d H:i:s',strToTime($iniDate.' - 1 hours'));
+            
             $tck = new Ticker();
             $prms=array('startTime'=>$iniDate,
                         'interval'=>'1h');
@@ -61,7 +61,9 @@ class BotAjax extends ControllerAjax
 
                 $date = date('Y-m-d H:i',strtotime($rw['date']));
                 $prices[$date]['datetime'] = $date;
-                $prices[$date]['price'] = $rw['price'];
+                $prices[$date]['price'] = ($rw['high']+$rw['low'])/2;
+                $prices[$date]['high'] = $rw['high'];
+                $prices[$date]['low'] = $rw['low'];
             }
 
             ksort($prices);
@@ -101,17 +103,21 @@ class BotAjax extends ControllerAjax
                           'Venta',
                           'Compra Venta',
                           'Compra Abierta',
-                          'Venta Abierta'
+                          'Venta Abierta',
+                          'Precio Maximo',
+                          'Precio Minimo'
                           );
             foreach ($prices as $rw)
             {
                 $ds[] = array($rw['datetime'],
                               toDec($rw['price'],8),
-                              $rw['compra'],
-                              $rw['venta'],
+                              toDec($rw['compra'],8),
+                              toDec($rw['venta'],8),
                               $rw['compraVenta'],
                               toDec($rw['compraAbierta'],8),
-                              toDec($rw['ventaAbierta'],8)
+                              toDec($rw['ventaAbierta'],8),
+                              toDec($rw['high'],8),
+                              toDec($rw['low'],8)
                               );
                 
             }

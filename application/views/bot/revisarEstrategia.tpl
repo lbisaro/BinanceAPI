@@ -56,15 +56,15 @@
     });
 
     var colors = [
-      '#aaaaaa',//0
-      '#aaaaaa',//1
-      '#acc236',//2
-      '#166a8f',//3
-      '#aaaaff',//4
-      '#aaffaa',//5
-      '#ffaaaa',//6
-      '#166a8f',//7
-      '#58595b',//8
+      '#000000',//0 //Fecha
+      '#888888',//1 //Precio
+      '#58A029',//2 //Compra
+      '#BF3C0F',//3 //Venta
+      '#aaaaff',//4 //Compra Venta
+      '#58A029',//5 //Compra Abierta
+      '#BF3C0F',//6 //Venta Abierta
+      '#88FF88',//7 //high
+      '#FF8888',//8 //Low
       '#4dc9f6',//9
       '#f53794',//10
       '#f67019',//11
@@ -105,22 +105,28 @@
 
 
                     //Precio
-                    series = createSeries(1);
-                    series.data = createData(1);
+                    //series = createSeriesPrecio(1);
+                    //series.data = createData(1);
+                    //High
+                    series = createSeriesPrecio(7);
+                    series.data = createData(7);
+                    //Low
+                    series = createSeriesPrecio(8);
+                    series.data = createData(8);
                     //Compra
-                    //series = createSeries(2);
-                    //series.data = createData(2);
+                    series = createSeriesBullet(2,'compra');
+                    series.data = createData(2);
                     //Venta
-                    //series = createSeries(3);
-                    //series.data = createData(3);
+                    series = createSeriesBullet(3,'venta');
+                    series.data = createData(3);
                     //Compra Venta
-                    series = createSeries(4);
-                    series.data = createData(4);
+                    //series = createSeries(4);
+                    //series.data = createData(4);
                     //Compra Abierta
-                    series = createSeries(5);
+                    series = createSeriesPrecio(5);
                     series.data = createData(5);                    
                     //Compra Abierta
-                    series = createSeries(6);
+                    series = createSeriesPrecio(6);
                     series.data = createData(6);
                     
                     // Add scrollbar
@@ -135,7 +141,7 @@
                     chart.legend.position = "top";
                     chart.legend.scrollable = false;
 
-                    function createSeries(s)
+                    function createSeriesPrecio(s)
                     {
                         var srs = chart.series.push(new am4charts.LineSeries());
                             srs.dataFields.valueY = "value" + s;
@@ -148,10 +154,68 @@
                             srs.tooltip.background.fill = am4core.color(colors[s]);
                             srs.tooltip.label.fill = am4core.color('#fff');
 
-
-                            srs.strokeWidth = (s==1?0.5:2); // px
+                            if (s==1 || s==7 || s==8)
+                                srs.strokeWidth = 0.8; // px
+                            else
+                                srs.strokeWidth = 1.5; // px
                             srs.stroke = am4core.color(colors[s]); 
-                            srs.connect = (s==1?true:false); 
+                            srs.connect = true; 
+
+
+                        return srs;
+                        
+                    }
+
+                    function createSeriesBullet(s,tipo)
+                    {
+                        var srs = chart.series.push(new am4charts.LineSeries());
+                            srs.dataFields.valueY = "value" + s;
+                            srs.dataFields.dateX = "date";
+                            srs.name = labels[s];
+                            
+                            srs.tooltip.getFillFromObject = false;
+                            srs.tooltip.background.fill = am4core.color(colors[s]);
+                            srs.tooltip.label.fill = am4core.color('#fff');
+
+                            srs.strokeWidth = 10;
+
+                            // Add simple bullet
+                            var bullet = srs.bullets.push(new am4charts.Bullet());
+
+                            if (tipo=='compra')
+                            {
+                                var circle = bullet.createChild(am4core.Circle);
+                                circle.width = 4;
+                                circle.height = 4;
+                                circle.fillOpacity = 1;
+                            }
+                            else //Venta
+                            {
+                                var circle = bullet.createChild(am4core.Circle);
+                                circle.width = 8;
+                                circle.height = 8;
+                                circle.fillOpacity = 0.0;
+                            }
+                            circle.horizontalCenter = "middle";
+                            circle.verticalCenter = "middle";
+
+                            //// Add outline to the circle bullet
+                            //circle.stroke = am4core.color(colors[s]);
+                            //circle.strokeWidth = 1;
+
+                            // Make circle drop shadow by adding a DropShadow filter
+                            //var shadow = new am4core.DropShadowFilter();
+                            //shadow.dx = 2;
+                            //shadow.dy = 2;
+                            //circle.filters.push(shadow);
+
+                            // Make chart not mask the bullets
+                            chart.maskBullets = true;                            
+
+
+                            srs.strokeWidth = 0; // px
+                            srs.stroke = am4core.color(colors[s]); 
+                            srs.connect = false; 
 
 
                         return srs;

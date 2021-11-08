@@ -250,6 +250,10 @@ class Ticker extends ModelDB
                 }
                 $prices[$id][] = array('date'=>date('c',($timestamp/1000)),
                                        'price'=> (float)$candel['close'],
+                                       'high'=> (float)$candel['high'],
+                                       'low'=> (float)$candel['low'],
+                                       'open'=> (float)$candel['open'],
+                                       'close'=> (float)$candel['close'],
                                        'perc'=> $perc);
                 $lastUpdate = date('Y-m-d H:i',($timestamp/1000));
             }

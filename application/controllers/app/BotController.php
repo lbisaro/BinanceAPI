@@ -196,7 +196,7 @@ class BotController extends Controller
         //$arr['est_gananciaPorc'] = toDec($gananciaPorc,2).'%';
 
         if ($opr->status() == Operacion::OP_STATUS_ERROR)
-            $arr['addButtons'] = '<a class="btn btn-danger btn-sm" href="app.bot.detenerOperacion+id={{idoperacion}}">Detener</button>';
+            $arr['addButtons'] = '<a class="btn btn-danger btn-sm" href="app.bot.detenerOperacion+id={{idoperacion}}">Detener</a>';
 
         $this->addView('bot/verOperacion',$arr);
     }    
