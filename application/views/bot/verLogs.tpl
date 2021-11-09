@@ -63,12 +63,18 @@
 <input type="hidden" id="file"/>
 <script type="text/javascript">
     
+    var firstFile = '{{firstFile}}';
+
     $(document).ready( function () {
         $('.list-group-item').each(function () {
             $(this).on('click', function (event) {
               event.preventDefault();
             })
         });
+
+        if (firstFile)
+            show(firstFile);
+
     });
 
 

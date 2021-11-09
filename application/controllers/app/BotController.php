@@ -434,17 +434,13 @@ class BotController extends Controller
         $status .= "\nServer Time Offset: ".toDec($timeOffset);
 
         $arr['files'] = '';
-        if (!empty($errorFiles))
-        {
-            $arr['files'] .='<div class="list-group">';
-            foreach ($errorFiles as $file)
-            $arr['files'] .='</div>';
-        }
         if (!empty($logFiles))
         {
             $arr['files'] .='<div class="list-group">';
             foreach ($logFiles as $file)
             {
+                if (!isset($firstFile))
+                    $firstFile = $file;
                 if (substr($file,0,9)=='bot_error')
                     $arr['files'] .= '<a class="list-group-item list-group-item-danger" id="'.$file.'" onclick="show(\''.$file.'\');">'.$file.'</a>';
                 else
@@ -484,6 +480,7 @@ class BotController extends Controller
         
         $arr['status'] = nl2br($status);
         
+        $arr['firstFile'] = $firstFile;
     
         $this->addView('bot/verLogs',$arr);
     }
