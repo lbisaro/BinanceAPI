@@ -565,9 +565,6 @@ class Operacion extends ModelDB
             
         }
         ksort($data['data']);
-        debug($data);
-
-
 
         return $data;
     }

@@ -385,8 +385,8 @@ class BotController extends Controller
             $dg->addHeader($symbol.'['.$idoperacion.']',null,null,'center');
         $dg->addHeader('Total',null,null,'center');
 
-        $curDate = $data['iniDate'];
-        while ($curDate<=date('Y-m-d'))
+        $curDate = date('Y-m-d');
+        while ($curDate>=$data['iniDate'])
         {
             $row=array();
             $row[] = $curDate;
@@ -396,7 +396,7 @@ class BotController extends Controller
             }
             $row[] = $data['data'][$curDate]['total'];
             $dg->addRow($row);
-            $curDate = date('Y-m-d',strtotime($curDate.' + 1 day'));
+            $curDate = date('Y-m-d',strtotime($curDate.' - 1 day'));
         }
 
         $row=array();
