@@ -393,7 +393,7 @@ class BotController extends Controller
         while ($curDate>=$data['iniDate'])
         {
             $row=array();
-            $row[] = dateFormat($curDate,14);
+            $row[] = dateToStr($curDate);
             foreach ($data['operaciones'] as $idoperacion=>$symbol)
             {
                 $row[] = ($data['data'][$curDate][$idoperacion] ?toDec($data['data'][$curDate][$idoperacion]) : '-');
