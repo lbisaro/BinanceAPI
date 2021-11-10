@@ -422,7 +422,7 @@ class Operacion extends ModelDB
         $this->save();
     }
 
-    function getEstadistica()
+    function getEstadisticaGeneral()
     {
         $auth = UsrUsuario::getAuthInstance();
         $idusuario = $auth->get('idusuario');
@@ -518,6 +518,54 @@ class Operacion extends ModelDB
         $diff = diferenciaFechas($data['totales']['start'],$data['totales']['end']);
         $data['totales']['days'] = toDec((($diff->d*24+$diff->h)/24),2);
         $data['totales']['avg_usd_day'] = toDec($data['totales']['ganancia_usd']/$data['totales']['days'],2);
+
+
+
+        return $data;
+    }
+
+    function getEstadisticaDiaria()
+    {
+        $auth = UsrUsuario::getAuthInstance();
+        $idusuario = $auth->get('idusuario');
+        $qry ="SELECT operacion.*, operacion_orden.*
+                   FROM operacion_orden
+                   LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion
+                   WHERE idusuario = ".$idusuario." AND operacion_orden.completed >0 
+                   ORDER BY operacion_orden.idoperacion,updated,side";
+        $stmt = $this->db->query($qry);
+        $data=array();
+        $totalCompras=0;
+        $data['iniDate'] = date('Y-m-d',strtotime('+ 1 year'));
+        while ($rw = $stmt->fetch())
+        {
+            if (!isset($data['operaciones'][$rw['idoperacion']]))
+            {
+                $data['operaciones'][$rw['idoperacion']] = $rw['symbol'];
+            }
+
+            $dateKey = date('Y-m-d',strtotime($rw['updated']));
+            if ($data['iniDate'] > $dateKey)
+                $data['iniDate'] = $dateKey;
+
+            if ($rw['side']==self::SIDE_BUY) //Cierra operacion y la guarda en la fecha
+            {
+                $totalCompras -= toDec($rw['origQty']*$rw['price']);
+            }
+            else if ($rw['side']==self::SIDE_SELL) //Cierra operacion y la guarda en la fecha
+            {
+                $usd = toDec($rw['origQty']*$rw['price']);
+                $usd = $usd+$totalCompras;
+                $data['data'][$dateKey]['total'] += $usd;
+                $data['data']['total']['total'] += $usd;
+                $data['data'][$dateKey][$rw['idoperacion']] += $usd;
+                $data['data']['total'][$rw['idoperacion']] += $usd;
+                $totalCompras = 0;
+            }
+            
+        }
+        ksort($data['data']);
+        debug($data);
 
 
 
