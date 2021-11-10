@@ -390,6 +390,7 @@ $MES_LARGO = array('Enero','Febrero','Marzo','Abril','Mayo','Junio',
     *   muestra 10/Mar/2008   .-
     *   20080310150715
     *   muestra 10/Mar/2008   .-
+    *   muestra Lun 10/Mar/2008   .-
     */
     function dateFormat($fecha,$formato = 0,$time = false)
     {
@@ -447,13 +448,13 @@ $MES_LARGO = array('Enero','Febrero','Marzo','Abril','Mayo','Junio',
 
         switch ($diaSem)
         {
-            case 0 : $diaLet = "Domingo";       break;
-            case 1 : $diaLet = "Lunes";         break;
-            case 2 : $diaLet = "Martes";        break;
-            case 3 : $diaLet = "Miercoles";     break;
-            case 4 : $diaLet = "Jueves";        break;
-            case 5 : $diaLet = "Viernes";       break;
-            case 6 : $diaLet = "Sabado";        break;
+            case 0 : $diaLet = "Domingo";   $diaLetCorto = "Dom";    break;
+            case 1 : $diaLet = "Lunes";     $diaLetCorto = "Lun";    break;
+            case 2 : $diaLet = "Martes";    $diaLetCorto = "Mar";    break;
+            case 3 : $diaLet = "Miercoles"; $diaLetCorto = "Mie";    break;
+            case 4 : $diaLet = "Jueves";    $diaLetCorto = "Jue";    break;
+            case 5 : $diaLet = "Viernes";   $diaLetCorto = "Vie";    break;
+            case 6 : $diaLet = "Sabado";    $diaLetCorto = "Sab";    break;
         }
 
         if(isset($fecha) && $fecha != "0000-00-00")
@@ -498,6 +499,9 @@ $MES_LARGO = array('Enero','Febrero','Marzo','Abril','Mayo','Junio',
                     break;
                 case 13 : 
                     $fmt = "$diaNr/$mesNr/$anio $diaLet";
+                    break;
+                case 14 : 
+                    $fmt = "$diaLetCorto $diaNr/$mesLet2/$anio";
                     break;
                 default:
                     $fmt = "$diaNr/$mesLet2/$anio";

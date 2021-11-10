@@ -382,19 +382,19 @@ class BotController extends Controller
 
         $dg->addHeader('Fecha');
         foreach ($data['operaciones'] as $idoperacion=>$symbol)
-            $dg->addHeader($symbol.'['.$idoperacion.']',null,null,'center');
-        $dg->addHeader('Total',null,null,'center');
+            $dg->addHeader($symbol.'['.$idoperacion.']',null,null,'right');
+        $dg->addHeader('Total',null,null,'right');
 
         $curDate = date('Y-m-d');
         while ($curDate>=$data['iniDate'])
         {
             $row=array();
-            $row[] = $curDate;
+            $row[] = dateFormat($curDate,14);
             foreach ($data['operaciones'] as $idoperacion=>$symbol)
             {
-                $row[] = $data['data'][$curDate][$idoperacion];
+                $row[] = ($data['data'][$curDate][$idoperacion] ?toDec($data['data'][$curDate][$idoperacion]) : '-');
             }
-            $row[] = $data['data'][$curDate]['total'];
+            $row[] = 'USD '.toDec($data['data'][$curDate]['total']);
             $dg->addRow($row);
             $curDate = date('Y-m-d',strtotime($curDate.' - 1 day'));
         }
@@ -403,9 +403,9 @@ class BotController extends Controller
         $row[] = 'Total';
         foreach ($data['operaciones'] as $idoperacion=>$symbol)
         {
-            $row[] = $data['data']['total'][$idoperacion];
+            $row[] = toDec($data['data']['total'][$idoperacion]);
         }
-        $row[] = $data['data']['total']['total'];
+        $row[] = 'USD '.toDec($data['data']['total']['total']);
         $dg->addFooter($row,'font-weight-bold');
 
         $arr['lista'] .= $dg->get();
