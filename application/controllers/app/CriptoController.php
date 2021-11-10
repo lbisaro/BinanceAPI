@@ -4,6 +4,7 @@ include_once LIB_PATH."Html.php";
 include_once LIB_PATH."HtmlTableDg.php";
 include_once MDL_PATH."Ticker.php";
 include_once MDL_PATH."binance/BinanceAPI.php";
+include_once MDL_PATH."bot/Operacion.php";
 
 
 /**
@@ -15,7 +16,7 @@ class CriptoController extends Controller
     
     function home($auth)
     {
-        $this->addTitle('Billetera');
+        $this->addTitle('Estado de Cuenta Binance');
 
         $ak = $auth->getConfig('bncak');
         $as = $auth->getConfig('bncas');
@@ -27,10 +28,47 @@ class CriptoController extends Controller
         else
         {
             $api = new BinanceAPI($ak,$as);
+            $opr = new Operacion();
 
             $prices = $api->prices();
 
+            $pnlStatus = $opr->getCompradoEnCurso();
+
+            if (!empty($pnlStatus))
+            {
+                foreach ($pnlStatus as $symbol => $rw)
+                {
+                    $pnlStatus[$symbol]['actualPrice'] = $prices[$symbol];
+                    $pnlStatus[$symbol]['actualUSD'] = $prices[$symbol]*$rw['buyedUnits'];
+                    $pnlStatus[$symbol]['perc'] = (($pnlStatus[$symbol]['actualUSD']/$pnlStatus[$symbol]['buyedUSD'])-1)*100;
+
+                }
+            }
+            $dg = new HtmlTableDg(null,null,'table table-hover table-striped');
+            $dg->addHeader('Moneda');
+            $dg->addHeader('Comprado USD',null,null,'right');
+            $dg->addHeader('Actual USD',null,null,'right');
+            $dg->addHeader('Resultado',null,null,'right');
+            foreach ($pnlStatus as $symbol => $rw)
+            {
+                $row = array();
+                $row[] = $symbol;
+                $row[] = toDec($rw['buyedUSD']);
+                $row[] = toDec($rw['actualUSD']);
+                $row[] = '<span class="text-'.($rw['perc']>0?'success':'danger').'">'.toDec($rw['perc']).'%</span>';
+                $dg->addRow($row);
+                $pnlTotal['buyedUSD'] += $rw['buyedUSD'];
+                $pnlTotal['actualUSD'] += $rw['actualUSD'];
+            }
+            $pnlTotal['perc'] = (($pnlTotal['actualUSD']/$pnlTotal['buyedUSD'])-1)*100;
+            $pnlTotal['perc'] = '<span class="text-'.($pnlTotal['perc']>0?'success':'danger').'">'.toDec($pnlTotal['perc']).'%</span>';
+            $dg->addFooter(array('Totales',toDec($pnlTotal['buyedUSD']),toDec($pnlTotal['actualUSD']),$pnlTotal['perc']));
+
+            $arr['data'] .= '<h4 class="text-info">Operaciones</h4>'.$dg->get();
+            
+
             $account = $api->account();
+            unset($dg);
             $dg = new HtmlTableDg(null,null,'table table-hover table-striped');
             $dg->addHeader('Asset');
             $dg->addHeader('Total',null,null,'center');
@@ -80,7 +118,7 @@ class CriptoController extends Controller
 
             $dg->addFooter(array('Totales',$totTotal,$totLocked,$totFree));
 
-            $arr['data'] = $dg->get();
+            $arr['data'] .= '<h4 class="text-info">Billetera</h4>'.$dg->get();
         }
         
 

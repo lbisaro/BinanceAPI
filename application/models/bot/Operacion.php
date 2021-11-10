@@ -619,4 +619,31 @@ class Operacion extends ModelDB
             }
         }
     }
+
+    function getCompradoEnCurso()
+    {
+        $auth = UsrUsuario::getAuthInstance();
+
+        $qry = "SELECT operacion.symbol, operacion_orden.* 
+                FROM operacion_orden 
+                LEFT JOIN operacion ON operacion.idoperacion =operacion_orden.idoperacion
+                WHERE idusuario = ".$auth->get('idusuario')." 
+                  AND status = ".self::OR_STATUS_FILLED."  
+                  AND completed = 0 
+                ORDER BY symbol, operacion_orden.updated";
+        $stmt = $this->db->query($qry);
+        $data = array();
+
+        while ($rw = $stmt->fetch())
+        {
+            if (!isset($data[$rw['symbol']]))
+            {
+                $data[$rw['symbol']]['buyedUSD'] = 0;
+                $data[$rw['symbol']]['buyedUnits'] = 0;
+            }
+            $data[$rw['symbol']]['buyedUSD'] += ($rw['origQty']*$rw['price']);
+            $data[$rw['symbol']]['buyedUnits'] += $rw['origQty'];
+        }
+        return $data;
+    }
 }

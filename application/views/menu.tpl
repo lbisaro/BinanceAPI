@@ -36,7 +36,7 @@
         </li>        
         -->
         <li class="nav-item">
-          <a class="nav-link rounded" href="app.Cripto.home+"><span class="glyphicon glyphicon-btc"></span> Billetera</a>
+          <a class="nav-link rounded" href="app.Cripto.home+"><span class="glyphicon glyphicon-btc"></span> Estado de cuenta</a>
         </li>        
         <li class="nav-item">
           <a class="nav-link rounded" href="app.Cripto.compararPorcentaje+"><span class="glyphicon glyphicon-sort"></span> Compara %</a>

@@ -374,7 +374,7 @@ class BotController extends Controller
              'USD '.toDec($data['totales']['avg_usd_day'],2)
             );
         $dg->addFooter($row,'font-weight-bold');
-        $arr['lista'] = $dg->get();
+        $arr['lista'] = '<h4 class="text-info">Historico de Operaciones</h4>'.$dg->get();
 
         $data = $opr->getEstadisticaDiaria();
         unset($dg);
@@ -382,7 +382,11 @@ class BotController extends Controller
 
         $dg->addHeader('Fecha');
         foreach ($data['operaciones'] as $idoperacion=>$symbol)
-            $dg->addHeader($symbol.'['.$idoperacion.']',null,null,'right');
+        {
+            if (substr($symbol,-4) == 'USDT' || substr($symbol,-4) == 'USDC' || substr($symbol,-4) == 'BUSD')
+                $strSymbol = substr($symbol,0,-4).'<br>'.substr($symbol,-4);
+            $dg->addHeader('<span title="Operacion #'.$idoperacion.'">'.$strSymbol.'<span>',null,null,'right');
+        }
         $dg->addHeader('Total',null,null,'right');
 
         $curDate = date('Y-m-d');
@@ -408,7 +412,7 @@ class BotController extends Controller
         $row[] = 'USD '.toDec($data['data']['total']['total']);
         $dg->addFooter($row,'font-weight-bold');
 
-        $arr['lista'] .= $dg->get();
+        $arr['lista'] .= '<h4 class="text-info">Resultado sobre ventas</h4>'.$dg->get();
     
         $this->addView('bot/estadisticas',$arr);
     }
