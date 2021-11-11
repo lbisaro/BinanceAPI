@@ -56,7 +56,7 @@ class Operacion extends ModelDB
         {
             $bin='';
             $status = $this->status();
-            if ($status == OP_STATUS_ERROR)
+            if ($status == self::OP_STATUS_ERROR)
                 $bin = .' [Ref.:'$this->binStatus.']';
 
             return $this->getTipoStatus($status).$bin;
