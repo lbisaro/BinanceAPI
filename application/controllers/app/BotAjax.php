@@ -350,7 +350,7 @@ class BotAjax extends ControllerAjax
             $aOpr['orderId']      = $limitOrder['orderId'];
     
             $msg = ' Buy -> Qty:'.$newQty.' Price:'.$newPrice.' USD:'.toDec($newPrice).' -'.$multiplicador_porc.'% - RESOLVER APALANCAMIENTO';
-            Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
+            Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg,$echo=false);
     
             $opr->insertOrden($aOpr);     
     
