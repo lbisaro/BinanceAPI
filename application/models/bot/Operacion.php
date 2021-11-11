@@ -237,7 +237,7 @@ class Operacion extends ModelDB
         return self::OP_STATUS_ERROR;
     }
 
-    function $this->trySolveError()
+    function trySolveError()
     {
         if ($this->binStatus == '0100') //No fue posible crear la orden de venta luego de confirmar la compra
         {
