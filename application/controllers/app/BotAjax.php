@@ -291,4 +291,74 @@ class BotAjax extends ControllerAjax
         else
             $this->ajxRsp->addError($opr->getErrLog());
     }
+
+    function resolverApalancamiento()
+    {
+        $idoperacion = $_REQUEST['idoperacion'];
+        $opr = new Operacion($idoperacion);
+        $idusuario = $opr->get('idusuario');
+        $symbol = $opr->get('symbol');
+        $multiplicador_porc = $opr->get('multiplicador_porc');
+        
+        $auth = UsrUsuario::getAuthInstance();
+        if ($auth->get('idusuario') != $idusuario)
+        {
+            $this->ajxRsp->addError('No esta autorizado a realizar la operacion');
+            return false;
+        }
+
+        $ak = $auth->getConfig('bncak');
+        $as = $auth->getConfig('bncas');
+
+        $api = new BinanceAPI($ak,$as); 
+        //Consulta billetera en Binance para ver si se puede recomprar
+        $symbolData = $api->getSymbolData($symbol);
+        $account = $api->account();
+        $asset = str_replace($symbolData['quoteAsset'],'',$symbol);
+        $unitsFree = '0.00';
+        $unitsLocked = '0.00';
+        foreach ($account['balances'] as $balances)
+        {
+            if ($balances['asset'] == $asset)
+            {
+                $unitsFree = $balances['free'];
+                $unitsLocked = $balances['locked'];
+            }
+            if ($balances['asset'] == $symbolData['quoteAsset'])
+            {
+                $usdFreeToBuy = $balances['free'];
+            }
+        }
+
+        $newUsd = $_REQUEST['qtyUSD'];
+        $newQty = toDec($newUsd/$_REQUEST['symbolPrice'],($symbolData['qtyDecs']*1));
+        $newPrice = toDec($_REQUEST['symbolPrice'],($symbolData['qtyDecsPrice']*1));
+
+        if ($newUsd>$usdFreeToBuy)
+        {
+            $this->ajxRsp->addError('No es posible registrar la orden - El importe disponible en USD es de '.$usdFreeToBuy);
+            return false;
+        }
+
+
+        try {
+            $limitOrder = $api->buy($symbol, $newQty, $newPrice);
+            $aOpr['idoperacion']  = $idoperacion;
+            $aOpr['side']         = Operacion::SIDE_BUY;
+            $aOpr['origQty']      = $newQty;
+            $aOpr['price']        = $newPrice;
+            $aOpr['orderId']      = $limitOrder['orderId'];
+    
+            $msg = ' Buy -> Qty:'.$newQty.' Price:'.$newPrice.' USD:'.toDec($newPrice).' -'.$multiplicador_porc.'% - RESOLVER APALANCAMIENTO';
+            Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
+    
+            $opr->insertOrden($aOpr);     
+    
+            $this->ajxRsp->redirect('app.bot.verOperacion+id='.$idoperacion); 
+
+        } catch (Throwable $e) {
+            $msg = "Error: " . $e->getMessage();
+            $this->ajxRsp->addError('No es posible registrar la orden<br/>REPORTE BINANCE<br/>'.$msg);
+        }
+    }
 }

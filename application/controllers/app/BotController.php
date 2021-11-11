@@ -115,6 +115,9 @@ class BotController extends Controller
         $arr['multiplicador_porc'] = $opr->get('multiplicador_porc').'%'.
                                      ($opr->get('multiplicador_porc_inc')?' Incremental':'');
         $arr['estado'] = $opr->get('strEstado');
+        $status = $opr->status();
+        if ($status==Operacion::OP_STATUS_APALANCAOFF)
+            $arr['estado'] .= '<br/><a class="btn btn-sm btn-warning" href="'.Controller::getLink('app','bot','resolverApalancamiento','id='.$idoperacion).'">Resolver Apalancamiento</a>';
 
         if ($opr->autoRestart())
             $autoRestart = '<button id="arBtn" class="btn btn-sm btn-success">
@@ -523,7 +526,172 @@ class BotController extends Controller
         $this->addView('bot/verLogs',$arr);
     }
     
-    
+    function resolverApalancamiento($auth)
+    {
+        $idoperacion = $_REQUEST['id'];
+        $this->addTitle('Resolver Apalancamiento Operacion #'.$idoperacion);
+
+        $opr = new Operacion($idoperacion);
+
+        if ($opr->get('idusuario') != $auth->get('idusuario'))
+        {
+            $this->addError('No esta autorizado a visualizar esta pagina.');
+            return false;
+        }
+        $link = '<a href="https://www.binance.com/es/trade/'.$opr->get('symbol').'" target="_blank">'.$opr->get('symbol').'</a>';
+        $arr['idoperacion'] = $idoperacion;
+        $arr['symbol'] = $link;
+        $arr['inicio_usd'] = 'USD '.$opr->get('inicio_usd');
+        $arr['multiplicador_compra'] = $opr->get('multiplicador_compra');
+        $arr['multiplicador_porc'] = $opr->get('multiplicador_porc').'%'.
+                                     ($opr->get('multiplicador_porc_inc')?' Incremental':'');
+        $arr['estado'] = $opr->get('strEstado');
+
+        if ($opr->autoRestart())
+            $autoRestart = '<span class="glyphicon glyphicon-ok"></span>';
+        else
+            $autoRestart = '<span class="glyphicon glyphicon-ban-circle"></span>';
+
+        $arr['auto-restart'] = $autoRestart;
+        $arr['hidden'] = Html::getTagInput('idoperacion',$opr->get('idoperacion'),'hidden');
+
+        $ordenes = $opr->getOrdenes($enCurso=false);
+
+        $dgA = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
+        $dgA->addHeader('ID');
+        $dgA->addHeader('Tipo');
+        $dgA->addHeader('Unidades',null,null,'right');
+        $dgA->addHeader('Precio',null,null,'right');
+        $dgA->addHeader('USD',null,null,'right');
+        $dgA->addHeader('Estado');
+        $dgA->addHeader('Fecha Hora');
+
+        $dgB = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
+        $dgB->addHeader('ID');
+        $dgB->addHeader('Tipo');
+        $dgB->addHeader('Unidades',null,null,'right');
+        $dgB->addHeader('Precio',null,null,'right');
+        $dgB->addHeader('USD',null,null,'right');
+        $dgB->addHeader('Estado');
+        $dgB->addHeader('Fecha Hora');
+
+        $totVentas = 0;
+        $gananciaUsd = 0;
+        $maxCompraNum = 0;
+        foreach ($ordenes as $rw)
+        {
+            $usd = toDec($rw['origQty']*$rw['price']);
+
+            if (!$rw['completed'] && $rw['side']==Operacion::SIDE_BUY)
+                $rw['sideStr'] .= ' #'.$rw['compraNum'];
+
+            $link = '<a href="app.bot.verOrden+symbol='.$opr->get('symbol').'&orderId='.$rw['orderId'].'" target="_blank">'.$rw['orderId'].'</a>';
+        
+            $row = array($link,
+                         $rw['sideStr'],
+                         ($rw['origQty']*1),
+                         ($rw['price']*1),
+                         ($rw['side']==Operacion::SIDE_BUY?'-':'').$usd,
+                         $rw['statusStr'],
+                         $rw['updatedStr']
+                        );
+
+            if (!$rw['completed'])
+                $dgA->addRow($row,$rw['sideClass'],null,null,$id='ord_'.$rw['orderId']);
+            else
+                $dgB->addRow($row,$rw['sideClass'],null,null,$id='ord_'.$rw['orderId']);
+
+            if ($rw['completed'])
+            {
+                if ($rw['side']==Operacion::SIDE_SELL)
+                {
+                    $totVentas++;
+                    $gananciaUsd += $usd;
+                }
+                else
+                {
+                    $gananciaUsd -= $usd;
+                }
+            }
+
+            //Calculo de parametros propuestos
+            if ($rw['side']==Operacion::SIDE_BUY && $rw['status']==Operacion::OR_STATUS_FILLED && $rw['completed']<1)
+            {
+                $lastBuyPrice = $rw['price'];
+                
+                $lastUsdBuyed = ($rw['origQty']*$rw['price']);
+                
+                $totUnitsBuyed += $rw['origQty'];
+                $totUsdBuyed += ($rw['origQty']*$rw['price']);
+
+                if ($rw['compraNum']>$maxCompraNum)
+                    $maxCompraNum = $rw['compraNum'];
+        
+             }
+
+
+        }
+
+        $ak = $auth->getConfig('bncak');
+        $as = $auth->getConfig('bncas');
+
+        $api = new BinanceAPI($ak,$as);    
+
+        $symbol = $opr->get('symbol');
+
+        //Consulta billetera en Binance para ver si se puede recomprar
+        $symbolData = $api->getSymbolData($symbol);
+        $account = $api->account();
+        $asset = str_replace($symbolData['quoteAsset'],'',$symbol);
+        $unitsFree = '0.00';
+        $unitsLocked = '0.00';
+        foreach ($account['balances'] as $balances)
+        {
+            if ($balances['asset'] == $asset)
+            {
+                $unitsFree = $balances['free'];
+                $unitsLocked = $balances['locked'];
+            }
+            if ($balances['asset'] == $symbolData['quoteAsset'])
+            {
+                $usdFreeToBuy = $balances['free'];
+            }
+        }
+
+        $strControlUnitsBuyed = ' - totUnitsBuyed: '.$totUnitsBuyed.' - unitsFree: '.$unitsFree;
+        $strControlUsdFreeToBuy = ' - usdFreeToBuy: '.$usdFreeToBuy;
+        //Si la cantidad de unidades compradas segun DB es mayor a la cantidad de unidades en API
+        //Toma la cantidad de unidades en la API
+        if (($totUnitsBuyed*1) > ($unitsFree*1))
+            $totUnitsBuyed = $unitsFree;
+        
+        //Orden para recompra por apalancamiento
+        $multiplicador_porc = $opr->get('multiplicador_porc');
+        if ($opr->get('multiplicador_porc_inc'))
+            $multiplicador_porc = $multiplicador_porc*$maxCompraNum; 
+
+        $newUsd = $lastUsdBuyed*$opr->get('multiplicador_compra');
+        $newPrice = toDec($lastBuyPrice - ( ($lastBuyPrice * $multiplicador_porc) / 100 ),$symbolData['qtyDecsPrice']);
+        $newQty = toDec(($newUsd/$newPrice),($symbolData['qtyDecs']*1));
+
+        $arr['symbolPrice'] = $newPrice;
+        //$newQty = toDecDown($totUnitsBuyed,$symbolData['qtyDecs']);
+        $arr['qtyUSD'] = toDec($newUsd);
+
+
+
+
+
+        $arr['ordenesActivas'] = $dgA->get();
+        $arr['idoperacion'] = $opr->get('idoperacion');
+
+        if ($opr->status() == Operacion::OP_STATUS_APALANCAOFF)
+            $arr['addButtons'] = '<button class="btn btn-warning btn-block" onclick="resolverApalancamiento();">Crear una nueva Orden de Compra LIMIT</button>';
+        else
+            $arr['addButtons'] = '<div class="alert alert-danger">No es posible resolver el apalancamiento debido a que el estado de la orden no es valido para la operacion.</div>';
+
+        $this->addView('bot/resolverApalancamiento',$arr);
+    }
     
     
 }
