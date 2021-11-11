@@ -123,7 +123,7 @@ foreach ($usuarios as $idusuario => $usuarioData)
 
 
         
-        if ($data['update'] && $opr->status() != Operacion::OP_STATUS_APALANCAOFF)
+        if ($data['update'])
         {
             if ($data['actualizar'] == 'compra') //La operacion recompro por apalancamiento o es la primera compra
             {
