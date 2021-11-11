@@ -221,7 +221,7 @@ class Operacion extends ModelDB
         $arr['1001'] = self::OP_STATUS_ERROR;
         $arr['1010'] = self::OP_STATUS_ERROR;
         $arr['1011'] = self::OP_STATUS_ERROR;
-        $arr['1100'] = self::OP_STATUS_ERROR;
+        $arr['1100'] = self::OP_STATUS_OPEN;
         $arr['1101'] = self::OP_STATUS_ERROR;
         $arr['1110'] = self::OP_STATUS_WAITING;
         $arr['1111'] = self::OP_STATUS_ERROR;
@@ -231,7 +231,32 @@ class Operacion extends ModelDB
         if (isset($arr[$bin]))
             return $arr[$bin];
 
+        if ($arr[$bin] == self::OP_STATUS_ERROR)
+            $this->trySolveError();
+
         return self::OP_STATUS_ERROR;
+    }
+
+    function $this->trySolveError()
+    {
+        if ($this->binStatus == '0100') //No fue posible crear la orden de venta luego de confirmar la compra
+        {
+            $ordenes = $this->getOrdenes($enCurso=true)
+            foreach ($ordenes as $rw)
+            {
+                if ($rw['side']==self::SIDE_BUY && $rw['status']==self::OR_STATUS_FILLED)
+                    $lastBuy = $rw;
+            }
+            if (!empty($lastBuy))
+            {
+                $qry = "UPDATE operacion_orden SET status = '".self::OR_STATUS_NEW."' 
+                         WHERE idoperacion = ".$lastBuy['idoperacion']." 
+                           AND idoperacionorden = ".$lastBuy['idoperacionorden'];
+                $this->db->query($qry);
+                $msg = ' trySolveError '.$this->binStatus.' - orderId'.$lastBuy['orderId'];
+                self::logBot('u:'.$this->data['idusuario'].' o:'.$lastBuy['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+            }
+        }
     }
 
     function canStart()
