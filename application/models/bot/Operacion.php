@@ -610,11 +610,11 @@ class Operacion extends ModelDB
     {
         $msg = "\n".date('H:i:s').' '.$msg;
 
-        if (strstr(strtolower($msg),'error'))
-        {
-            $logFile = LOG_PATH.'bot/bot_error_'.date('Ymd').'.log';
-            file_put_contents($logFile, $msg,FILE_APPEND);
-        }        
+        //if (strstr(strtolower($msg),'error'))
+        //{
+        //    $logFile = LOG_PATH.'bot/bot_error_'.date('Ymd').'.log';
+        //    file_put_contents($logFile, $msg,FILE_APPEND);
+        //}        
         
         $logFile = LOG_PATH.'bot/bot_'.date('Ymd').'.log';
         file_put_contents($logFile, $msg,FILE_APPEND);

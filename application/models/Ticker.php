@@ -254,7 +254,7 @@ class Ticker extends ModelDB
                     $perc =  toDec((((float)$candel['close']/$ret['base0'][$id])-1)*100);
                 }
                 $prices[$id][] = array('date'=>date('c',($timestamp/1000)),
-                                       'price'=> (float)$candel['close'],
+                                       'price'=> ($candel['open']+$candel['close'])/2,
                                        'high'=> (float)$candel['high'],
                                        'low'=> (float)$candel['low'],
                                        'open'=> (float)$candel['open'],
