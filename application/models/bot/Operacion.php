@@ -228,11 +228,11 @@ class Operacion extends ModelDB
 
         $this->binStatus = $bin;
 
-        if (isset($arr[$bin]))
-            return $arr[$bin];
-
         if ($arr[$bin] == self::OP_STATUS_ERROR)
             $this->trySolveError();
+
+        if (isset($arr[$bin]))
+            return $arr[$bin];
 
         return self::OP_STATUS_ERROR;
     }
