@@ -273,6 +273,12 @@ foreach ($usuarios as $idusuario => $usuarioData)
                     }
                 }
 
+                //if ($errorEnOrden)
+                //{
+                //    $msg = "AutoRestart: OFF";
+                //    Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
+                //    $opr->autoRestartOff();
+                //}
             }
             else //La operacion se vendio y debe finalizar
             {
@@ -307,86 +313,6 @@ foreach ($usuarios as $idusuario => $usuarioData)
                 if ($opr->autoRestart())
                     $opr->restart();
             }
-        }
-        elseif ($opr->status() == Operacion::OP_STATUS_APALANCAOFF)
-        {
-            //Revisar saldo en USD e intentar cargar el apalancamiento
-
-            //Consulta billetera en Binance para ver si se puede recomprar
-            $symbolData = $api->getSymbolData($symbol);
-            $account = $api->account();
-            $asset = str_replace($symbolData['quoteAsset'],'',$symbol);
-            $unitsFree = '0.00';
-            $unitsLocked = '0.00';
-            foreach ($account['balances'] as $balances)
-            {
-                if ($balances['asset'] == $asset)
-                {
-                    $unitsFree = $balances['free'];
-                    $unitsLocked = $balances['locked'];
-                }
-                if ($balances['asset'] == $symbolData['quoteAsset'])
-                {
-                    $usdFreeToBuy = $balances['free'];
-                }
-            }
-
-            //Obteniendo datos de ordenes anteriores
-            $dbOrders = $opr->getOrdenes();
-
-            $lastBuyPrice=0;
-            $totUsdBuyed=0;
-            $totUnitsBuyed=0;
-            $lastUsdBuyed = 0;
-            $maxCompraNum = 1; 
-            foreach ($dbOrders as $order)
-            {
-                if ($order['side']==Operacion::SIDE_BUY)
-                {
-                    $lastBuyPrice = $order['price'];
-                    
-                    $lastUsdBuyed = ($order['origQty']*$order['price']);
-                    
-                    $totUnitsBuyed += $order['origQty'];
-                    $totUsdBuyed += ($order['origQty']*$order['price']);
-
-                    if ($order['compraNum']>$maxCompraNum)
-                        $maxCompraNum = $order['compraNum'];
-                }
-            }
-
-            $strControlUsdFreeToBuy = ' - usdFreeToBuy: '.$usdFreeToBuy;
-            
-
-            //Orden para recompra por apalancamiento
-            $multiplicador_porc = $opr->get('multiplicador_porc');
-            if ($opr->get('multiplicador_porc_inc'))
-                $multiplicador_porc = $multiplicador_porc*$maxCompraNum; 
-            
-            $newUsd = $lastUsdBuyed*$opr->get('multiplicador_compra');
-            $newPrice = toDec($lastBuyPrice - ( ($lastBuyPrice * $multiplicador_porc) / 100 ),$symbolData['qtyDecsPrice']);
-            $newQty = toDec(($newUsd/$newPrice),($symbolData['qtyDecs']*1));
-
-            if ($newUsd < $usdFreeToBuy) //Hay billetera para comprar
-            {
-                $msg = ' Buy RESUELVE APALANCAMIENTO INSUFICIENTE -> Qty:'.$newQty.' Price:'.$newPrice.' USD:'.toDec($newPrice).' -'.$multiplicador_porc.'%';
-                Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
-
-                try {
-                    $limitOrder = $api->buy($symbol, $newQty, $newPrice);
-                    $aOpr['idoperacion']  = $idoperacion;
-                    $aOpr['side']         = Operacion::SIDE_BUY;
-                    $aOpr['origQty']      = $newQty;
-                    $aOpr['price']        = $newPrice;
-                    $aOpr['orderId']      = $limitOrder['orderId'];
-                    $opr->insertOrden($aOpr);               
-                } catch (Throwable $e) {
-                    $msg = "Error: " . $e->getMessage().$strControlUsdFreeToBuy;
-                    Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
-                    $errorEnOrden = true;
-                }
-            }
-
         }
         else
         {
