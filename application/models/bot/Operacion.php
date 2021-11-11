@@ -241,7 +241,7 @@ class Operacion extends ModelDB
     {
         if ($this->binStatus == '0100') //No fue posible crear la orden de venta luego de confirmar la compra
         {
-            $ordenes = $this->getOrdenes($enCurso=true)
+            $ordenes = $this->getOrdenes($enCurso=true);
             foreach ($ordenes as $rw)
             {
                 if ($rw['side']==self::SIDE_BUY && $rw['status']==self::OR_STATUS_FILLED)
