@@ -14,6 +14,8 @@ class Operacion extends ModelDB
 
     protected $pKey  = 'idoperacion';
 
+    public $binStatus;
+
     const SIDE_BUY = 0;
     const SIDE_SELL = 1;
 
@@ -51,7 +53,14 @@ class Operacion extends ModelDB
     function get($field)
     {
         if ($field=='strEstado')
-            return $this->getTipoStatus($this->status());
+        {
+            $bin='';
+            $status = $this->status();
+            if ($status == OP_STATUS_ERROR)
+                $bin = .' [Ref.:'$this->binStatus.']';
+
+            return $this->getTipoStatus($status).$bin;
+        }
         return parent::get($field);
     }
 
@@ -216,6 +225,8 @@ class Operacion extends ModelDB
         $arr['1101'] = self::OP_STATUS_ERROR;
         $arr['1110'] = self::OP_STATUS_WAITING;
         $arr['1111'] = self::OP_STATUS_ERROR;
+
+        $this->binStatus = $bin;
 
         if (isset($arr[$bin]))
             return $arr[$bin];
