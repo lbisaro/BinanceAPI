@@ -461,7 +461,6 @@ class BotController extends Controller
             $row[] = 'USD '.toDec($data['data']['m'][$curMonth]['total']);
             $dg->addRow($row);
             $curMonth = date('Y-m',strtotime($curMonth.' - 1 month'));
-            debug($curMonth);
         }
 
         $row=array();
