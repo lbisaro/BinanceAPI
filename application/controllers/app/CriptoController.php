@@ -56,7 +56,7 @@ class CriptoController extends Controller
                 $row[] = $symbol;
                 $row[] = toDec($rw['buyedUSD']);
                 $row[] = toDec($rw['actualUSD']);
-                $row[] = toDec($rw['actualUSD']-$rw['buyedUSD']);
+                $row[] = '<span class="text-'.(($rw['actualUSD']-$rw['buyedUSD'])>0?'success':'danger').'">'.toDec($rw['actualUSD']-$rw['buyedUSD']).'</span>';
                 $row[] = '<span class="text-'.($rw['perc']>0?'success':'danger').'">'.toDec($rw['perc']).'%</span>';
                 $dg->addRow($row);
                 $pnlTotal['buyedUSD'] += $rw['buyedUSD'];
@@ -68,7 +68,8 @@ class CriptoController extends Controller
                 $pnlTotal['perc'] = (($pnlTotal['actualUSD']/$pnlTotal['buyedUSD'])-1)*100;
                 $pnlTotal['perc'] = '<span class="text-'.($pnlTotal['perc']>0?'success':'danger').'">'.toDec($pnlTotal['perc']).'%</span>';
             }
-            $pnlTotal['resultadoUSD'] = '<span class="text-'.($pnlTotal['resultadoUSD']>0?'success':'danger').'">'.toDec($pnlTotal['resultadoUSD']).'%</span>';
+            $pnlTotal['resultadoUSD'] = '<span class="text-'.($pnlTotal['resultadoUSD']>0?'success':'danger').'">'.toDec($pnlTotal['resultadoUSD']).'</span>';
+            
             $dg->addFooter(array('Totales',toDec($pnlTotal['buyedUSD']),toDec($pnlTotal['actualUSD']),$pnlTotal['resultadoUSD'],$pnlTotal['perc']));
 
             $arr['data'] .= '<h4 class="text-info">Operaciones</h4>'.$dg->get();
