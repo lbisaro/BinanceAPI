@@ -379,7 +379,11 @@ class BotController extends Controller
         $dg->addFooter($row,'font-weight-bold');
         $arr['lista'] = '<h4 class="text-info">Historico de Operaciones</h4>'.$dg->get();
 
+        //Revision de estadisticas Diaria y Mensual
+
         $data = $opr->getEstadisticaDiaria();
+
+        //Diaria 
         unset($dg);
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
 
@@ -393,15 +397,17 @@ class BotController extends Controller
         $dg->addHeader('Total',null,null,'right');
 
         $curDate = date('Y-m-d');
-        while ($curDate>=$data['iniDate'])
+        $days=0;
+        while ($curDate>=date('Y-m-').'01')
         {
+            $days++;
             $row=array();
             $row[] = dateToStr($curDate);
             foreach ($data['operaciones'] as $idoperacion=>$symbol)
             {
-                $row[] = ($data['data'][$curDate][$idoperacion] ?toDec($data['data'][$curDate][$idoperacion]) : '-');
+                $row[] = ($data['data']['d'][$curDate][$idoperacion] ?toDec($data['data']['d'][$curDate][$idoperacion]) : '-');
             }
-            $row[] = 'USD '.toDec($data['data'][$curDate]['total']);
+            $row[] = 'USD '.toDec($data['data']['d'][$curDate]['total']);
             $dg->addRow($row);
             $curDate = date('Y-m-d',strtotime($curDate.' - 1 day'));
         }
@@ -410,12 +416,73 @@ class BotController extends Controller
         $row[] = 'Total';
         foreach ($data['operaciones'] as $idoperacion=>$symbol)
         {
-            $row[] = toDec($data['data']['total'][$idoperacion]);
+            $row[] = toDec($data['data']['d']['total'][$idoperacion]);
         }
-        $row[] = 'USD '.toDec($data['data']['total']['total']);
+        $row[] = 'USD '.toDec($data['data']['d']['total']['total']);
         $dg->addFooter($row,'font-weight-bold');
 
-        $arr['lista'] .= '<h4 class="text-info">Resultado sobre ventas</h4>'.$dg->get();
+        $row=array();
+        $row[] = 'Promedio diario';
+        foreach ($data['operaciones'] as $idoperacion=>$symbol)
+        {
+            $row[] = toDec($data['data']['d']['total'][$idoperacion]/$days);
+        }
+        $row[] = 'USD '.toDec($data['data']['d']['total']['total']/$days);
+        $dg->addFooter($row,'font-weight-bold');
+
+        $arr['lista'] .= '<h4 class="text-info">Resultado sobre ventas Diarias</h4>'.$dg->get();
+
+
+
+        //Mensual 
+        unset($dg);
+        $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
+
+        $dg->addHeader('Mes');
+        foreach ($data['operaciones'] as $idoperacion=>$symbol)
+        {
+            if (substr($symbol,-4) == 'USDT' || substr($symbol,-4) == 'USDC' || substr($symbol,-4) == 'BUSD')
+                $strSymbol = substr($symbol,0,-4).'<br>'.substr($symbol,-4);
+            $dg->addHeader('<span title="Operacion #'.$idoperacion.'">'.$strSymbol.'<span>',null,null,'right');
+        }
+        $dg->addHeader('Total',null,null,'right');
+
+        $curMonth = date('Y-m');
+        $month=0;
+        while ($curMonth>=date('Y-m',strtotime($data['iniDate'])))
+        {
+            $month++;
+            $row=array();
+            $row[] = $curMonth;
+            foreach ($data['operaciones'] as $idoperacion=>$symbol)
+            {
+                $row[] = ($data['data']['m'][$curMonth][$idoperacion] ?toDec($data['data']['m'][$curMonth][$idoperacion]) : '-');
+            }
+            $row[] = 'USD '.toDec($data['data']['m'][$curMonth]['total']);
+            $dg->addRow($row);
+            $curMonth = date('Y-m',strtotime($curMonth.' - 1 month'));
+            debug($curMonth);
+        }
+
+        $row=array();
+        $row[] = 'Total';
+        foreach ($data['operaciones'] as $idoperacion=>$symbol)
+        {
+            $row[] = toDec($data['data']['m']['total'][$idoperacion]);
+        }
+        $row[] = 'USD '.toDec($data['data']['m']['total']['total']);
+        $dg->addFooter($row,'font-weight-bold');
+
+        $row=array();
+        $row[] = 'Promedio Mensual';
+        foreach ($data['operaciones'] as $idoperacion=>$symbol)
+        {
+            $row[] = toDec($data['data']['m']['total'][$idoperacion]/$days);
+        }
+        $row[] = 'USD '.toDec($data['data']['m']['total']['total']/$days);
+        $dg->addFooter($row,'font-weight-bold');
+
+        $arr['lista'] .= '<h4 class="text-info">Resultado sobre ventas Mensuales</h4>'.$dg->get();
     
         $this->addView('bot/estadisticas',$arr);
     }

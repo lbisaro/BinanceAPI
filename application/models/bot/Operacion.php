@@ -580,9 +580,11 @@ class Operacion extends ModelDB
                 $data['operaciones'][$rw['idoperacion']] = $rw['symbol'];
             }
 
-            $dateKey = date('Y-m-d',strtotime($rw['updated']));
-            if ($data['iniDate'] > $dateKey)
-                $data['iniDate'] = $dateKey;
+            $dayKey = date('Y-m-d',strtotime($rw['updated']));
+            $monthKey = date('Y-m',strtotime($rw['updated']));
+
+            if ($data['iniDate'] > $dayKey)
+                $data['iniDate'] = $dayKey;
 
             if ($rw['side']==self::SIDE_BUY) //Cierra operacion y la guarda en la fecha
             {
@@ -592,15 +594,27 @@ class Operacion extends ModelDB
             {
                 $usd = toDec($rw['origQty']*$rw['price']);
                 $usd = $usd+$totalCompras;
-                $data['data'][$dateKey]['total'] += $usd;
-                $data['data']['total']['total'] += $usd;
-                $data['data'][$dateKey][$rw['idoperacion']] += $usd;
-                $data['data']['total'][$rw['idoperacion']] += $usd;
+                if (date('m',strtotime($rw['updated']))==date('m'))
+                {
+                    $data['data']['d'][$dayKey]['total'] += $usd;
+                    $data['data']['d']['total']['total'] += $usd;
+                    $data['data']['d'][$dayKey][$rw['idoperacion']] += $usd;
+                    $data['data']['d']['total'][$rw['idoperacion']] += $usd;
+                }
+            
+                $data['data']['m'][$monthKey]['total'] += $usd;
+                $data['data']['m']['total']['total'] += $usd;
+                $data['data']['m'][$monthKey][$rw['idoperacion']] += $usd;
+                $data['data']['m']['total'][$rw['idoperacion']] += $usd;
+
                 $totalCompras = 0;
+
+
             }
             
         }
-        ksort($data['data']);
+        ksort($data['data']['d']);
+        ksort($data['data']['m']);
 
         return $data;
     }
