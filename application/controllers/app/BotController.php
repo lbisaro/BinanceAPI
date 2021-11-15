@@ -472,14 +472,6 @@ class BotController extends Controller
         $row[] = 'USD '.toDec($data['data']['m']['total']['total']);
         $dg->addFooter($row,'font-weight-bold');
 
-        $row=array();
-        $row[] = 'Promedio Mensual';
-        foreach ($data['operaciones'] as $idoperacion=>$symbol)
-        {
-            $row[] = toDec($data['data']['m']['total'][$idoperacion]/$days);
-        }
-        $row[] = 'USD '.toDec($data['data']['m']['total']['total']/$days);
-        $dg->addFooter($row,'font-weight-bold');
 
         $arr['lista'] .= '<h4 class="text-info">Resultado sobre ventas Mensuales</h4>'.$dg->get();
     
