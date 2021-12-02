@@ -36,7 +36,7 @@ class HtmlTableDg
 
     protected $qtyCols = 0;
 
-    function __Construct($id=null,$width='100%',$class='DG')
+    function __Construct($id=null,$width='100%',$class='DG table table-hover table-striped')
     {
         $this->reset();
         $this->id    = $id;
@@ -177,7 +177,7 @@ class HtmlTableDg
 
         $caption = '';
         if ($this->caption)
-            $caption = '<caption>'.$this->caption.'</caption>';
+            $caption = '<h2>'.$this->caption.'</h2>';
 
         $rows = '';
         $footer = '';
@@ -243,15 +243,17 @@ class HtmlTableDg
         $table = '';
         if ($header || $caption || $rows)
         {
-            $table = '<table class="'.$this->class.'" '.
+            $table = '<div class="container">';
+            $table .= $caption;
+            $table .= '<table class="'.$this->class.'" '.
                             ($this->id?' id="'.$this->id.'" ':'').' '.
                             ($this->width?' style="width:'.$this->width.'" ':'').
                             ' >';
-            $table .= $caption;
             $table .= '<thead>'.$header.'</thead>';
             $table .= '<tbody>'.$rows.'</tbody>';
             $table .= '<tfoot>'.$footer.'</tfoot>';
             $table .= '</table>';
+            $table .= '</div>';
         }
 
         return $table;

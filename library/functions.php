@@ -1292,12 +1292,14 @@ function is_array_assoc(array $arr)
     return array_keys($arr) !== range(0, count($arr) - 1);
 }
 
-function diferenciaFechas($fechaIni,$fechaFin)
+function diferenciaFechas($fecha_inicial,$fecha_final)
 {
-    $firstDate  = new DateTime($fechaIni);
-    $secondDate = new DateTime($fechaFin);
-    $intvl = $firstDate->diff($secondDate);
-    return $intvl;
+    $dias = (strtotime($fecha_inicial)-strtotime($fecha_final))/86400;
+    $dias = abs($dias); 
+    //$dias = floor($dias);
+    $dias = toDec($dias,1);
+    //$dias = strtotime($fecha_final, $fecha_inicial)/86400/3600;
+    return $dias;
 }
 
 ?>

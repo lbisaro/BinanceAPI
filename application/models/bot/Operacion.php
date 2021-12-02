@@ -526,7 +526,7 @@ class Operacion extends ModelDB
 
         $data['totales']['start'] = date('Y-m-d H:i:s');
         $data['totales']['end'] = '0000-00-00 00:00:00';
-        $qry = "SELECT operacion_orden.idoperacion, min(updated) as first_update, max(updated) as last_update 
+        $qry = "SELECT operacion_orden.idoperacion, auto_restart, min(updated) as first_update, max(updated) as last_update 
                 FROM operacion_orden 
                 LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion
                 WHERE idusuario = ".$idusuario." AND completed > 0 
@@ -534,6 +534,8 @@ class Operacion extends ModelDB
         $stmt = $this->db->query($qry);
         while ($rw = $stmt->fetch())
         {
+            if ($rw['auto_restart']>0)
+                $rw['last_update'] = date('Y-m-d H:i:s');
             $data['operaciones'][$rw['idoperacion']]['start'] = $rw['first_update'];
             $data['operaciones'][$rw['idoperacion']]['end'] = $rw['last_update'];
             $data['operaciones'][$rw['idoperacion']]['days'] = 0;
@@ -546,13 +548,11 @@ class Operacion extends ModelDB
         
         foreach ($data['operaciones'] as $k => $rw)
         {
-            $diff = diferenciaFechas($rw['start'],$rw['end']);
-            $data['operaciones'][$k]['days'] = toDec((($diff->d*24+$diff->h)/24),2);
+            $data['operaciones'][$k]['days'] = diferenciaFechas($rw['start'],$rw['end']);
             $data['operaciones'][$k]['avg_usd_day'] = toDec($rw['ganancia_usd']/$data['operaciones'][$k]['days'],2);
         }
 
-        $diff = diferenciaFechas($data['totales']['start'],$data['totales']['end']);
-        $data['totales']['days'] = toDec((($diff->d*24+$diff->h)/24),2);
+        $data['totales']['days'] = diferenciaFechas($data['totales']['start'],$data['totales']['end']);
         $data['totales']['avg_usd_day'] = toDec($data['totales']['ganancia_usd']/$data['totales']['days'],2);
 
 
