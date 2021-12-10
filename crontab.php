@@ -29,6 +29,10 @@ switch ($parametro) {
         include "crontab/crontab_apalancamiento.php";
         break;
     
+    case 'arbitrajeTriangular':
+        include "crontab/crontab_arbitrajeTriangular.php";
+        break;
+    
     case 'getprices_binance':
         include "crontab/crontab_getprices_binance.php";
         break;

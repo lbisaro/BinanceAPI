@@ -47,6 +47,11 @@
         <li class="nav-item">
           <a class="nav-link rounded" href="app.bot.operaciones+"><span class="glyphicon glyphicon-modal-window"></span> Bot</a>
         </li>        
+        <!--
+        <li class="nav-item">
+          <a class="nav-link rounded" href="app.botAT.home+"><span class="glyphicon glyphicon-modal-retweet"></span> Bot Arbitraje</a>
+        </li>        
+        -->
         <li class="nav-item">
           <a class="nav-link rounded" href="app.bot.log+"><span class="glyphicon glyphicon-th-list"></span> Log</a>
         </li>        
