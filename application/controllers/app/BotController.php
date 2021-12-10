@@ -352,7 +352,10 @@ class BotController extends Controller
 
         $curDate = date('Y-m-d');
         $days=0;
-        while ($curDate>=date('Y-m-').'01')
+        $iniDate = $data['iniDate'];
+        if ($iniDate > date('Y-m-').'01')
+            $iniDate = date('Y-m-').'01';
+        while ($curDate>=$iniDate)
         {
             $days++;
             $row=array();
