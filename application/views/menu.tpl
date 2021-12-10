@@ -1,3 +1,13 @@
+<script language="javascript" >
+
+    $(document).ready( function () {
+
+        //jsMenuAdmin
+        {{jsMenuAdmin}}
+    
+    });
+
+</script>
 
 <nav class="navbar fixed-top navbar-expand-lg navbar-default ">
   <a class="navbar-brand mb-2" href="app.Cripto.home+">
@@ -52,7 +62,7 @@
           <a class="nav-link rounded" href="app.botAT.home+"><span class="glyphicon glyphicon-modal-retweet"></span> Bot Arbitraje</a>
         </li>        
         -->
-        <li class="nav-item">
+        <li class="nav-item menu-admin">
           <a class="nav-link rounded" href="app.bot.log+"><span class="glyphicon glyphicon-th-list"></span> Log</a>
         </li>        
         <li class="nav-item">

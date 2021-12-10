@@ -60,6 +60,8 @@ if (!$isLogScrn )
 
     $view = new View();
     $view->setTpl('menu');
+    if ($auth->get('idperfil') != UsrUsuario::USUARIO_ADM)
+        $arr['jsMenuAdmin'] = " $('.menu-admin').remove(); ";
     $arr['title']=str_replace($baseTitle.' - ','',$controller->getTitle());
     echo $view->get($arr);
 
