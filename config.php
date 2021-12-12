@@ -70,5 +70,8 @@ date_default_timezone_set('America/Argentina/Buenos_Aires');
     define ('DEFAULT_CHAR_ENCODING', 'UTF-8');
     define ('DEFAULT_CHAR_DB_ENCODING', 'utf8');
 
-
+/** STATUS FILE para control de Crontab */
+    define('STATUS_FILE',LOG_PATH.'bot/status.log');
+    define('STATUS_FILE_AT',LOG_PATH.'bot/statusAT.log');
+    define('STATUS_FILE_SCLPR',LOG_PATH.'bot/statusScalper.log');
 ?>
