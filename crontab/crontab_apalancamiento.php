@@ -209,9 +209,9 @@ foreach ($usuarios as $idusuario => $usuarioData)
                 
                 //Orden para venta
                 if ($maxCompraNum==1) 
-                    $porcentaje = Operacion::PORCENTAJE_VENTA_UP;
+                    $porcentaje = $opr->get('real_porc_venta_up');
                 else
-                    $porcentaje = Operacion::PORCENTAJE_VENTA_DOWN;
+                    $porcentaje = $opr->get('real_porc_venta_down');
 
                 $newUsd = $totUsdBuyed * (1+($porcentaje/100));
                 $newPrice = toDec(($newUsd / $totUnitsBuyed),$symbolData['qtyDecsPrice']);

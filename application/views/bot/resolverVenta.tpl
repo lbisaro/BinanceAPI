@@ -44,16 +44,16 @@
         <span class="data">
           <input class="form-control form-control-sm" id="symbolPrice" value="{{symbolPrice}}">
         </td>
-      <td>Importe USD 
+      <td>Cantidad de unidades 
         <span class="data" >
-          <input class="form-control form-control-sm" id="qtyUSD" value="{{qtyUSD}}">
+          <input class="form-control form-control-sm" READONLY id="qtyUnit" value="{{qtyUnit}}">
         </td>
     </tr>
 
     <tr>
       <td colspan="2">
         <div class="alert alert-warning" style="text-align: center;">
-          Para resolver el apalancamiento, el sistema creara una nueva orden de compra LIMITE con los parámetros informados. <br/>
+          Para resolver la venta, el sistema creara una nueva orden de venta LIMITE con los parámetros informados. <br/>
           El sistema generará la misma en Binance siempre que exista saldo disponible.<br/>
           Si bien el sistema propone los parámetros, <b>verificar el precio actual</b> de la moneda en la web de Binance
 
@@ -100,10 +100,10 @@
         return false;
     }
 
-    function resolverApalancamiento()
+    function resolverVenta()
     {
-        if (confirm('Desea crear la orden de compra LIMIT?'))
-            CtrlAjax.sendCtrl("app","bot","resolverApalancamiento","id={{idoperacion}}");
+        if (confirm('Desea crear la orden de venta LIMIT?'))
+            CtrlAjax.sendCtrl("app","bot","resolverVenta","id={{idoperacion}}");
     }
 
 </script>

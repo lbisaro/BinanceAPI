@@ -4,6 +4,7 @@
     }
 </style>
 <div class="container">
+{{alertas}}
 {{data}}
 </div>
 

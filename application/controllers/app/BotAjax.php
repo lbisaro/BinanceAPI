@@ -28,31 +28,44 @@ class BotAjax extends ControllerAjax
             {
                 if ($rw['updated']<$iniDate)
                     $iniDate = $rw['updated'];
+                $updated = substr($rw['updated'],0,14).'00';
                 
-                $updated = substr($rw['updated'],0,14).':00';
-                $prices[$updated]['datetime'] = $updated;
-                if ($rw['side']==Operacion::SIDE_SELL)
+                if ($updated >= date('Y-m-d H',strToTime($iniDate.' -1000 hour')).':00')
                 {
-                    if ($rw['status'] != Operacion::OR_STATUS_NEW)
-                        $prices[$updated]['venta'] = $rw['price'];
+                    $prices[$updated]['datetime'] = $updated;
+                    if ($rw['side']==Operacion::SIDE_SELL)
+                    {
+                        if ($rw['status'] != Operacion::OR_STATUS_NEW)
+                            $prices[$updated]['venta'] = $rw['price'];
+                        else
+                            $prices[$updated]['ventaAbierta'] = $rw['price'];
+                    }
                     else
-                        $prices[$updated]['ventaAbierta'] = $rw['price'];
-                }
-                else
-                {
-                    if ($rw['status'] != Operacion::OR_STATUS_NEW)
-                        $prices[$updated]['compra'] = $rw['price'];
-                    else
-                        $prices[$updated]['compraAbierta'] = $rw['price'];
+                    {
+                        if ($rw['status'] != Operacion::OR_STATUS_NEW)
+                            $prices[$updated]['compra'] = $rw['price'];
+                        else
+                            $prices[$updated]['compraAbierta'] = $rw['price'];
+                    }
                 }
             }
             
-            //Agrega 1 hora antes de la primer operacion
+            //Agrega 3 horas antes de la primer operacion
             $iniDate = date('Y-m-d H:i:s',strToTime($iniDate.' -3 hour'));
             
             $tck = new Ticker();
-            $prms=array('startTime'=>$iniDate,
-                        'interval'=>'1h');
+            $prms=array();
+            if ($iniDate>date('Y-m-d H:i:s',strToTime($iniDate.' -1000 hour')))
+            {
+                $prms['startTime']    = $iniDate;
+                $prms['limit']    = '1000';
+            }
+            else
+            {
+                $prms['limit']    = '1000';
+            }
+
+            $prms['interval'] ='1h';
             $ds = $tck->getHistorico($symbol,$prms);
 
             foreach ($ds['prices'][$symbol] as $rw)
@@ -160,6 +173,8 @@ class BotAjax extends ControllerAjax
         $arrToSet['multiplicador_porc'] = $_REQUEST['multiplicador_porc'];
         $arrToSet['multiplicador_porc_inc'] = ($_REQUEST['multiplicador_porc_inc']?1:0);
         $arrToSet['multiplicador_compra'] = $_REQUEST['multiplicador_compra'];
+        $arrToSet['porc_venta_up'] = $_REQUEST['porc_venta_up'];
+        $arrToSet['porc_venta_down'] = $_REQUEST['porc_venta_down'];
         $arrToSet['auto_restart'] = 1; //Por default, la operacion se reinicia despues de cada venta
 
 
@@ -195,7 +210,9 @@ class BotAjax extends ControllerAjax
         $arrToSet['multiplicador_porc'] = $_REQUEST['multiplicador_porc'];
         $arrToSet['multiplicador_compra'] = $_REQUEST['multiplicador_compra'];
         $arrToSet['multiplicador_porc_inc'] = ($_REQUEST['multiplicador_porc_inc']?1:0);
-        
+        $arrToSet['porc_venta_up'] = $_REQUEST['porc_venta_up'];
+        $arrToSet['porc_venta_down'] = $_REQUEST['porc_venta_down'];
+       
 
         $opr = new Operacion($_REQUEST['idoperacion']);
         if ($auth->get('idusuario') != $opr->get('idusuario'))
@@ -352,6 +369,77 @@ class BotAjax extends ControllerAjax
             $msg = ' Buy -> Qty:'.$newQty.' Price:'.$newPrice.' USD:'.toDec($newPrice).' -'.$multiplicador_porc.'% - RESOLVER APALANCAMIENTO';
             Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg,$echo=false);
     
+            $opr->insertOrden($aOpr);     
+    
+            $this->ajxRsp->redirect('app.bot.verOperacion+id='.$idoperacion); 
+
+        } catch (Throwable $e) {
+            $msg = "Error: " . $e->getMessage();
+            $this->ajxRsp->addError('No es posible registrar la orden<br/>REPORTE BINANCE<br/>'.$msg);
+        }
+    }
+
+    function resolverVenta()
+    {
+        $idoperacion = $_REQUEST['idoperacion'];
+        $opr = new Operacion($idoperacion);
+        $idusuario = $opr->get('idusuario');
+        $symbol = $opr->get('symbol');
+        $multiplicador_porc = $opr->get('multiplicador_porc');
+        
+        $auth = UsrUsuario::getAuthInstance();
+        if ($auth->get('idusuario') != $idusuario)
+        {
+            $this->ajxRsp->addError('No esta autorizado a realizar la operacion');
+            return false;
+        }
+
+        $ak = $auth->getConfig('bncak');
+        $as = $auth->getConfig('bncas');
+
+        $api = new BinanceAPI($ak,$as); 
+        //Consulta billetera en Binance para ver si se puede recomprar
+        $symbolData = $api->getSymbolData($symbol);
+        $account = $api->account();
+        $asset = str_replace($symbolData['baseAsset'],'',$symbol);
+        $token = str_replace($symbolData['quoteAsset'],'',$symbol);
+        $unitsFree = '0.00';
+        $unitsLocked = '0.00';
+        foreach ($account['balances'] as $balances)
+        {
+            if ($balances['asset'] == $token)
+            {
+                $unitsFree = $balances['free'];
+                $unitsLocked = $balances['locked'];
+            }
+            if ($balances['asset'] == $symbolData['quoteAsset'])
+            {
+                $usdFreeToBuy = $balances['free'];
+            }
+        }
+
+        $newPrice = toDec($_REQUEST['symbolPrice'],($symbolData['qtyDecsPrice']*1));
+        $newQty = toDec($_REQUEST['qtyUnit'],($symbolData['qtyDecs']*1));
+
+
+        if ($newQty>$unitsFree)
+        {
+            $this->ajxRsp->addError('No es posible registrar la orden - El importe disponible en unidades de '.$token.' es de '.$unitsFree);
+            return false;
+        }
+
+
+        try {
+            $limitOrder = $api->sell($symbol, $newQty, $newPrice);
+            $aOpr['idoperacion']  = $idoperacion;
+            $aOpr['side']         = Operacion::SIDE_SELL;
+            $aOpr['origQty']      = $newQty;
+            $aOpr['price']        = $newPrice;
+            $aOpr['orderId']      = $limitOrder['orderId'];
+    
+            $msg = ' Sell -> Qty:'.$newQty.' Price:'.$newPrice.' USD:'.toDec($newPrice*$newQty).' - RESOLVER VENTA';
+            Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg,$echo=false);
+        
             $opr->insertOrden($aOpr);     
     
             $this->ajxRsp->redirect('app.bot.verOperacion+id='.$idoperacion); 

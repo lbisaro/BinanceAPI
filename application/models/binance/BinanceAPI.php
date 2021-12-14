@@ -61,7 +61,7 @@ class BinanceAPI
      *
      * @return null
      */
-    public function __Construct($api_key,$api_secret,$useTestnet=false)
+    public function __Construct($api_key=null,$api_secret=null,$useTestnet=false)
     {
         $this->api_key = $api_key;
         $this->api_secret = $api_secret;

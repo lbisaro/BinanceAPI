@@ -25,6 +25,7 @@ class Operacion extends ModelDB
     const OP_STATUS_OPEN        = 20;
     const OP_STATUS_APALANCAOFF = 30;
     const OP_STATUS_WAITING     = 40;
+    const OP_STATUS_VENTAOFF    = 50;
     const OP_STATUS_COMPLETED   = 90;
 
     //Order status
@@ -61,6 +62,39 @@ class Operacion extends ModelDB
 
             return $this->getTipoStatus($status).$bin;
         }
+        if ($field == 'real_porc_venta_up')
+        {
+            if ($this->data['porc_venta_up'] > 1)
+                return $this->data['porc_venta_up'];
+            else
+                return self::PORCENTAJE_VENTA_UP;
+        }
+        if ($field == 'real_porc_venta_down')
+        {
+            if ($this->data['porc_venta_down'] > 1)
+                return $this->data['porc_venta_down'];
+            else
+                return self::PORCENTAJE_VENTA_DOWN;
+        }
+        if ($field == 'strPorcVenta')
+        {
+            if ($this->data['porc_venta_up'] == 0 && $this->data['porc_venta_down'] == 0 )
+            {
+                return 'Default';
+            }
+            elseif ($this->data['porc_venta_up'] == 0 && $this->data['porc_venta_down'] != 0 )
+            {
+                return 'Default/'.self::PORCENTAJE_VENTA_DOWN;
+            }
+            elseif ($this->data['porc_venta_up'] != 0 && $this->data['porc_venta_down'] == 0 )
+            {
+                return self::PORCENTAJE_VENTA_UP.'/Default';
+            }
+            else
+            {
+                return $this->data['porc_venta_up'].'/'.$this->data['porc_venta_down'];
+            }
+        }
         return parent::get($field);
     }
 
@@ -89,8 +123,8 @@ class Operacion extends ModelDB
             $err[] = 'Se debe especificar un importe de compra inicial en USD';
         if ($this->data['multiplicador_compra']<1 || $this->data['multiplicador_compra']>2.5 )
             $err[] = 'Se debe especificar un multiplicador de compra entre 1 y 2.5';
-        if ($this->data['multiplicador_porc']<1 || $this->data['multiplicador_porc']>20 )
-            $err[] = 'Se debe especificar un multiplicador de porcentaje entre 1 y 20';
+        if ($this->data['multiplicador_porc']<1 || $this->data['multiplicador_porc']>10 )
+            $err[] = 'Se debe especificar un multiplicador de porcentaje entre 1 y 10';
 
         if (!$this->data['idusuario'])
         {
@@ -151,6 +185,7 @@ class Operacion extends ModelDB
         $arr[self::OP_STATUS_OPEN]          = 'Abierta - Esperando confirmar compra';
         $arr[self::OP_STATUS_APALANCAOFF]   = 'En curso - Apalancamiento insuficiente';
         $arr[self::OP_STATUS_WAITING]       = 'En curso';
+        $arr[self::OP_STATUS_VENTAOFF]      = 'En curso - Sin orden de venta';
         $arr[self::OP_STATUS_COMPLETED]     = 'Completa';
 
         if ($id=='ALL')
@@ -221,7 +256,7 @@ class Operacion extends ModelDB
         $arr['1001'] = self::OP_STATUS_ERROR;
         $arr['1010'] = self::OP_STATUS_ERROR;
         $arr['1011'] = self::OP_STATUS_ERROR;
-        $arr['1100'] = self::OP_STATUS_OPEN;
+        $arr['1100'] = self::OP_STATUS_VENTAOFF; 
         $arr['1101'] = self::OP_STATUS_ERROR;
         $arr['1110'] = self::OP_STATUS_WAITING;
         $arr['1111'] = self::OP_STATUS_ERROR;
@@ -253,10 +288,11 @@ class Operacion extends ModelDB
                          WHERE idoperacion = ".$lastBuy['idoperacion']." 
                            AND idoperacionorden = ".$lastBuy['idoperacionorden'];
                 $this->db->query($qry);
-                $msg = ' trySolveError '.$this->binStatus.' - orderId'.$lastBuy['orderId'];
+                $msg = ' trySolveError '.$this->binStatus.' - orderId: '.$lastBuy['orderId'];
                 self::logBot('u:'.$this->data['idusuario'].' o:'.$lastBuy['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
             }
         }
+
     }
 
     function canStart()

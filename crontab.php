@@ -33,6 +33,10 @@ switch ($parametro) {
         include "crontab/crontab_arbitrajeTriangular.php";
         break;
     
+    case 'scalper':
+        include "crontab/crontab_scalper.php";
+        break;
+    
     case 'getprices_binance':
         include "crontab/crontab_getprices_binance.php";
         break;

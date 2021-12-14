@@ -30,7 +30,13 @@
       <td>Multiplicador Compras 
         <span class="data">{{multiplicador_compra}}</td>
       <td>Multiplicador Porcentajes 
-        <span class="data" colspan="2">{{multiplicador_porc}}</td>
+        <span class="data" >{{multiplicador_porc}}</td>
+    </tr>
+    <tr>
+      <td>Venta inicial 
+        <span class="data">{{porc_venta_up}}%</span></td>
+      <td>Venta palanca 
+        <span class="data">{{porc_venta_down}}%</span></td>
     </tr>
     <tr>
       <td>Estado 

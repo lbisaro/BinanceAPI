@@ -77,6 +77,10 @@ class CriptoController extends Controller
 
             $account = $api->account();
             unset($dg);
+
+            $ctrlBnb = 0;
+            $ctrlBilletera = 0;
+            $porcMinimoUsdEnBnb = 0.5;//%
             $dg = new HtmlTableDg(null,null,'table table-hover table-striped');
             $dg->addHeader('Asset');
             $dg->addHeader('Total',null,null,'center');
@@ -100,6 +104,8 @@ class CriptoController extends Controller
                     $rw['free'] = toDec($rw['free']*$prices[$rw['asset'].'USDT']);
                     $rw['locked'] = toDec($rw['locked']*$prices[$rw['asset'].'USDT']);
                     $balance[$rw['asset']] = $rw;
+                    if ($rw['asset'] == 'BNB')
+                        $ctrlBnb = $rw['free'];
                 }
             }
 
@@ -124,9 +130,34 @@ class CriptoController extends Controller
 
             }
 
+            $ctrlBilletera = $totTotal;
+
             $dg->addFooter(array('Totales',$totTotal,$totLocked,$totFree));
 
             $arr['data'] .= '<h4 class="text-info">Billetera</h4>'.$dg->get();
+        }
+
+        if ($ctrlBilletera>0 && (($ctrlBnb*100)/$ctrlBilletera < $porcMinimoUsdEnBnb))
+        {
+            $arr['alertas'] .= '<div class="alert alert-warning alert-dismissible fade show" role="alert" style="font-size:2em;" >
+            <strong>ALERTA!</strong><br>
+            El total de BNB expresado en dolares debe ser superior al '.$porcMinimoUsdEnBnb.'% del total de la billetera para contemplar el pago de comisiones.
+            <br>
+            Actualmente el porcentaje de BNB respecto al total de la billetera es de '.toDec(($ctrlBnb*100)/$ctrlBilletera).'%
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+            </div>';
+        }
+        elseif ($ctrlBilletera>0 && (($ctrlBnb*100)/$ctrlBilletera < ($porcMinimoUsdEnBnb*2)))
+        {
+            $arr['alertas'] .= '<div class="alert alert-success alert-dismissible fade show" role="alert" >
+            Porcentaje de BNB respecto al total de la billetera: '.toDec(($ctrlBnb*100)/$ctrlBilletera).'%
+            <br>
+            <small class="text-muted">El total de BNB expresado en dolares debe ser superior al '.$porcMinimoUsdEnBnb.'% del total de la billetera para contemplar el pago de comisiones.</small>            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+              <span aria-hidden="true">&times;</span>
+            </button>
+            </div>';
         }
         
 

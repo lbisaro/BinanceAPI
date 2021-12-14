@@ -24,12 +24,12 @@
 
       <div class="form-group">
         <label for="multiplicador_compra">Multiplicador Compras</label>
-        <input type="text" class="form-control" id="multiplicador_compra"  onchange="refreshTable()" placeholder="(1 a 2.5) Recomendado 2.00">
+        <input type="text" class="form-control" id="multiplicador_compra"  onchange="refreshTable()" placeholder="Recomendado 1.75 a 2.00">
       </div>
       <div class="form-group">
         <label for="multiplicador_porc">Multiplicador Porcentajes</label>
         <div class="input-group mb-2">
-          <input type="text" class="form-control" id="multiplicador_porc"  onchange="refreshTable()" placeholder="(1 a 20) Recomendado 2.70">
+          <input type="text" class="form-control" id="multiplicador_porc"  onchange="refreshTable()" placeholder="Recomendado 2.70 a 3.50">
           <div class="input-group-prepend">
             <div class="input-group-text">%</div>
           </div>
@@ -42,6 +42,28 @@
           <select id="multiplicador_porc_inc" class="form-control" onchange="refreshTable()" >
               <option value="1">Si</option>
               <option value="0">No</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="porc_venta_up">Porcentaje de venta inicial/palanca</label>
+        <div class="input-group mb-2">
+          <select id="porc_venta_up" class="form-control" onchange="refreshTable()" >
+              <option value="1.15">1.15%</option>
+              <option value="1.5">1.50%</option>
+              <option value="1.75">1.75%</option>
+              <option value="2">2.00%</option>
+              <option value="2.5">2.50%</option>
+              <option value="3">3.00%</option>
+          </select>
+          <select id="porc_venta_down" class="form-control" onchange="refreshTable()" >
+              <option value="1.5">1.50%</option>
+              <option value="1.75">1.75%</option>
+              <option value="2">2.00%</option>
+              <option value="2.5">2.50%</option>
+              <option value="3">3.00%</option>
+              <option value="4">4.00%</option>
           </select>
         </div>
       </div>
@@ -69,6 +91,21 @@
     
     $(document).ready( function () {
         $('#btnAddOperacion').hide();
+        $('#porc_venta_up option').each( function () {
+            if ($(this).val() == {{PORCENTAJE_VENTA_UP}})
+            {
+                $(this).html(toDec({{PORCENTAJE_VENTA_UP}})+'% Default');
+                $(this).attr('SELECTED',true);
+            }
+        });
+        $('#porc_venta_down option').each( function () {
+            if ($(this).val() == {{PORCENTAJE_VENTA_DOWN}})
+            {
+                $(this).html(toDec({{PORCENTAJE_VENTA_DOWN}})+'% Default');
+                $(this).attr('SELECTED',true);
+            }
+        });
+
     });
 
     var symbolPrice = 0;
@@ -136,7 +173,7 @@
             psci = 0;
             compraUsd = inicio_usd;
             totalCompra = compraUsd;
-            venta = '+{{PORCENTAJE_VENTA_UP}}';
+            venta = '+'+toDec($('#porc_venta_up option:selected').val())+'%';
 
 
             for (var i=1; i<6; i++)
@@ -164,7 +201,7 @@
 
                 totalCompra = parseFloat(totalCompra) + parseFloat(compraUsd);
 
-                venta = '+{{PORCENTAJE_VENTA_DOWN}}%';
+                venta = '+'+toDec($('#porc_venta_down option:selected').val())+'%';
 
             }
             
