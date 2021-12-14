@@ -115,18 +115,21 @@ class CriptoController extends Controller
             foreach ($balance as $rw)
             {
                 $total = $rw['free']+$rw['locked'];
-                $locked = $rw['locked'];
-                $free = $rw['free'];
-                $row = array();
-                $row[] = ($rw['usd_flag']?'<strong>'.$rw['asset'].'</strong>':$rw['asset']);
-                $row[] = ($total>0?$total:'');
-                $row[] = ($locked>0?$locked:'');
-                $row[] = ($free>0?$free:'');
-                $dg->addRow($row);
-    
-                $totTotal += $total;
-                $totLocked += $locked;
-                $totFree += $free;
+                if ($total>0)
+                {
+                    $locked = $rw['locked'];
+                    $free = $rw['free'];
+                    $row = array();
+                    $row[] = ($rw['usd_flag']?'<strong>'.$rw['asset'].'</strong>':$rw['asset']);
+                    $row[] = ($total>0?$total:'');
+                    $row[] = ($locked>0?$locked:'');
+                    $row[] = ($free>0?$free:'');
+                    $dg->addRow($row);
+        
+                    $totTotal += $total;
+                    $totLocked += $locked;
+                    $totFree += $free;
+                }
 
             }
 

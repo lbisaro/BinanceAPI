@@ -24,12 +24,12 @@
 
       <div class="form-group">
         <label for="multiplicador_compra">Multiplicador Compras</label>
-        <input type="text" class="form-control" id="multiplicador_compra"  onchange="refreshTable()" placeholder="Recomendado 1.75 a 2.00">
+        <input type="text" class="form-control" id="multiplicador_compra"  onchange="refreshTable()" placeholder="Recomendado 1.05 a 2.00">
       </div>
       <div class="form-group">
         <label for="multiplicador_porc">Multiplicador Porcentajes</label>
         <div class="input-group mb-2">
-          <input type="text" class="form-control" id="multiplicador_porc"  onchange="refreshTable()" placeholder="Recomendado 2.70 a 3.50">
+          <input type="text" class="form-control" id="multiplicador_porc"  onchange="refreshTable()" placeholder="Recomendado 2.70 a 4.50">
           <div class="input-group-prepend">
             <div class="input-group-text">%</div>
           </div>
@@ -58,6 +58,8 @@
               <option value="3">3.00%</option>
           </select>
           <select id="porc_venta_down" class="form-control" onchange="refreshTable()" >
+              <option value="1.0">1.00%</option>
+              <option value="1.25">1.25%</option>
               <option value="1.5">1.50%</option>
               <option value="1.75">1.75%</option>
               <option value="2">2.00%</option>
