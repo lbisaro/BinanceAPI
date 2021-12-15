@@ -60,6 +60,7 @@
           <option value="4">4.00%</option>
       </select>
       <select id="porc_venta_down" class="form-control" onchange="refreshTable()" >
+          <option value="0.15">0.15% Empate</option>
           <option value="1.15">1.15%</option>
           <option value="1.25">1.25%</option>
           <option value="1.5">1.50%</option>

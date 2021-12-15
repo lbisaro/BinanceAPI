@@ -129,8 +129,8 @@ class BotController extends Controller
         if ($status==Operacion::OP_STATUS_APALANCAOFF)
             $arr['estado'] .= '<br/><a class="btn btn-sm btn-warning" href="'.Controller::getLink('app','bot','resolverApalancamiento','id='.$idoperacion).'">Resolver Apalancamiento</a>';
 
-        if ($status==Operacion::OP_STATUS_VENTAOFF)
-            $arr['estado'] .= '<br/><a class="btn btn-sm btn-danger" href="'.Controller::getLink('app','bot','resolverVenta','id='.$idoperacion).'">Resolver Venta</a>';
+        //if ($status==Operacion::OP_STATUS_VENTAOFF)
+        //    $arr['estado'] .= '<br/><a class="btn btn-sm btn-danger" href="'.Controller::getLink('app','bot','resolverVenta','id='.$idoperacion).'">Resolver Venta</a>';
 
         if ($opr->autoRestart())
             $autoRestart = '<button id="arBtn" class="btn btn-sm btn-success">
