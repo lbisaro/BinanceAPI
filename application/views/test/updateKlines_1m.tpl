@@ -29,7 +29,6 @@
     var currentSymbol = 0;
 
     $(document).ready( function () {
-        console.log(symbols);
         if (symbols.length>0)
         {
             for (var i=0; i<symbols.length;i++)
@@ -49,7 +48,7 @@
         }
         else
         {
-            $('#log').prepend('<code>Proceso finalizado</code><br>');
+            $('#log').prepend('<code class="text-success">Proceso finalizado</code><br>');
         }
         
     }

@@ -105,6 +105,7 @@ class Test
                             )";
                     }
                     $lastKline = $kline['datetime'];
+                    $this->updateStatus['last'] = $lastKline;
                 }
                 if (count($klines) < 1000)
                     return false;
@@ -115,7 +116,7 @@ class Test
                 $this->db->query($ins);
             }
             $lote++;
-            $this->updateStatus['last'] = $lastKline;
+            
             $startTime = date('U',strtotime($lastKline.' +1 minute ')).'000';
         }
 

@@ -12,7 +12,9 @@
 		  <div class="form-group">
 				<div class="form-group">
         	<label for="symbol">Moneda</label>
-        	<input type="text" class="form-control" id="symbol" onchange="this.value = this.value.toUpperCase();" placeholder="xxxUSDT">
+        	<select id="symbol" class="form-control" >
+        		<option value="0">Seleccionar moneda</option>
+        	</select>
       	</div>
 		  </div>
 
@@ -83,7 +85,7 @@
 	  <div class="col">
 		
 		<div class="container" >
-			<h3>Resultado sobre la operacion</h3>
+			<h3>Resultado sobre las operaciones</h3>
 			<div id="resultado"></div>
 	  	</div>
 
@@ -100,9 +102,16 @@
 {{hidden}}
 
 <script language="javascript" >
-
+	
+	var symbols = [{{dataSymbols}}];
+    
 	$(document).ready( function () {
-
+		if (symbols.length>0)
+        {
+            for (var i=0; i<symbols.length;i++)
+                $('#symbol').append('<option value="'+symbols[i]+'" >'+symbols[i]+'</option>');
+            
+        }
 	});
 
 	function analizar()

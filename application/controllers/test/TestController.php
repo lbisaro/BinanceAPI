@@ -14,7 +14,7 @@ class TestController extends Controller
     
     function home($auth)
     {
-        $this->addTitle('Test - Home');
+        $this->addTitle('BackTesting - Home');
 
     
         $arr['data'] = '';
@@ -54,12 +54,33 @@ class TestController extends Controller
 
     function testAPL($auth)
     {
-        $this->addTitle('Test #1 Apalancamiento');
+        $this->addTitle('BackTesting Apalancamiento');
 
-        $arr['resultado'] = 'Completar los campos i hacer clic en el boton Analizar';
+        $test = new Test();
+
+        if (isset($_REQUEST['symbol']))
+        {
+            $symbols[] = strtoupper($_REQUEST['symbol']);
+        }
+        else
+        {
+            $symbols = $test->getSymbolsToUpdate();
+        }
+        $dataSymbols = '';
+        if (!empty($symbols))
+        {
+            foreach ($symbols as $symbol)
+            {
+                $dataSymbols .= ($dataSymbols?',':'')."'".$symbol."'";
+            }
+            $arr['dataSymbols'] = $dataSymbols;
+            $arr['fechaInicio'] = dateToStr($test->startKlines,true);
+        }
+
+        $arr['resultado'] = 'Completar los campos y hacer clic en el boton Analizar';
         $arr['hidden'] = '';
     
-        $this->addView('test/testApalancamiento',$arr);
+        $this->addView('test/testAPL',$arr);
     }
     
     
