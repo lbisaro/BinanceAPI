@@ -50,7 +50,7 @@
   <div class="form-group">
     <label for="porc_venta_up">Porcentaje de venta inicial/palanca</label>
     <div class="input-group mb-2">
-      <select id="porc_venta_up" class="form-control" onchange="refreshTable()" >
+      <select id="porc_venta_up" class="form-control"  >
           <option value="1.15">1.15%</option>
           <option value="1.5">1.50%</option>
           <option value="1.75">1.75%</option>
@@ -59,7 +59,7 @@
           <option value="3">3.00%</option>
           <option value="4">4.00%</option>
       </select>
-      <select id="porc_venta_down" class="form-control" onchange="refreshTable()" >
+      <select id="porc_venta_down" class="form-control"  >
           <option value="1.15">1.15%</option>
           <option value="1.25">1.25%</option>
           <option value="1.5">1.50%</option>

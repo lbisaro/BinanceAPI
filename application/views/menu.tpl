@@ -65,6 +65,9 @@
         <li class="nav-item menu-admin">
           <a class="nav-link rounded" href="app.bot.log+"><span class="glyphicon glyphicon-th-list"></span> Log</a>
         </li>        
+        <li class="nav-item menu-admin">
+          <a class="nav-link rounded" href="test.test.home+"><span class="glyphicon glyphicon-th-list"></span> Backing test</a>
+        </li>        
         <li class="nav-item">
           <a class="nav-link rounded" href="usr.usr.perfil+"><span class="glyphicon glyphicon-user"></span> Cuenta</a>
         </li>
