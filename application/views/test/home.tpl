@@ -6,6 +6,5 @@
   <li class="nav-item">
     <a class="nav-link" href="test.test.testAPL+">Test Apalancamiento</a>
   </li>
-
 </ul>
 </div>

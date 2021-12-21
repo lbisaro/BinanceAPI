@@ -65,7 +65,7 @@
         <li class="nav-item menu-admin">
           <a class="nav-link rounded" href="app.bot.log+"><span class="glyphicon glyphicon-th-list"></span> Log</a>
         </li>        
-        <li class="nav-item menu-admin">
+        <li class="nav-item">
           <a class="nav-link rounded" href="test.test.home+"><span class="glyphicon glyphicon-th-list"></span> BackTesting</a>
         </li>        
         <li class="nav-item">
