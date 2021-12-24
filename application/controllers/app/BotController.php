@@ -1015,24 +1015,27 @@ class BotController extends Controller
         $as = $auth->getConfig('bncas');
 
         $api = new BinanceAPI($ak,$as);  
-        $historicalTrades = $api->historicalTrades($_REQUEST['symbol']); 
-        foreach ($historicalTrades as $k => $v)
+        $orders = $api->orders($_REQUEST['symbol']); 
+        foreach ($orders as $k => $v)
         {
-        //    unset($historicalTrades[$k]['isBuyerMaker']);
-        //    unset($historicalTrades[$k]['isBestMatch']);
-        //    unset($historicalTrades[$k]['executedQty']);
-        //    unset($historicalTrades[$k]['cummulativeQuoteQty']);
-        //    unset($historicalTrades[$k]['timeInForce']);
-        //    unset($historicalTrades[$k]['stopPrice']);
-        //    unset($historicalTrades[$k]['icebergQty']);
-        //    unset($historicalTrades[$k]['updateTime']);
-        //    unset($historicalTrades[$k]['isWorking']);
-        //    unset($historicalTrades[$k]['origQuoteOrderQty']);
-            $historicalTrades[$k]['datetime'] = date('Y-m-d H:i:s',$historicalTrades[$k]['time']/1000);
-            unset($historicalTrades[$k]['time']);
+            unset($orders[$k]['clientOrderId']);
+            unset($orders[$k]['orderListId']);
+            unset($orders[$k]['origQuoteOrderQty']);
+        //    unset($orders[$k]['cummulativeQuoteQty']);
+            unset($orders[$k]['timeInForce']);
+            unset($orders[$k]['stopPrice']);
+            unset($orders[$k]['icebergQty']);
+            unset($orders[$k]['updateTime']);
+            unset($orders[$k]['isWorking']);
+        //    unset($orders[$k]['origQuoteOrderQty']);
+            $orders[$k]['datetime'] = date('Y-m-d H:i:s',$orders[$k]['time']/1000);
+            unset($orders[$k]['time']);
+
+            if ($orders[$k]['datetime'] < '2021-12-23 22:00:00')
+                unset($orders[$k]);
         } 
-        //pr($historicalTrades);
-        $arr['data'] = arrayToTableDg($historicalTrades);
+        //pr($orders);
+        $arr['data'] = arrayToTableDg($orders);
         $arr['hidden'] = '';
     
         $this->addView('ver',$arr);
