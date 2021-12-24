@@ -1015,32 +1015,133 @@ class BotController extends Controller
         $as = $auth->getConfig('bncas');
 
         $api = new BinanceAPI($ak,$as);  
-        $orders = $api->orders($_REQUEST['symbol']); 
+        $ordersHst = $api->orders($_REQUEST['symbol']); 
         $show = false; 
-        foreach ($orders as $k => $v)
+        foreach ($ordersHst as $k => $v)
         {
-            unset($orders[$k]['clientOrderId']);
-            unset($orders[$k]['orderListId']);
-            unset($orders[$k]['origQuoteOrderQty']);
-        //    unset($orders[$k]['cummulativeQuoteQty']);
-            unset($orders[$k]['timeInForce']);
-            unset($orders[$k]['stopPrice']);
-            unset($orders[$k]['icebergQty']);
-            unset($orders[$k]['updateTime']);
-            unset($orders[$k]['isWorking']);
-        //    unset($orders[$k]['origQuoteOrderQty']);
-            $orders[$k]['datetime'] = date('Y-m-d H:i:s',$orders[$k]['time']/1000);
-            unset($orders[$k]['time']);
+            unset($ordersHst[$k]['clientOrderId']);
+            unset($ordersHst[$k]['orderListId']);
+            unset($ordersHst[$k]['origQuoteOrderQty']);
+        //    unset($ordersHst[$k]['cummulativeQuoteQty']);
+            unset($ordersHst[$k]['timeInForce']);
+            unset($ordersHst[$k]['stopPrice']);
+            unset($ordersHst[$k]['icebergQty']);
+            unset($ordersHst[$k]['updateTime']);
+            unset($ordersHst[$k]['isWorking']);
+        //    unset($ordersHst[$k]['origQuoteOrderQty']);
+            $ordersHst[$k]['datetime'] = date('Y-m-d H:i:s',$ordersHst[$k]['time']/1000);
+            unset($ordersHst[$k]['time']);
 
-            if ($orders[$k]['datetime'] < '2021-12-18 22:00:00')
-                unset($orders[$k]);
+            if ($ordersHst[$k]['datetime'] < date('Y-m-d H:i:s',strtotime('-1 month')));
+                unset($ordersHst[$k]);
         } 
-        //pr($orders);
-        $arr['data'] = arrayToTableDg($orders);
+        //pr($ordersHst);
+        $arr['data'] = arrayToTableDg($ordersHst);
         $arr['hidden'] = '';
     
         $this->addView('ver',$arr);
     }
+
+
+    function auditarOrdenes($auth)
+    {
+        $this->addTitle('Auditar Ordenes');
+
+        $idoperacion = $_REQUEST['id'];
+        $opr = new Operacion($idoperacion);
+        $symbol = $opr->get('symbol');
+
+        $oprOrders = $opr->getOrdenes($enCurso = false);
+        $audit = array();
+        foreach ($oprOrders as $k => $v)
+        {
+            if ($v['completed'])
+            {
+                $lastComplete = $v['updated'];
+                //unset($oprOrders[$k]);
+            }
+            $auditBot[$v['orderId']] = $v;
+        }
+
+        $ak = $auth->getConfig('bncak');
+        $as = $auth->getConfig('bncas');
+        
+        $api = new BinanceAPI($ak,$as);  
+
+        //Historico
+        $ordersHst = $api->orders($symbol); 
+        $show = false; 
+        foreach ($ordersHst as $k => $v)
+        {
+            $v['datetime'] = date('Y-m-d H:i:s',$ordersHst[$k]['time']/1000);
+
+            unset($v['clientOrderId']);
+            unset($v['orderListId']);
+            unset($v['origQuoteOrderQty']);
+            unset($v['timeInForce']);
+            unset($v['stopPrice']);
+            unset($v['icebergQty']);
+            unset($v['updateTime']);
+            unset($v['isWorking']);
+            unset($v['time']);
+            if ($v['datetime'] >= $lastComplete && $v['status']!='CANCELED')
+            {
+                if ($auditBot[$v['orderId']])
+                    $v['bot'] = true;
+                else
+                    $v['bot'] = false;
+                $audit[$v['orderId']] = $v;
+            }
+
+        } 
+
+        $dg = new HtmlTableDg();
+        $dg->addHeader('orderId');
+        $dg->addHeader('Price');
+        $dg->addHeader('Cantidad');
+        $dg->addHeader('USD');
+        $dg->addHeader('side');
+        $dg->addHeader('BNC status');
+        $dg->addHeader('Fecha');
+        $dg->addHeader('BOT');
+        $dg->addHeader('SQL');
+
+        foreach ($audit as $rw)
+        {
+            $row = array();
+            $row[] = $rw['orderId'];
+            $row[] = $rw['price'];
+            $row[] = $rw['origQty'];
+            $row[] = toDec($rw['origQty']*$rw['price']);
+            $row[] = ($rw['side']=='BUY'?'Compra':'Venta');
+            $row[] = $rw['status'];
+            $row[] = $rw['datetime'];
+            $row[] = ($rw['bot']?'OK':'Falta');
+
+            $sql='';
+            if (!$rw['bot'])
+            {
+                //Preparando SQL
+                $side = ($rw['side']=='BUY'?'0':'1');
+                $status = ($rw['side']=='FILLED'?'10':'0');
+                $sql = "INSERT INTO operacion_orden (idoperacion,side,status,origQty,price,orderId,updated) VALUES ".
+                        "(".$idoperacion.",".$side.",".$status.",".$rw['origQty'].",".$rw['price'].",'".$rw['orderId']."','".$rw['datetime']."');<br>";
+                
+            }
+            $row[] = $sql;
+            $class='';
+            if (!$rw['bot'])
+                $class='text-danger';
+            $dg->addRow($row,$class);
+        }
+        
+        $arr['data'] = $dg->get();
+        $arr['hidden'] = '';
+    
+        $this->addView('ver',$arr);
+    }
+    
+    
     
     
 }

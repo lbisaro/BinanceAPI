@@ -22,6 +22,7 @@
         <span class="data">{{inicio_usd}}</span></td>
       <td style="text-align: right;">
         {{addButtons}}
+        <a class="btn btn-info btn-sm" href="app.bot.auditarOrdenes+id={{idoperacion}}">Auditar Ordenes</a>
         <a class="btn btn-info btn-sm" href="app.bot.editarOperacion+id={{idoperacion}}">Modificar</a>
         <a class="btn btn-info btn-sm" href="app.bot.revisarEstrategia+id={{idoperacion}}">Grafica</a>
         </td>
