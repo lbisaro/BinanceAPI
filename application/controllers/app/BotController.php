@@ -1036,7 +1036,7 @@ class BotController extends Controller
                 unset($orders[$k]);
         } 
         //pr($orders);
-        $arr['data'] = arrayToTableDg($orders,'table');
+        $arr['data'] = arrayToTableDg($orders);
         $arr['hidden'] = '';
     
         $this->addView('ver',$arr);

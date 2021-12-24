@@ -151,7 +151,7 @@ $MES_LARGO = array('Enero','Febrero','Marzo','Abril','Mayo','Junio',
      * pero imprime una tabla tipo dataSet
      * como un datagrid.
      */
-    function arrayToTableDg($array,$class)
+    function arrayToTableDg($array,$class='table')
     {
         if (is_array($array))
         {
