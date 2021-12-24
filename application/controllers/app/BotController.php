@@ -1006,6 +1006,37 @@ class BotController extends Controller
     
         $this->addView('ver',$arr);
     }
+    function historicalTrades($auth)
+    {
+        $this->addTitle('Historico de Ordenes');
+
+
+        $ak = $auth->getConfig('bncak');
+        $as = $auth->getConfig('bncas');
+
+        $api = new BinanceAPI($ak,$as);  
+        $historicalTrades = $api->historicalTrades($_REQUEST['symbol']); 
+        foreach ($historicalTrades as $k => $v)
+        {
+        //    unset($historicalTrades[$k]['isBuyerMaker']);
+        //    unset($historicalTrades[$k]['isBestMatch']);
+        //    unset($historicalTrades[$k]['executedQty']);
+        //    unset($historicalTrades[$k]['cummulativeQuoteQty']);
+        //    unset($historicalTrades[$k]['timeInForce']);
+        //    unset($historicalTrades[$k]['stopPrice']);
+        //    unset($historicalTrades[$k]['icebergQty']);
+        //    unset($historicalTrades[$k]['updateTime']);
+        //    unset($historicalTrades[$k]['isWorking']);
+        //    unset($historicalTrades[$k]['origQuoteOrderQty']);
+            $historicalTrades[$k]['datetime'] = date('Y-m-d H:i:s',$historicalTrades[$k]['time']/1000);
+            unset($historicalTrades[$k]['time']);
+        } 
+        //pr($historicalTrades);
+        $arr['data'] = arrayToTableDg($historicalTrades);
+        $arr['hidden'] = '';
+    
+        $this->addView('ver',$arr);
+    }
     
     
 }
