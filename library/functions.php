@@ -151,7 +151,7 @@ $MES_LARGO = array('Enero','Febrero','Marzo','Abril','Mayo','Junio',
      * pero imprime una tabla tipo dataSet
      * como un datagrid.
      */
-    function arrayToTableDg($array)
+    function arrayToTableDg($array,$class)
     {
         if (is_array($array))
         {
@@ -177,7 +177,7 @@ $MES_LARGO = array('Enero','Febrero','Marzo','Abril','Mayo','Junio',
 
             $echo = "
             <div style=\"border:1px solid #343537;overflow: auto;\" >
-            <table class=\"arrayToTable DG\" style=\"border-collapse: collapse;\">";
+            <table class=\"arrayToTable DG\ ".$class." style=\"border-collapse: collapse;\">";
             $echo .= $ths;
             foreach ($array as $k => $row)
             {

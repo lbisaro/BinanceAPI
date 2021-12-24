@@ -1016,6 +1016,7 @@ class BotController extends Controller
 
         $api = new BinanceAPI($ak,$as);  
         $orders = $api->orders($_REQUEST['symbol']); 
+        $show = false; 
         foreach ($orders as $k => $v)
         {
             unset($orders[$k]['clientOrderId']);
@@ -1035,7 +1036,7 @@ class BotController extends Controller
                 unset($orders[$k]);
         } 
         //pr($orders);
-        $arr['data'] = arrayToTableDg($orders);
+        $arr['data'] = arrayToTableDg($orders,'table');
         $arr['hidden'] = '';
     
         $this->addView('ver',$arr);
