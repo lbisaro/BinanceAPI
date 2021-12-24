@@ -972,4 +972,40 @@ class BotController extends Controller
     
         $this->addView('bot/estadisticasMoneda',$arr);
     }
+
+
+    function openOrders($auth)
+    {
+        $this->addTitle('Ordenes Abiertas');
+
+
+        $ak = $auth->getConfig('bncak');
+        $as = $auth->getConfig('bncas');
+
+        $api = new BinanceAPI($ak,$as);  
+        $openOrders = $api->openOrders(); 
+        foreach ($openOrders as $k => $v)
+        {
+            unset($openOrders[$k]['clientOrderId']);
+            unset($openOrders[$k]['orderListId']);
+            unset($openOrders[$k]['executedQty']);
+            unset($openOrders[$k]['cummulativeQuoteQty']);
+            unset($openOrders[$k]['timeInForce']);
+            unset($openOrders[$k]['stopPrice']);
+            unset($openOrders[$k]['icebergQty']);
+            unset($openOrders[$k]['updateTime']);
+            unset($openOrders[$k]['isWorking']);
+            unset($openOrders[$k]['origQuoteOrderQty']);
+            $openOrders[$k]['datetime'] = date('Y-m-d H:i:s',$openOrders[$k]['time']/1000);
+            unset($openOrders[$k]['time']);
+
+        } 
+        //pr($openOrders);
+        $arr['data'] = arrayToTableDg($openOrders);
+        $arr['hidden'] = '';
+    
+        $this->addView('ver',$arr);
+    }
+    
+    
 }

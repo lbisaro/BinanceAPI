@@ -274,6 +274,7 @@ class Operacion extends ModelDB
 
     function trySolveError()
     {
+        return false;
         if ($this->binStatus == '0100') //No fue posible crear la orden de venta luego de confirmar la compra
         {
             $ordenes = $this->getOrdenes($enCurso=true);

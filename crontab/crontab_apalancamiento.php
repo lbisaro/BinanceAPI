@@ -97,6 +97,11 @@ foreach ($usuarios as $idusuario => $usuarioData)
                         $data[$strSide][$order['orderId']]['price'] = toDec(($orderStatus['cummulativeQuoteQty']/$orderStatus['executedQty']),7);
                         $data[$strSide][$order['orderId']]['status'] = Operacion::OR_STATUS_FILLED;
                     }
+                    elseif (!empty($orderStatus) && $orderStatus['status']=='CANCELED')
+                    {
+
+                        $data['canceled'][$order['orderId']] = $strSide;
+                    }
                     else
                     {
                         $data['unknown'][$order['orderId']] = $strSide;  
@@ -105,14 +110,27 @@ foreach ($usuarios as $idusuario => $usuarioData)
             }
         }
 
-        //Control sobre ordenes eliminadas en Binance
-        $ordenEliminadaEnBinance = false;
+        $ordenDesconocidaEnBinance = false;
         if (!empty($data['unknown']))
         {
             foreach ($data['unknown'] as $orderId => $strSide)
             {
+                $ordenDesconocidaEnBinance = true;
+                $msg = 'Error - ORDEN DE '.strtoupper($strSide).' DESCONOCIDA EN BINANCE (orderId = '.$orderId.')';
+                Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
+            }
+        }
+        if ($ordenDesconocidaEnBinance)
+            continue;
+
+        $ordenEliminadaEnBinance = false;
+        //Control sobre ordenes eliminadas en Binance
+        if (!empty($data['canceled']))
+        {
+            foreach ($data['canceled'] as $orderId => $strSide)
+            {
                 $ordenEliminadaEnBinance = true;
-                $msg = ' ORDEN DE '.strtoupper($strSide).' ELIMINADA EN BINANCE (orderId = '.$orderId.')';
+                $msg = ' ORDEN DE '.strtoupper($strSide).' CANCELADA EN BINANCE (orderId = '.$orderId.')';
                 Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
                 $opr->deleteOrder($orderId);
             }
