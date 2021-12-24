@@ -1031,7 +1031,7 @@ class BotController extends Controller
             $orders[$k]['datetime'] = date('Y-m-d H:i:s',$orders[$k]['time']/1000);
             unset($orders[$k]['time']);
 
-            if ($orders[$k]['datetime'] < '2021-12-23 22:00:00')
+            if ($orders[$k]['datetime'] < '2021-12-18 22:00:00')
                 unset($orders[$k]);
         } 
         //pr($orders);
