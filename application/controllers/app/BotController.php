@@ -1123,7 +1123,7 @@ class BotController extends Controller
             {
                 //Preparando SQL
                 $side = ($rw['side']=='BUY'?'0':'1');
-                $status = ($rw['side']=='FILLED'?'10':'0');
+                $status = ($rw['status']=='FILLED'?'10':'0');
                 $sql = "INSERT INTO operacion_orden (idoperacion,side,status,origQty,price,orderId,updated) VALUES ".
                         "(".$idoperacion.",".$side.",".$status.",".$rw['origQty'].",".$rw['price'].",'".$rw['orderId']."','".$rw['datetime']."');<br>";
                 
