@@ -18,7 +18,7 @@ class BotController extends Controller
         $this->addTitle('Bot');
 
         $opr = new Operacion();
-        $ds = $opr->getDataset('idusuario = '.$auth->get('idusuario'),'symbol');
+        $ds = $opr->getDataset('idusuario = '.$auth->get('idusuario'),'auto_restart DESC, symbol');
         
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped');
         $dg->addHeader('Moneda');
