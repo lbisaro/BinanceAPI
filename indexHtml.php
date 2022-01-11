@@ -20,7 +20,11 @@ $controller->addLinkCss('ajax');
 $controller->addLinkCss('bootstrap.min');
 $controller->addLinkCss('bootstrap.icons');
 
-$controller->addLinkCss('bootstrap.add');
+if (SERVER_ENTORNO == 'Test')
+    $controller->addLinkCss('bootstrap.add.test');
+else
+    $controller->addLinkCss('bootstrap.add');
+
 $controller->addLinkCss('cripto');
 
 $controller->addLinkJs('functions');
