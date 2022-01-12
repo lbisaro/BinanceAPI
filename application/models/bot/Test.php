@@ -212,12 +212,20 @@ class Test
             $high       = $rw['high'];
             $low        = $rw['low'];
 
+            $tokenPrice = round($close,$this->tokenDecPrice);
+                
+
             $day = substr($datetime,0,10);
             if (!isset($days[$day]))
-                $days[$day] = 0;
+            {
+                $days[$day]['qtyUsd'] = 0;
+                $days[$day]['qtyTokenInUsd'] = 0;
+            }
             $month = substr($datetime,0,7);
             if (!isset($months[$month]))
-                $months[$month] = 0;
+            {
+                $months[$month]['ganancia'] = 0;
+            }
                 
             if ($compraNum == 0)
             {
@@ -306,8 +314,8 @@ class Test
                     $price = round($ordenVenta,$this->tokenDecPrice);
                     if ($usd = $this->venta($qty,$price))
                     {
-                        $days[$day] += $usd-$totalCompra;
-                        $months[$month] += $usd-$totalCompra;
+                        $months[$month]['ganancia'] += $usd-$totalCompra;
+                        
                         $ultimaCompra = 0.0;
                         $ordenCompra = 0.0;
                         $ordenVenta = 0.0;
@@ -329,11 +337,16 @@ class Test
                                           'operaciones'=>$operaciones,
                                           'comision'=>$comision,
                                           );
+                        
+
                         $acumPorcCompra = 0;
 
                     }
                 }
             }
+            $days[$day]['qtyUsd'] = toDec($this->qtyUsd);
+            $days[$day]['qtyTokenInUsd'] = toDec($this->qtyToken*$tokenPrice);
+
         }
 
 

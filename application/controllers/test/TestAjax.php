@@ -46,14 +46,22 @@ class TestAjax extends ControllerAjax
         $compraInicial = $_REQUEST['compraInicial'];
 
         $results = $test->testApalancamiento($symbol,$usdInicial,$compraInicial,$prms);
-        $fc->addRow(array('Saldo Inicial',toDec($results['SaldoInicial'])));
-        $fc->addRow(array('Balance',toDec($results['Balance'])));
-        $fc->addRow(array('Comisiones',toDec($results['Comisiones'])));
-        $fc->addRow(array('Balance Final',toDec($results['BalanceFinal'])));
-        $fc->addRow(array('Ganancia','<strong>'.$results['Ganancia'].'%'.'</strong>'));
-        $fc->addRow(array('Operaciones',$results['Operaciones']));
-        $fc->addRow(array('Apalancamiento Insuficiente',($results['apalancamientoInsuficiente']?'SI':'NO')));
-        $fc->addRow(array('Maximo Apalancamiento',$results['maxCompraNum']));
+        //$fc->addRow(array('Saldo Inicial',toDec($results['SaldoInicial'])));
+        //$fc->addRow(array('Balance',toDec($results['Balance'])));
+        //$fc->addRow(array('Comisiones',toDec($results['Comisiones'])));
+        //$fc->addRow(array('Balance Final',toDec($results['BalanceFinal'])));
+        //$fc->addRow(array('Ganancia','<strong>'.$results['Ganancia'].'%'.'</strong>'));
+        //$fc->addRow(array('Operaciones',$results['Operaciones']));
+        //$fc->addRow(array('Apalancamiento Insuficiente',($results['apalancamientoInsuficiente']?'SI':'NO')));
+        //$fc->addRow(array('Maximo Apalancamiento',$results['maxCompraNum']));
+        $fc->addRow(array('Saldo Inicial',toDec($results['SaldoInicial']),
+                          'Balance',toDec($results['Balance']),
+                          'Comisiones',toDec($results['Comisiones']),
+                          'Balance Final',toDec($results['BalanceFinal'])));
+        $fc->addRow(array('Ganancia','<strong>'.$results['Ganancia'].'%'.'</strong>',
+                          'Operaciones',$results['Operaciones'],
+                          'Apalancamiento Insuficiente',($results['apalancamientoInsuficiente']?'SI':'NO'),
+                          'Maximo Apalancamiento',$results['maxCompraNum']));
 
 
         $dg = new HtmlTableDg();
@@ -61,14 +69,17 @@ class TestAjax extends ControllerAjax
         {
             $dg->setCaption('Resultado Mensual');
             $dg->addHeader('Mes');
-            $dg->addHeader('USD');
-            foreach ($results['months'] as $month => $usd)
+            $dg->addHeader('Ganancia USD',null,null,'right');
+            $dg->addHeader('Porcentaje',null,null,'right');
+            foreach ($results['months'] as $month => $rw)
             {
-                $dg->addRow(array($month,toDec($usd)));
+                $porcentaje = ($rw['ganancia']*100)/$results['SaldoInicial'];
+                $dg->addRow(array($month,toDec($rw['ganancia']),toDec($porcentaje).'%'));
             }
             $this->ajxRsp->assign('months','innerHTML',$dg->get());
         }
         
+        /**
         unset($dg);
         $dg = new HtmlTableDg();
         if (!empty($results['orders']))
@@ -107,6 +118,27 @@ class TestAjax extends ControllerAjax
             }
             $this->ajxRsp->assign('ordenes','innerHTML',$dg->get());
         }
+        */
+        
+        unset($dg);
+        $dg = new HtmlTableDg();
+        $ds[] = array('Fecha','Billetera [USD]','USD',$symbol);
+        if (!empty($results['days']))
+        {
+            foreach ($results['days'] as $day => $rw)
+            {
+                $ds[] = array($day,
+                              toDec($rw['qtyUsd']+$rw['qtyTokenInUsd']),
+                              toDec($rw['qtyUsd']),
+                              toDec($rw['qtyTokenInUsd'])
+                          );
+            }
+            
+            $this->ajxRsp->script('info = '.json_encode($ds).';');
+            $this->ajxRsp->assign('days','innerHTML',$dg->get());
+            $this->ajxRsp->script('daysGraph();');
+        }
+        
         $this->ajxRsp->assign('resultado','innerHTML',$fc->get());
 
         
