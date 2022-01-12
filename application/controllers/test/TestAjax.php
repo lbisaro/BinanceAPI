@@ -43,7 +43,9 @@ class TestAjax extends ControllerAjax
 
         $symbol = $_REQUEST['symbol'];
         $usdInicial = $_REQUEST['usdInicial'];
-        $results = $test->testApalancamiento($symbol,$usdInicial,$prms);
+        $compraInicial = $_REQUEST['compraInicial'];
+
+        $results = $test->testApalancamiento($symbol,$usdInicial,$compraInicial,$prms);
         $fc->addRow(array('Saldo Inicial',toDec($results['SaldoInicial'])));
         $fc->addRow(array('Balance',toDec($results['Balance'])));
         $fc->addRow(array('Comisiones',toDec($results['Comisiones'])));
@@ -52,6 +54,7 @@ class TestAjax extends ControllerAjax
         $fc->addRow(array('Operaciones',$results['Operaciones']));
         $fc->addRow(array('Apalancamiento Insuficiente',($results['apalancamientoInsuficiente']?'SI':'NO')));
         $fc->addRow(array('Maximo Apalancamiento',$results['maxCompraNum']));
+
 
         $dg = new HtmlTableDg();
         if (!empty($results['months']))

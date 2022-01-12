@@ -39,7 +39,6 @@ class Test
                 FROM operacion";
 
         $stmt = $this->db->query($qry);
-        $symbols = array();
         while ($rw = $stmt->fetch())
         {
             $symbols[$rw['symbol']] = $rw['symbol'];
@@ -128,7 +127,40 @@ class Test
         return $this->updateStatus;
     }
 
-    function testApalancamiento($symbol,$usdInicial,$prms)
+    /**
+     * @param $interval => 1m, 1h
+     */
+    function getKlines($symbol,$interval='1m',$from=null,$to=null)
+    {
+        $qry = "SELECT datetime,open,close,high,low 
+                FROM klines_1m 
+                WHERE symbol = '".$symbol."' 
+                ORDER BY datetime ASC "; //LIMIT 1440
+        $stmt = $this->db->query($qry);
+        $klines = array();
+        while ($rw = $stmt->fetch())
+        {
+            if ($interval == '1m')
+            {
+                $klines[$rw['datetime']] = $rw;
+            }
+            elseif ($interval == '1h')
+            {
+                $key = substr($rw['datetime'],0,13);
+                $klines[$key]['datetime'] = $rw['datetime'];
+                if (!isset($klines[$key]['open'])) 
+                    $klines[$key]['open'] = $rw['open'];
+                if ($rw['high'] > $klines[$key]['high'] || !isset($klines[$key]['high']))
+                    $klines[$key]['high'] = $rw['high'];
+                 if ($rw['low'] < $klines[$key]['low'] || !isset($klines[$key]['low']))
+                    $klines[$key]['low'] = $rw['low'];
+                $klines[$key]['close'] = $rw['close'];
+            }
+        }
+        return $klines;
+    }
+
+    function testApalancamiento($symbol,$usdInicial,$compraInicial,$prms)
     {
         # Agregar control sobre falta de palanca
         # Agregar control sobre maximo invertido
@@ -136,7 +168,7 @@ class Test
         $this->usdInicial = $usdInicial;
         $this->qtyUsd = $this->usdInicial;
         $this->qtyToken = 0.0;
-        $symbolCsv = "apalancamiento_"+$symbol+".csv";
+        $symbolCsv = "apalancamiento_".$symbol.".csv";
 
         $multiplicadorCompra = $prms['multiplicadorCompra'];
         $multiplicadorPorc = $prms['multiplicadorPorc']/100;
@@ -144,7 +176,7 @@ class Test
         $porcVentaUp = $prms['porcVentaUp']/100;
         $porcVentaDown = $prms['porcVentaDown']/100;
 
-        $compraInicial = $this->usdInicial*0.056; //Este numero se calcula para lograr 4/5 palancas con la billetera
+        //$compraInicial = $this->usdInicial*0.056; //Este numero se calcula para lograr 4/5 palancas con la billetera
 
         //Obtener datos de BinanceAPI
         $this->tokenDecPrice = 3;

@@ -7,16 +7,19 @@
 
 <div class="container">
   <div class="row">
-		<div class="col3">
+		<div class="col">
 
 		  <div class="form-group">
-				<div class="form-group">
-        	<label for="symbol">Moneda</label>
-        	<select id="symbol" class="form-control" >
-        		<option value="0">Seleccionar moneda</option>
-        	</select>
-      	</div>
+			<div class="form-group">
+	        	<label for="symbol">Moneda</label>
+	        	<select id="symbol" class="form-control" >
+	        		<option value="0">Seleccionar moneda</option>
+	        	</select>
+	      	</div>
 		  </div>
+
+		</div>
+		<div class="col">
 
 		  <div class="form-group">
 			<label for="usdInicial">Cantidad de USD Billetera</label>
@@ -28,10 +31,31 @@
 			</div>
 		  </div>
 
+		</div>
+		<div class="col">
+
+		  <div class="form-group">
+			<label for="usdInicial">Compra Inicial</label>
+			<div class="input-group mb-2">
+				<div class="input-group-prepend">
+					<div class="input-group-text">USD</div>
+				</div>
+				<input type="text" class="form-control" id="compraInicial" value="" placeholder="0.000">
+			</div>
+		  </div>
+
+		</div>
+	</div>
+	<div class="row">
+		<div class="col">
+
 		  <div class="form-group">
 			<label for="multiplicadorCompra">Multiplicador Compras</label>
 			<input type="text" class="form-control" id="multiplicadorCompra"  value="" placeholder="Recomendado 1.05 a 2.00">
 		  </div>
+
+		</div>
+		<div class="col">
 
 		  <div class="form-group">
 			<label for="multiplicadorPorc">Multiplicador Porcentajes</label>
@@ -43,6 +67,9 @@
 			</div>
 		  </div>
 
+		</div>
+		<div class="col">
+
 		  <div class="form-group">
 			<label for="incremental">Multiplicador Porcentajes Incremental</label>
 			<div class="input-group mb-2">
@@ -52,6 +79,9 @@
 			  </select>
 			</div>
 		  </div>
+
+		</div>
+		<div class="col">
 
 		  <div class="form-group">
 			<label for="porcVentaUp">Porcentaje de venta inicial/palanca</label>
@@ -78,10 +108,18 @@
 			</div>
 		  </div>
 
+		</div>
+	</div>
+	<div class="row">
+		<div class="col">
+
 		  <div class="form-group" id="btnEditOperacion">
-			<button onclick="analizar()" class="btn btn-success" >Analizar</button>
+			<button onclick="analizar()" class="btn btn-warning btn-block" >Analizar</button>
 		  </div>
 		</div>
+	</div>
+	<div class="row">
+
 	  <div class="col">
 		
 		<div class="container" >
