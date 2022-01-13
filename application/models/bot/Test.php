@@ -1,3 +1,4 @@
+
 <?php
 include_once LIB_PATH."DB.php";
 include_once MDL_PATH."binance/BinanceAPI.php";
@@ -346,6 +347,7 @@ class Test
             }
             $days[$day]['qtyUsd'] = toDec($this->qtyUsd);
             $days[$day]['qtyTokenInUsd'] = toDec($this->qtyToken*$tokenPrice);
+            $days[$day]['tokenPrice'] = $tokenPrice;
 
         }
 

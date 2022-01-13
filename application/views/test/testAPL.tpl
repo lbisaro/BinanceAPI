@@ -164,7 +164,19 @@
                 $('#symbol').append('<option value="'+symbols[i]+'" >'+symbols[i]+'</option>');
             
         }
+
+        //setDefaultValues();
 	});
+
+    function setDefaultValues()
+    {
+        $('#usdInicial').val(1000);
+        $('#compraInicial').val(100);
+        $('#multiplicadorPorc').val(2.75);
+        $('#multiplicadorCompra').val(1.75);
+        $('#symbol option[value="MATICUSDT"]').attr('selected',true);
+
+    }
 
 	function analizar()
 	{
@@ -177,7 +189,7 @@
       '#4C0784',//1 //Billetera
       '#009B0A',//2 //USD
       '#C47400',//3 //Token
-      '#aaaaff',//4 
+      '#aaaaaa',//4 //Token Price
       '#58A029',//5 
       '#BF3C0F',//6 
       '#88FF88',//7 
@@ -213,8 +225,13 @@
                 var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
                     dateAxis.dataFields.category = "datetime";
                 var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-                    valueAxis.dataFields.category = "price";
-                    valueAxis.title.text = "Precio USDT";
+                    valueAxis.dataFields.category = "usd";
+                    valueAxis.title.text = "USD";                
+                var valueAxis2 = chart.yAxes.push(new am4charts.ValueAxis());
+                    valueAxis2.dataFields.category = "token";
+                    valueAxis2.title.text = "Token Price";  
+                    valueAxis2.renderer.opposite = true;   //Muestra la escala del lado opuesto           
+
 
                 chart.cursor = new am4charts.XYCursor();
                 chart.cursor.xAxis = dateAxis;
@@ -222,18 +239,27 @@
 
 
                 //Billetera
-                series = createSeriesPrecio(1);
+                series = createSeriesUsd(1);
                 series.data = createData(1);
+                series.yAxis = valueAxis;
                 //USD
-                series = createSeriesPrecio(2);
+                series = createSeriesUsd(2);
                 series.data = createData(2);
+                series.yAxis = valueAxis;
+
                 //Token Comprado
-                series = createSeriesPrecio(3);
+                series = createSeriesUsd(3);
                 series.data = createData(3);
-                
+                series.yAxis = valueAxis;
+
+                //Token Price
+                series = createSeriesUsd(4);
+                series.data = createData(4);
+                series.yAxis = valueAxis2;
+
                 // Add scrollbar
                 //var scrollbarX = new am4charts.XYChartScrollbar();
-                //sscrollbarX.series.push(series);
+                //scrollbarX.series.push(series);
                 //chart.scrollbarX = scrollbarX;
 
                 series.smoothing = "monotoneY";
@@ -243,7 +269,7 @@
                 chart.legend.position = "top";
                 chart.legend.scrollable = false;
 
-                function createSeriesPrecio(s)
+                function createSeriesUsd(s)
                 {
                     var srs = chart.series.push(new am4charts.LineSeries());
                         srs.dataFields.valueY = "value" + s;
@@ -263,10 +289,14 @@
                         {
                             srs.strokeWidth = 1;
                         }
+                        else if (s==4)
+                        {
+                            srs.strokeWidth = 1;
+                            srs.strokeDasharray = 5;
+                        }
                         else
                         {
                             srs.strokeDasharray = 4;
-                            srs.strokeWidth = 1.5; // px
                             srs.strokeWidth = 1.5; // px
                         }
 

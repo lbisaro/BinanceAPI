@@ -122,7 +122,7 @@ class TestAjax extends ControllerAjax
         
         unset($dg);
         $dg = new HtmlTableDg();
-        $ds[] = array('Fecha','Billetera [USD]','USD',$symbol);
+        $ds[] = array('Fecha','Billetera (USD)','Total USD',$symbol.' (USD)','Precio '.$symbol);
         if (!empty($results['days']))
         {
             foreach ($results['days'] as $day => $rw)
@@ -130,7 +130,8 @@ class TestAjax extends ControllerAjax
                 $ds[] = array($day,
                               toDec($rw['qtyUsd']+$rw['qtyTokenInUsd']),
                               toDec($rw['qtyUsd']),
-                              toDec($rw['qtyTokenInUsd'])
+                              toDec($rw['qtyTokenInUsd']),
+                              $rw['tokenPrice'].'0'
                           );
             }
             
