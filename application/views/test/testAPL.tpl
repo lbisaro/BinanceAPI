@@ -189,7 +189,7 @@
       '#4C0784',//1 //Billetera
       '#009B0A',//2 //USD
       '#C47400',//3 //Token
-      '#aaaaaa',//4 //Token Price
+      '#888888',//4 //Token Price
       '#58A029',//5 
       '#BF3C0F',//6 
       '#88FF88',//7 
