@@ -127,11 +127,13 @@ class TestAjax extends ControllerAjax
         {
             foreach ($results['days'] as $day => $rw)
             {
+                if ($day == '2021-12-01')
+                    $this->ajxRsp->script("console.log('".json_encode($rw)."')");
                 $ds[] = array($day,
                               toDec($rw['qtyUsd']+$rw['qtyTokenInUsd']),
                               toDec($rw['qtyUsd']),
                               toDec($rw['qtyTokenInUsd']),
-                              $rw['tokenPrice'].'0'
+                              toDec($rw['tokenPrice'],10)
                           );
             }
             
