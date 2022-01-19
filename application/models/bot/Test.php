@@ -9,7 +9,7 @@ class Test
     protected $db;
 
     //Fecha de inicio de Klines para descarga de datos
-    public $startKlines = '2021-10-01 00:00:00';
+    public $startKlines = '2021-06-01 00:00:00';
 
     protected $usdInicial = 0.0;
     protected $qtyUsd = 0.0;
@@ -28,6 +28,8 @@ class Test
     {
         $qry = "SELECT DISTINCT symbol 
                 FROM klines_1m";
+
+        $symbols['BTCUSDT'] = 'BTCUSDT';
 
         $stmt = $this->db->query($qry);
         $symbols = array();
@@ -101,7 +103,8 @@ class Test
                             '".$kline['open']."', 
                             '".$kline['close']."', 
                             '".$kline['high']."', 
-                            '".$kline['low']."'
+                            '".$kline['low']."', 
+                            '".toDec($kline['volume'],3)."'
                             )";
                     }
                     $lastKline = $kline['datetime'];
@@ -112,7 +115,7 @@ class Test
             }
             if ($ins)
             {
-                $ins = "INSERT INTO klines_1m (symbol, datetime, open,close,high,low) VALUES ".$ins;
+                $ins = "INSERT INTO klines_1m (symbol, datetime, open,close,high,low,volume) VALUES ".$ins;
                 $this->db->query($ins);
             }
             $lote++;
@@ -133,10 +136,15 @@ class Test
      */
     function getKlines($symbol,$interval='1m',$from=null,$to=null)
     {
-        $qry = "SELECT datetime,open,close,high,low 
+        $qry = "SELECT datetime,open,close,high,low,volume 
                 FROM klines_1m 
-                WHERE symbol = '".$symbol."' 
-                ORDER BY datetime ASC "; //LIMIT 1440
+                WHERE symbol = '".$symbol."' ";
+        if ($from)
+            $qty .= " AND datetime > '".$from."' "; 
+        if ($to)
+            $qty .= " AND datetime < '".$to."' "; 
+        $qry .= " ORDER BY datetime ASC "; //LIMIT 1440
+
         $stmt = $this->db->query($qry);
         $klines = array();
         while ($rw = $stmt->fetch())
@@ -156,6 +164,7 @@ class Test
                  if ($rw['low'] < $klines[$key]['low'] || !isset($klines[$key]['low']))
                     $klines[$key]['low'] = $rw['low'];
                 $klines[$key]['close'] = $rw['close'];
+                $klines[$key]['volume'] = $rw['volume'];
             }
         }
         return $klines;
@@ -212,6 +221,7 @@ class Test
             $close      = $rw['close'];
             $high       = $rw['high'];
             $low        = $rw['low'];
+            $volume     = $rw['volume'];
 
             $tokenPrice = round($close,$this->tokenDecPrice);
                 
