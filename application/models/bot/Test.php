@@ -29,8 +29,6 @@ class Test
         $qry = "SELECT DISTINCT symbol 
                 FROM klines_1m";
 
-        $symbols['BTCUSDT'] = 'BTCUSDT';
-
         $stmt = $this->db->query($qry);
         $symbols = array();
         while ($rw = $stmt->fetch())
@@ -67,7 +65,6 @@ class Test
         {
             $maxDatetime = $rw['maxDatetime'];
         }
-
         $endTime = null;
         if (!$maxDatetime)
             $startTime = date('U',strtotime($this->startKlines)).'000';
@@ -94,8 +91,7 @@ class Test
                 foreach ($klines as $timestamp => $kline)
                 {
                     $kline['datetime'] = date('Y-m-d H:i',($timestamp/1000)).':00';
-
-                    if ($kline['datetime'] >= $this->$startKlines)
+                    if (strtodate($kline['datetime']) >= strtodate($this->$startKlines))
                     {
                         
                         $ins .= ($ins?' , ':'')." ('".$symbol."', 
@@ -110,14 +106,15 @@ class Test
                     $lastKline = $kline['datetime'];
                     $this->updateStatus['last'] = $lastKline;
                 }
-                if (count($klines) < 1000)
-                    return false;
+                
             }
             if ($ins)
             {
                 $ins = "INSERT INTO klines_1m (symbol, datetime, open,close,high,low,volume) VALUES ".$ins;
                 $this->db->query($ins);
             }
+            if (count($klines) < 1000)
+                return false;
             $lote++;
             
             $startTime = date('U',strtotime($lastKline.' +1 minute ')).'000';
@@ -140,9 +137,9 @@ class Test
                 FROM klines_1m 
                 WHERE symbol = '".$symbol."' ";
         if ($from)
-            $qty .= " AND datetime > '".$from."' "; 
+            $qry .= " AND datetime > '".$from."' "; 
         if ($to)
-            $qty .= " AND datetime < '".$to."' "; 
+            $qry .= " AND datetime < '".$to."' "; 
         $qry .= " ORDER BY datetime ASC "; //LIMIT 1440
 
         $stmt = $this->db->query($qry);
@@ -153,9 +150,27 @@ class Test
             {
                 $klines[$rw['datetime']] = $rw;
             }
-            elseif ($interval == '1h')
+            else
             {
-                $key = substr($rw['datetime'],0,13);
+                $min = substr($rw['datetime'],14,2);
+                if ($interval == '1h')
+                {
+                    $key = substr($rw['datetime'],0,13).':00';
+                }
+                elseif ($interval == '15m')
+                {   
+                    $aux = array('00,15,30,45');
+                    $key = substr($rw['datetime'],0,13);
+                    if ($min < '15')
+                        $key .= ':00';
+                    elseif ($min < '30')
+                        $key .= ':15';
+                    elseif ($min < '45')
+                        $key .= ':30';
+                    else
+                        $key .= ':45';
+                }
+
                 $klines[$key]['datetime'] = $rw['datetime'];
                 if (!isset($klines[$key]['open'])) 
                     $klines[$key]['open'] = $rw['open'];
@@ -164,7 +179,7 @@ class Test
                  if ($rw['low'] < $klines[$key]['low'] || !isset($klines[$key]['low']))
                     $klines[$key]['low'] = $rw['low'];
                 $klines[$key]['close'] = $rw['close'];
-                $klines[$key]['volume'] = $rw['volume'];
+                $klines[$key]['volume'] += $rw['volume'];
             }
         }
         return $klines;
