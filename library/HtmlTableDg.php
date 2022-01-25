@@ -245,7 +245,7 @@ class HtmlTableDg
         {
             $table = '<div class="container">';
             $table .= $caption;
-            $table .= '<table class="'.$this->class.'" '.
+            $table .= '<table class="table_DG '.$this->class.'" '.
                             ($this->id?' id="'.$this->id.'" ':'').' '.
                             ($this->width?' style="width:'.$this->width.'" ':'').
                             ' >';

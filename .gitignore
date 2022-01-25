@@ -3,3 +3,5 @@ config.local.php
 log.txt
 python/
 ca.pem
+crontab/test.php
+BackTesting CLASS.txt

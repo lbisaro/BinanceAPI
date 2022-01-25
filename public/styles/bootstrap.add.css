@@ -4,6 +4,13 @@
 }
 
 
+table.table_DG td {
+    padding: 0.5em;
+}
+table.table_DG th {
+    padding: 0.6em;
+}
+
 /**
  * https://work.smarchal.com/twbscolor/css
  * 
