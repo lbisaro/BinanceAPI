@@ -115,6 +115,14 @@ class BotController extends Controller
             return false;
         }
 
+        $ak = $auth->getConfig('bncak');
+        $as = $auth->getConfig('bncas');
+        
+        $api = new BinanceAPI($ak,$as);
+
+        $symbolData = $api->getSymbolData($opr->get('symbol'));
+        $symbolPrice = $symbolData['price'];
+
         $link = '<a href="https://www.binance.com/es/trade/'.$opr->get('symbol').'" target="_blank">'.$opr->get('symbol').'</a>';
         $arr['idoperacion'] = $idoperacion;
         $arr['symbol'] = $link;
@@ -147,22 +155,19 @@ class BotController extends Controller
         $ordenes = $opr->getOrdenes($enCurso=false);
 
         $dgA = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
-        $dgA->addHeader('ID');
         $dgA->addHeader('Tipo');
+        $dgA->addHeader('Fecha Hora');
         $dgA->addHeader('Unidades',null,null,'right');
         $dgA->addHeader('Precio',null,null,'right');
         $dgA->addHeader('USD',null,null,'right');
-        $dgA->addHeader('Estado');
-        $dgA->addHeader('Fecha Hora');
+        $dgA->addHeader('Ref.',null,null,'right');
 
         $dgB = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
-        $dgB->addHeader('ID');
         $dgB->addHeader('Tipo');
+        $dgB->addHeader('Fecha Hora');
         $dgB->addHeader('Unidades',null,null,'right');
         $dgB->addHeader('Precio',null,null,'right');
         $dgB->addHeader('USD',null,null,'right');
-        $dgB->addHeader('Estado');
-        $dgB->addHeader('Fecha Hora');
 
         $totVentas = 0;
         $gananciaUsd = 0;
@@ -173,16 +178,22 @@ class BotController extends Controller
             if (!$rw['completed'] && $rw['side']==Operacion::SIDE_BUY)
                 $rw['sideStr'] .= ' #'.$rw['compraNum'];
 
-            $link = '<a href="app.bot.verOrden+symbol='.$opr->get('symbol').'&orderId='.$rw['orderId'].'" target="_blank">'.$rw['orderId'].'</a>';
+            $link = '<a href="app.bot.verOrden+symbol='.$opr->get('symbol').'&orderId='.$rw['orderId'].'" target="_blank" label="'.$rw['orderId'].'">'.$rw['sideStr'].'</a>';
         
+            if (!$rw['completed'] && $rw['status']==Operacion::OR_STATUS_FILLED)
+                $link .= ' <span class="glyphicon glyphicon-ok" style="font-size: 0.7em;"></span>';
+            
             $row = array($link,
-                         $rw['sideStr'],
+                         $rw['updatedStr'],
                          ($rw['origQty']*1),
                          ($rw['price']*1),
-                         ($rw['side']==Operacion::SIDE_BUY?'-':'').$usd,
-                         $rw['statusStr'],
-                         $rw['updatedStr']
+                         ($rw['side']==Operacion::SIDE_BUY?'-':'').$usd
                         );
+            if (!$rw['completed'])
+            {
+                $porc = toDec((($symbolPrice/$rw['price'])-1)*100);
+                $row[] = '<span class="'.($porc<0?'text-danger':'text-success').'">'.$porc.'%</span>';
+            }
 
             if (!$rw['completed'])
                 $dgA->addRow($row,$rw['sideClass'],null,null,$id='ord_'.$rw['orderId']);
@@ -355,11 +366,14 @@ class BotController extends Controller
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
 
         $dg->addHeader('Fecha');
-        foreach ($data['operaciones'] as $idoperacion=>$symbol)
+        if (!empty($data['operaciones']))
         {
-            if (substr($symbol,-4) == 'USDT' || substr($symbol,-4) == 'USDC' || substr($symbol,-4) == 'BUSD')
-                $strSymbol = substr($symbol,0,-4).'<br>'.substr($symbol,-4);
-            $dg->addHeader('<span title="Operacion #'.$idoperacion.'">'.$strSymbol.'<span>',null,null,'right');
+            foreach ($data['operaciones'] as $idoperacion=>$symbol)
+            {
+                if (substr($symbol,-4) == 'USDT' || substr($symbol,-4) == 'USDC' || substr($symbol,-4) == 'BUSD')
+                    $strSymbol = substr($symbol,0,-4).'<br>'.substr($symbol,-4);
+                $dg->addHeader('<span title="Operacion #'.$idoperacion.'">'.$strSymbol.'<span>',null,null,'right');
+            }
         }
         $dg->addHeader('Total',null,null,'right');
 
@@ -384,20 +398,27 @@ class BotController extends Controller
 
         $row=array();
         $row[] = 'Total';
-        foreach ($data['operaciones'] as $idoperacion=>$symbol)
+        if (!empty($data['operaciones']))
         {
-            $row[] = toDec($data['data']['d']['total'][$idoperacion]);
+            foreach ($data['operaciones'] as $idoperacion=>$symbol)
+            {
+                $row[] = toDec($data['data']['d']['total'][$idoperacion]);
+            }
         }
         $row[] = 'USD '.toDec($data['data']['d']['total']['total']);
         $dg->addFooter($row,'font-weight-bold');
 
         $row=array();
         $row[] = 'Promedio diario';
-        foreach ($data['operaciones'] as $idoperacion=>$symbol)
+        if (!empty($data['operaciones']))
         {
-            $row[] = toDec($data['data']['d']['total'][$idoperacion]/$days);
+            foreach ($data['operaciones'] as $idoperacion=>$symbol)
+            {
+                $row[] = toDec($data['data']['d']['total'][$idoperacion]/$days);
+            }
         }
-        $row[] = 'USD '.toDec($data['data']['d']['total']['total']/$days);
+        if ($days>0)
+            $row[] = 'USD '.toDec($data['data']['d']['total']['total']/$days);
         $dg->addFooter($row,'font-weight-bold');
 
         $arr['lista'] .= '<h4 class="text-info">Resultado sobre ventas Diarias</h4>'.$dg->get();
@@ -409,11 +430,14 @@ class BotController extends Controller
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
 
         $dg->addHeader('Mes');
-        foreach ($data['operaciones'] as $idoperacion=>$symbol)
+        if (!empty($data['operaciones']))
         {
-            if (substr($symbol,-4) == 'USDT' || substr($symbol,-4) == 'USDC' || substr($symbol,-4) == 'BUSD')
-                $strSymbol = substr($symbol,0,-4).'<br>'.substr($symbol,-4);
-            $dg->addHeader('<span title="Operacion #'.$idoperacion.'">'.$strSymbol.'<span>',null,null,'right');
+            foreach ($data['operaciones'] as $idoperacion=>$symbol)
+            {
+                if (substr($symbol,-4) == 'USDT' || substr($symbol,-4) == 'USDC' || substr($symbol,-4) == 'BUSD')
+                    $strSymbol = substr($symbol,0,-4).'<br>'.substr($symbol,-4);
+                $dg->addHeader('<span title="Operacion #'.$idoperacion.'">'.$strSymbol.'<span>',null,null,'right');
+            }
         }
         $dg->addHeader('Total',null,null,'right');
 
@@ -435,9 +459,12 @@ class BotController extends Controller
 
         $row=array();
         $row[] = 'Total';
-        foreach ($data['operaciones'] as $idoperacion=>$symbol)
+        if (!empty($data['operaciones']))
         {
-            $row[] = toDec($data['data']['m']['total'][$idoperacion]);
+            foreach ($data['operaciones'] as $idoperacion=>$symbol)
+            {
+                $row[] = toDec($data['data']['m']['total'][$idoperacion]);
+            }
         }
         $row[] = 'USD '.toDec($data['data']['m']['total']['total']);
         $dg->addFooter($row,'font-weight-bold');
@@ -462,20 +489,23 @@ class BotController extends Controller
         //$dg->addHeader('Fin',null,null,'center');
         $dg->addHeader('Dias Activo',null,null,'center');
         $dg->addHeader('Promedio Dia',null,null,'right');
-        foreach ($data['operaciones'] as $rw)
+        if (!empty($data['operaciones']))
         {
-            $row = array($rw['idoperacion'],
-                         $rw['symbol'],
-                         $rw['ventas'],
-                         //$rw['compras'],
-                         //$rw['apalancamientos'],
-                         'USD '.toDec($rw['ganancia_usd']),
-                         dateToStr($rw['start'],true).' hs.',
-                         //dateToStr($rw['end'],true).' hs.',
-                         $rw['days'],
-                         'USD '.toDec($rw['avg_usd_day'],2)
-                        );
-            $dg->addRow($row);
+            foreach ($data['operaciones'] as $rw)
+            {
+                $row = array($rw['idoperacion'],
+                             $rw['symbol'],
+                             $rw['ventas'],
+                             //$rw['compras'],
+                             //$rw['apalancamientos'],
+                             'USD '.toDec($rw['ganancia_usd']),
+                             dateToStr($rw['start'],true).' hs.',
+                             //dateToStr($rw['end'],true).' hs.',
+                             $rw['days'],
+                             'USD '.toDec($rw['avg_usd_day'],2)
+                            );
+                $dg->addRow($row);
+            }
         }
 
 
@@ -951,6 +981,7 @@ class BotController extends Controller
 
         $tck = new Ticker();
         $symbol = strtoupper($_REQUEST['symbol']);
+        $arr['symbol'] = $symbol;
         if (!$symbol)
         {
             $this->addError('Se debe especificar el arametro symbol');
@@ -960,14 +991,20 @@ class BotController extends Controller
         $at = $tck->getAnalisisTecnico($symbol,'5m');
         if ($at)
         {
-            debug($at);
+            //debug($at);
+            foreach ($at['signal'] as $k=>$v)
+                $tendencias['signal_'.$k] = $v;
+            foreach ($at as $k=>$v)
+                if (strstr($k,'_trend')=='_trend')
+                    $tendencias[$k] = $v;
+            $arr['data'] .= arrayToTable($tendencias);
         }
         else
         {
             debug($tck->getErrLog());
         }
-    
-        $arr['data'] = '';
+        
+
         $arr['hidden'] = '';
     
         $this->addView('bot/estadisticasMoneda',$arr);
