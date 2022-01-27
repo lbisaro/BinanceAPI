@@ -190,4 +190,11 @@ class CriptoController extends Controller
         $this->addView('operaciones',$arr);
 
     }
+
+    function depth($auth)
+    {
+        $this->addTitle('Ordenes de Mercado');
+        $arr = array();
+        $this->addView('cripto/depth',$arr);        
+    }
 }

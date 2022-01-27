@@ -869,6 +869,10 @@ $MES_LARGO = array('Enero','Febrero','Marzo','Abril','Mayo','Junio',
     {
         return number_format(round(floatVal($val),$dec,PHP_ROUND_HALF_DOWN),$dec,$dSep,$mSep);
     }
+    function toDecUp($val,$dec=2,$dSep=".",$mSep="")
+    {
+        return number_format(round(floatVal($val),$dec,PHP_ROUND_HALF_UP),$dec,$dSep,$mSep);
+    }
 
     function num2letras($num, $fem = false, $dec = true, $minQtyDec = 2)
     {

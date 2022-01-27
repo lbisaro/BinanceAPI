@@ -5,20 +5,21 @@ include_once MDL_PATH."binance/BinanceAPI.php";
 
 $procStart = date('Y-m-d H:i:s');
 $procStartU = microtime(true);
-file_put_contents(STATUS_FILE_SCLPR, "\nSTART ".$procStart);
+file_put_contents(STATUS_FILE_SCLPR, "\nSTART ".$procStart."\n");
 
 // CONFIGURACION
 
-$totalUsd = 100;
+$totalUsd = 1000;
 $totalToken = 0;
-$stopLoss = 1/100;
+$stopLoss = 0.75/100;
+$takeProfit = 1.75/100;
 
 //Importe en USD para cada operacion 
-$importeCompra = 80;
+$importeCompra = 100;
 //Token USD
-$tokenUSD = 'BUSD';
+$tokenUSD = 'USDT';
 //Token
-$token = 'BNB';
+$token = 'LUNA';
 
 
 
@@ -47,7 +48,9 @@ $symbol = $token.$tokenUSD;
 $ultimaOperacion = 'V'; // C Compra - V Venta (Default para el inicio de la operacion)
 $priceUltimaCompra = 0;
 
-$msg = 'Date            ;Side;Price;Qty;TotalUSD,TotalToken;';
+$msg = 'Symbol: '.$symbol."\n";
+file_put_contents(STATUS_FILE_SCLPR, $msg, FILE_APPEND);
+$msg = 'Date            ;Side;Price;Qty;Operacion USD;TotalUSD,TotalToken;'."\n";
 file_put_contents(STATUS_FILE_SCLPR, $msg, FILE_APPEND);
 echo $msg."\n";
 
@@ -57,14 +60,24 @@ while ($continueLoop)
     if (!empty($at))
     {
         $stopLossBreak = false;
-        if ( $at['price'] <= ($priceUltimaCompra-$priceUltimaCompra*$stopLoss) )
+        $stopLossPrice = ($priceUltimaCompra-$priceUltimaCompra*$stopLoss);
+        if ( $at['candel']['low'] <= $stopLossPrice )
             $stopLossBreak = true;
+        $takeProfitBreak = false;
+        $takeProfitPrice = ($priceUltimaCompra+$priceUltimaCompra*$takeProfit);
+        if ( $at['candel']['high'] >= $takeProfitPrice )
+            $takeProfitBreak = true;
 
         $signal = '';
-        if ($stopLossBreak || $at['signal']['rsi'] == 'V' || $at['signal']['macd'] == 'V' || $at['signal']['bb'] == 'V')
+        $sellSignal = ($at['signal']['rsi'] == 'V' || $at['signal']['macd'] == 'V' || $at['signal']['bb'] == 'V');
+        $buySignal = ($at['signal']['rsi'] == 'C' && $at['signal']['macd'] == 'C' && $at['signal']['bb'] == 'C');
+
+        if ($ultimaOperacion =='C' && ($stopLossBreak || $takeProfitBreak))
             $signal = 'V';
-        elseif ($at['signal']['rsi'] == 'C' && $at['signal']['macd'] == 'C' && $at['signal']['bb'] == 'C')
+        elseif ($ultimaOperacion =='V' && $buySignal)
             $signal = 'C';
+        else
+            $signal = '-';
 
 
         if ($ultimaOperacion =='V' && $signal == 'C')
@@ -76,24 +89,38 @@ while ($continueLoop)
 
             $priceUltimaCompra = $price;
 
-            $msg = date('Y-m-d H:i').';'.'BUY'.';'.$price.';'.$qty.';'.$totalUsd.';'.$totalToken.';';
+            $msg = date('Y-m-d H:i').';'.'BUY'.';'.$price.';'.$qty.';-'.toDec($price*$qty).';'.$totalUsd.';'.$totalToken.';'."\n";
             file_put_contents(STATUS_FILE_SCLPR, $msg, FILE_APPEND);
-            echo "\n".$msg."\n";
+            echo $msg."\n";
 
             $ultimaOperacion = 'C';
         }
         elseif ($ultimaOperacion =='C' && $signal == 'V')
         {
-            $price = $at['price'];
+            if ($takeProfitBreak)
+            {
+                $price = $takeProfitPrice;
+                $buyMsg = 'TAKE-PROFIT';
+            }
+            if ($stopLossBreak)
+            {
+                $price = $stopLossPrice;
+                $buyMsg = 'STOP-LOSS';
+            }
+            else
+            {
+                $price = $at['price'];
+                $buyMsg = 'SIGNAL';
+            }
             $qty = $totalToken;
             $totalToken = $totalToken-$qty;
             $totalUsd = $totalUsd+$qty*$price;
 
             $priceUltimaCompra = 0;
 
-            $msg = date('Y-m-d H:i').';'.'SELL'.';'.$price.';'.$qty.';'.$totalUsd.';'.$totalToken.';'.($stopLossBreak?'STOP-LOSS':'SIGNAL');
+            $msg = date('Y-m-d H:i').';'.'SELL '.$buyMsg.';'.$price.';'.$qty.';'.toDec($price*$qty).';'.$totalUsd.';'.$totalToken.';'."\n";
             file_put_contents(STATUS_FILE_SCLPR, $msg, FILE_APPEND);
-            echo "\n".$msg."\n";
+            echo $msg."\n";
 
             $ultimaOperacion = 'V';
         }

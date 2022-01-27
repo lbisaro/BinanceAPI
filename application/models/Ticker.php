@@ -321,144 +321,285 @@ class Ticker extends ModelDB
 
         try {
             $candlesticks = $api->candlesticks($symbol, $interval, $limit, $startTime, $endTime);
-            $i=0;
-            foreach ($candlesticks as $timestamp => $candel)
-            {
-                $data_date[] = date('Y-m-d H:i',($timestamp/1000));
-                $data_close[] = (float)$candel['close'];
-                $data_volume[] = (float)$candel['volume'];
-
-                $at['candel']['open'] = (float)$candel['open'];
-                $at['candel']['high'] = (float)$candel['high'];
-                $at['candel']['low'] = (float)$candel['low'];
-                $at['candel']['close'] = (float)$candel['close'];
-                
-                $i++;
-            }
-
-
-
-            $data_ma24 = trader_ma($data_close, $periods = 24, TRADER_MA_TYPE_SMA);
-            $data_macd = trader_macd($data_close, $fastPeriod=12, $slowPeriod=26, $signalPeriod=9 );
-            $data_rsi = trader_rsi($data_close, $periods = 14);
-            $data_bb = trader_bbands($data_close, $periods = 20,$upper_mult = 2,$lower_mult = 2,TRADER_MA_TYPE_SMA);
-            $data_obv = trader_obv($data_close, $data_volume);
-            
-            for ($j=($limit-5) ; $j<$i ; $j++)
-            {
-                $at['date'] = $data_date[$j];
-                $at['price'] = $data_close[$j];
-                $at['signal'] = array();
-
-                $at['ma24'] = $data_ma24[$j];
-                $at['ma24_trend'] = '';
-
-                $at['macd_val'] = $data_macd[0][$j];
-                $at['macd_sig'] = $data_macd[1][$j];
-                $at['macd_diverg'] = $data_macd[2][$j];
-                $at['macd_trend'] = '';
-
-                $at['rsi'] = $data_rsi[$j];
-                $at['rsi_trend'] = '';
-
-                $at['obv'] = $data_obv[$j];
-                $at['obv_trend'] = '';
-
-                $at['bb_up'] = $data_bb[0][$j];
-                $at['bb_mid'] = $data_bb[1][$j];
-                $at['bb_low'] = $data_bb[2][$j];
-                $at['bb_gap'] = toDec((($data_bb[0][$j]/$data_bb[2][$j])-1)*100);
-                $at['bb_trend'] = '';
-
-                //Analisis de tendencias sobre ultimos 4 periodos
-                if ($j>$start+3)
-                {
-                    $tl = tendenciaLineal(array($data_rsi[$j-3],
-                                                $data_rsi[$j-2],
-                                                $data_rsi[$j-1],
-                                                $data_rsi[$j] 
-                                               ));
-                    $at['rsi_trend'] = toDec($tl);
-
-                    $tl = tendenciaLineal(array($data_macd[0][$j-3],
-                                                $data_macd[0][$j-2],
-                                                $data_macd[0][$j-1],
-                                                $data_macd[0][$j] 
-                                               ));
-                    $at['macd_trend'] = toDec($tl); 
-
-                    $tl = tendenciaLineal(array($data_obv[$j-3],
-                                                $data_obv[$j-2],
-                                                $data_obv[$j-1],
-                                                $data_obv[$j] 
-                                               ));
-                    $at['obv_trend'] = toDec($tl);
-
-                    $tl = tendenciaLineal(array($data_bb[1][$j-3],
-                                                $data_bb[1][$j-2],
-                                                $data_bb[1][$j-1],
-                                                $data_bb[1][$j] 
-                                               ));
-                    $at['bb_trend'] = toDec($tl); 
-
-                    $tl = tendenciaLineal(array($data_ma24[$j-3],
-                                                $data_ma24[$j-2],
-                                                $data_ma24[$j-1],
-                                                $data_ma24[$j] 
-                                               ));
-                    $at['ma24_trend'] = toDec($tl);
-
-                }
-
-
-            }
-
-            //Señales
-            $at['signal']['rsi'] = '';
-            $at['signal']['bb'] = '';
-            $at['signal']['macd'] = '';
-
-            //RSI
-            if ($at['rsi']>50 /*&& $at['rsi_trend'] > 1.2*/)
-            {
-                $at['signal']['rsi'] = 'C'; //Buy
-            }
-            elseif ($at['rsi']<50 /*&& $at['rsi_trend'] < -1.2*/)
-            {
-                $at['signal']['rsi'] = 'V'; //Sell
-            }
-            elseif ($at['rsi']>88)
-            {
-                $at['signal']['rsi'] = 'V'; //Sell
-            }
-
-            //Bollinger
-            if ($at['price']>$at['bb_mid'] /*&& $at['bb_gap'] > 3*/)
-            {
-                $at['signal']['bb'] = 'C'; //Buy
-            }
-            elseif ($at['price']<$at['bb_mid'] /*&& $at['bb_gap'] > 3*/)
-            {
-                $at['signal']['bb'] = 'V'; //Sell
-            }
-
-            //MACD
-            if ($at['macd_val'] > $at['macd_sig'] /*&& $at['macd_trend'] > 0.5*/)
-            {
-                $at['signal']['macd'] = 'C'; //Buy
-            }
-            elseif ($at['macd_val'] < $at['macd_sig'] /*&& $at['macd_trend']< -0.5*/)
-            {
-                $at['signal']['macd'] = 'V'; //Sell
-            }
-           
-            return $at; 
-
         } catch (Throwable $e) {
             $this->errLog->add('No fue posible encontrar informacion para la moneda '.$symbol);
             return false;
         }
 
+        $at = $this->analisisTecnico($candlesticks);
 
+        return $at;
+    }
+
+    function analisisTecnico($candlesticks)
+    {
+        $i=0;
+        foreach ($candlesticks as $timestamp => $candel)
+        {
+            $data_date[] = date('Y-m-d H:i',($timestamp/1000));
+            $data_close[] = (float)$candel['close'];
+            $data_high[] = (float)$candel['high'];
+            $data_low[] = (float)$candel['low'];
+            $at['candel']['open'] = (float)$candel['open'];
+            $at['candel']['high'] = (float)$candel['high'];
+            $at['candel']['low'] = (float)$candel['low'];
+            $at['candel']['close'] = (float)$candel['close'];
+            $i++;
+        }
+
+
+        $data_ma24 = trader_ma($data_close, $periods = 24, TRADER_MA_TYPE_SMA);
+        $data_macd = trader_macd($data_close, $fastPeriod=12, $slowPeriod=26, $signalPeriod=9 );
+        $data_rsi = trader_rsi($data_close, $periods = 14);
+        $data_bb = trader_bbands($data_close, $periods = 20,$upper_mult = 2,$lower_mult = 2,TRADER_MA_TYPE_SMA);
+        $data_adx = trader_adx($data_high,$data_low,$data_close,$timePeriod = 14);
+        
+        for ($j=($limit-5) ; $j<$i ; $j++)
+        {
+            $at['date'] = $data_date[$j];
+            $at['price'] = $data_close[$j];
+            $at['signal'] = array();
+
+            $at['ma24'] = $data_ma24[$j];
+            $at['ma24_trend'] = '';
+            $at['ma24_vporc'] = '';
+
+            $at['macd_val'] = $data_macd[0][$j];
+            $at['macd_sig'] = $data_macd[1][$j];
+            $at['macd_diverg'] = $data_macd[2][$j];
+            $at['macd_trend'] = '';
+            $at['macd_vporc'] = '';
+
+            $at['rsi'] = $data_rsi[$j];
+            $at['rsi_trend'] = '';
+            $at['rsi_vporc'] = '';
+
+            $at['adx'] = $data_adx[$j];
+            $at['adx_trend'] = '';
+            $at['adx_vporc'] = '';
+
+            $at['bb_up'] = $data_bb[0][$j];
+            $at['bb_mid'] = $data_bb[1][$j];
+            $at['bb_low'] = $data_bb[2][$j];
+            if ($data_bb[2][$j]!=0)
+                $at['bb_gap'] = toDec((($data_bb[0][$j]/$data_bb[2][$j])-1)*100);
+            else
+                $at['bb_gap'] = '0.00';
+            $at['bb_trend'] = '';
+            $at['bb_vporc'] = '';
+          
+        }
+
+        //Calculo de tendencias lineales
+        $trendItems=4;
+        $aux = $this->getLastElementsFromArray($data_rsi,$trendItems);
+        $at['rsi_trend'] = tendenciaLineal( $aux );
+        $at['rsi_vporc'] = variacionPorcentual( $aux );        
+        $aux = $this->getLastElementsFromArray($data_adx,$trendItems);
+        $at['adx_trend'] = tendenciaLineal( $aux );
+        $at['adx_vporc'] = variacionPorcentual( $aux );
+        $aux = $this->getLastElementsFromArray($data_macd[0],$trendItems);
+        $at['macd_trend'] = tendenciaLineal( $aux );
+        $at['macd_vporc'] = variacionPorcentual( $aux );
+        $aux = $this->getLastElementsFromArray($data_bb[1],$trendItems);
+        $at['bb_trend'] = tendenciaLineal( $aux );  
+        $at['bb_vporc'] = variacionPorcentual( $aux );  
+        $aux = $this->getLastElementsFromArray($data_ma24,$trendItems);
+        $at['ma24_trend'] = tendenciaLineal( $aux );
+        $at['ma24_vporc'] = variacionPorcentual( $aux );
+        
+        //Señales
+        $at['signal']['rsi'] = '';
+        $at['signal']['bb'] = '';
+        $at['signal']['macd'] = '';
+
+        //RSI
+        if ($at['rsi']>50 /*&& $at['rsi_trend'] > 1.2*/)
+        {
+            $at['signal']['rsi'] = 'C'; //Buy
+        }
+        elseif ($at['rsi']<50 /*&& $at['rsi_trend'] < -1.2*/)
+        {
+            $at['signal']['rsi'] = 'V'; //Sell
+        }
+        elseif ($at['rsi']>88)
+        {
+            $at['signal']['rsi'] = 'V'; //Sell
+        }
+
+        //Bollinger
+        if ($at['price']>$at['bb_mid'] /*&& $at['bb_gap'] > 3*/)
+        {
+            $at['signal']['bb'] = 'C'; //Buy
+        }
+        elseif ($at['price']<$at['bb_mid'] /*&& $at['bb_gap'] > 3*/)
+        {
+            $at['signal']['bb'] = 'V'; //Sell
+        }
+
+        //MACD
+        if ($at['macd_val'] > $at['macd_sig'] /*&& $at['macd_trend'] > 0.5*/)
+        {
+            $at['signal']['macd'] = 'C'; //Buy
+        }
+        elseif ($at['macd_val'] < $at['macd_sig'] /*&& $at['macd_trend']< -0.5*/)
+        {
+            $at['signal']['macd'] = 'V'; //Sell
+        }
+
+        return $at; 
+
+    }
+
+    function getLastElementsFromArray($array,$elements)
+    {
+        if (count($array)<$elements)
+            return false;
+
+        $aux = array();
+        foreach($array as $v)
+            $aux[] = $v;
+        $array = $aux;
+
+        $end = count($array)-1;
+        
+        for ($i=$elements-1;$i>=0;$i--)
+            $new[] = $array[$end-$i];
+        
+        return $new;
+    }
+
+    private function __depth_get_parameters($price,$qtyDecs)
+    {
+        $data = array();
+        $data['price'] = $price;
+
+        $firstDigit = -1;
+        $pointPos = -1;
+        for ($i=0;$i<strlen($price);$i++)
+        {
+            $char = substr($price,$i,1);
+            if ($firstDigit==-1 && $char!='0' && $char!='.')
+                $firstDigit = $i;
+            if ($char=='.')
+                $pointPos = $i;
+
+        }
+        $data['firstDigit'] = $firstDigit;
+        $data['pointPos'] = $pointPos;
+
+        $inc = ($price>10000?3:2);
+        for ($i=0;$i<strlen($price);$i++)
+        {
+            $char = substr($price,$i,1);
+            if ($i == $pointPos)
+                $inc++; 
+            
+            if ($char == '.')
+                $data['scale'] .= '.';
+            elseif ($i == $firstDigit+$inc-1)
+                $data['scale'] .= '1';
+            else
+                $data['scale'] .= '0';
+
+            if ($char == '.')
+                $data['bidScaleStart'] .= '.';
+            elseif ($i >= $firstDigit+$inc)
+                $data['bidScaleStart'] .= '0';
+            else
+                $data['bidScaleStart'] .= $char;
+
+        }
+
+        $data['scale'] = floatVal($data['scale']);
+
+        $data['askScaleStart'] = toDec($data['bidScaleStart']+$data['scale'],$qtyDecs);
+        $data['bidScaleStart'] = toDec($data['bidScaleStart']+0,$qtyDecs);
+        $data['scale'] = toDec($data['scale']+0,$qtyDecs);
+
+        return $data;
+    }
+
+    function depth($symbol)
+    {
+        $data = array();
+
+        $auth = UsrUsuario::getAuthInstance();
+        $idusuario = $auth->get('idusuario');
+        $ak = $auth->getConfig('bncak');
+        $as = $auth->getConfig('bncas');
+        $api = new BinanceAPI($ak,$as); 
+
+        $symbolData = $api->getSymbolData($symbol);
+
+        $data['price'] = $symbolData['price'];
+        $data['qtyDecsPrice'] = $symbolData['qtyDecsPrice'];
+
+        $dp = $this->__depth_get_parameters($data['price'],$symbolData['qtyDecsPrice']);
+        $data['askScaleStart'] = $dp['askScaleStart'];
+        $data['bidScaleStart'] = $dp['bidScaleStart'];
+        $data['scale']         = $dp['scale'];
+
+        $data['askMin'] = -1;
+        $data['askMax'] = -1;
+        $data['bidMin'] = -1;
+        $data['bidMax'] = -1;
+        $data['usdTotal'] = 0;
+        $data['usdBid'] = 0;
+        $data['usdAsk'] = 0;
+        $data['bids'] = array();
+        $data['asks'] = array();
+
+
+        $rawData = $api->depth($symbol,$limit=5000);
+
+        $bidScale = $data['bidScaleStart'];
+        $askScale = $data['askScaleStart'];
+        if (!empty($rawData))
+        {
+            foreach ($rawData['bids'] as $price => $amount)
+            {
+                if ($data['bidMin'] == -1 || $price < $data['bidMin'])
+                    $data['bidMin'] = $price;
+                if ($data['bidMax'] == -1 || $price > $data['bidMax'])
+                    $data['bidMax'] = $price; 
+                $data['usdBid'] += $price*$amount;
+
+                if (floatVal($price)<floatVal($bidScale))
+                    $bidScale = toDec(floatVal($bidScale)-floatVal($data['scale']),$data['qtyDecsPrice']);
+                $data['bids'][$bidScale]['amount'] += toDec($price * $amount);
+
+            }
+
+            foreach ($rawData['asks'] as  $price => $amount)
+            {
+                if ($data['askMin'] == -1 || $price < $data['askMin'])
+                    $data['askMin'] = $price;
+                if ($data['askMax'] == -1 || $price > $data['askMax'])
+                    $data['askMax'] = $price;
+                $data['usdAsk'] += $price*$amount;
+
+                if (floatVal($price)>floatVal($askScale))
+                    $askScale = toDec(floatVal($askScale)+floatVal($data['scale']),$data['qtyDecsPrice']);
+                $data['asks'][$askScale]['amount'] += toDec($price * $amount);
+
+            }
+
+            $data['usdTotal'] = $data['usdBid']+$data['usdAsk'];
+            foreach ($data['bids'] as $scale => $rw)
+            {
+                $data['bids'][$scale]['ref'] = toDec((($scale*100)/$data['price'])-100);
+                $data['bids'][$scale]['portion'] = toDec((($rw['amount']*100)/$data['usdBid']));
+            }
+            
+            foreach ($data['asks'] as  $scale => $rw)
+            {
+                $data['asks'][$scale]['ref'] = toDec((($scale*100)/$data['price'])-100);
+                $data['asks'][$scale]['portion'] = toDec((($rw['amount']*100)/$data['usdAsk']));
+            }
+
+        }
+
+        return $data;             
     }
 }

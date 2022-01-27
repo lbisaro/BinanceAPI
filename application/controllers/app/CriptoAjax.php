@@ -25,4 +25,15 @@ class CriptoAjax extends ControllerAjax
         echo json_encode($ds);
 
     }
+
+    function depth()
+    {
+        $symbol = strtoupper($_REQUEST['asset'].$_REQUEST['assetQuote']);
+
+        $tck = new Ticker();
+        $data = $tck->depth($symbol);
+
+        $this->ajxRsp->assign('resultado','innerHTML',arrayToTable($data));
+
+    }
 }

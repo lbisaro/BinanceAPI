@@ -554,10 +554,13 @@ class Operacion extends ModelDB
 
         $data['totales']['apalancamientos'] = $data['totales']['compras']-$data['totales']['ventas'];
         //$data['totales']['apalancamientos_promedio'] = toDec($data['totales']['compras']/$data['totales']['ventas'],2);
-        foreach ($data['operaciones'] as $k => $rw)
+        if (!empty($data['operaciones']))
         {
-            $data['operaciones'][$k]['apalancamientos'] = $rw['compras']-$rw['ventas'];
-            //$data['operaciones'][$k]['apalancamientos_promedio'] = toDec($rw['compras']/$rw['ventas'],2);
+            foreach ($data['operaciones'] as $k => $rw)
+            {
+                $data['operaciones'][$k]['apalancamientos'] = $rw['compras']-$rw['ventas'];
+                //$data['operaciones'][$k]['apalancamientos_promedio'] = toDec($rw['compras']/$rw['ventas'],2);
+            }
         }
 
         $data['totales']['start'] = date('Y-m-d H:i:s');
@@ -581,11 +584,13 @@ class Operacion extends ModelDB
             if ($rw['last_update']>$data['totales']['end'])
                 $data['totales']['end'] = $rw['last_update'];
         }
-        
-        foreach ($data['operaciones'] as $k => $rw)
+        if (!empty($data['operaciones']))
         {
-            $data['operaciones'][$k]['days'] = diferenciaFechas($rw['start'],$rw['end']);
-            $data['operaciones'][$k]['avg_usd_day'] = toDec($rw['ganancia_usd']/$data['operaciones'][$k]['days'],2);
+            foreach ($data['operaciones'] as $k => $rw)
+            {
+                $data['operaciones'][$k]['days'] = diferenciaFechas($rw['start'],$rw['end']);
+                $data['operaciones'][$k]['avg_usd_day'] = toDec($rw['ganancia_usd']/$data['operaciones'][$k]['days'],2);
+            }
         }
 
         $data['totales']['days'] = diferenciaFechas($data['totales']['start'],$data['totales']['end']);
@@ -649,8 +654,10 @@ class Operacion extends ModelDB
             }
             
         }
-        ksort($data['data']['d']);
-        ksort($data['data']['m']);
+        if (!empty($data['data']['d']))
+            ksort($data['data']['d']);
+        if (!empty($data['data']['d']))
+            ksort($data['data']['m']);
 
         return $data;
     }
