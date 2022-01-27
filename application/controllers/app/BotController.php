@@ -191,7 +191,11 @@ class BotController extends Controller
                         );
             if (!$rw['completed'])
             {
-                if ($rw['price']>0 && $rw['status']==Operacion::OR_STATUS_FILLED)
+                if ($rw['price']>0 && (
+                    ($rw['side']==Operacion::SIDE_BUY && $rw['status']==Operacion::OR_STATUS_FILLED)
+                    || 
+                    ($rw['side']==Operacion::SIDE_SELL && $rw['status']==Operacion::OR_STATUS_NEW)
+                    ))
                 {
                     $porc = toDec((($symbolPrice/$rw['price'])-1)*100);
                     $row[] = '<span class="'.($porc<0?'text-danger':'text-success').'">'.$porc.'%</span>';
