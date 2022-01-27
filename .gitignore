@@ -5,3 +5,5 @@ python/
 ca.pem
 crontab/test.php
 BackTesting CLASS.txt
+test_log/statusScalper.log
+vaciar_tabla.php
