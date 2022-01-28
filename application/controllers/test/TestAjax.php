@@ -45,7 +45,40 @@ class TestAjax extends ControllerAjax
         $usdInicial = $_REQUEST['usdInicial'];
         $compraInicial = $_REQUEST['compraInicial'];
 
-        $results = $test->testApalancamiento($symbol,$usdInicial,$compraInicial,$prms);
+        $err=0;
+        if ($compraInicial<10)
+        {
+            $this->ajxRsp->addError('La compra inicial debe ser mayor a 10.');
+            $err++;
+        }
+        if ($usdInicial<$compraInicial)
+        {
+            $this->ajxRsp->addError('La cantidad de USD en la billetera debe ser mayor a la compra inicial.');
+            $err++;
+        }
+        if ($prms['multiplicadorCompra']<1)
+        {
+            $this->ajxRsp->addError('El multiplicador de compras debe ser mayor o igual a 1.');
+            $err++;
+        }        
+        if (!$symbol)
+        {
+            $this->ajxRsp->addError('Se debe seleccionar una moneda.');
+            $err++;
+        }
+        if ($err>0)
+            return false;
+
+        if ($_REQUEST['estrategia'] == 'apalancamiento')
+            $results = $test->testApalancamiento($symbol,$usdInicial,$compraInicial,$prms);
+        elseif ($_REQUEST['estrategia'] == 'grid')
+            $results = $test->testGrid($symbol,$usdInicial,$compraInicial,$prms);
+        else
+        {
+            $this->ajxRsp->addError('Se debe seleccionar una Estrategia.');
+            return false;
+        }
+
         //$fc->addRow(array('Saldo Inicial',toDec($results['SaldoInicial'])));
         //$fc->addRow(array('Balance',toDec($results['Balance'])));
         //$fc->addRow(array('Comisiones',toDec($results['Comisiones'])));
@@ -54,15 +87,18 @@ class TestAjax extends ControllerAjax
         //$fc->addRow(array('Operaciones',$results['Operaciones']));
         //$fc->addRow(array('Apalancamiento Insuficiente',($results['apalancamientoInsuficiente']?'SI':'NO')));
         //$fc->addRow(array('Maximo Apalancamiento',$results['maxCompraNum']));
+        $gananciaMensualPromedio = toDec(($results['Ganancia']/$results['qtyDays'])*30);
         $fc->addRow(array('Saldo Inicial',toDec($results['SaldoInicial']),
                           'Balance',toDec($results['Balance']),
                           'Comisiones',toDec($results['Comisiones']),
                           'Balance Final',toDec($results['BalanceFinal'])));
-        $fc->addRow(array('Ganancia','<strong>'.$results['Ganancia'].'%'.'</strong>',
+        $fc->addRow(array('Ganancia Mensual Promedio','<strong>'.$gananciaMensualPromedio.'%'.'</strong>',
                           'Operaciones',$results['Operaciones'],
-                          'Apalancamiento Insuficiente',($results['apalancamientoInsuficiente']?'SI':'NO'),
+                          'Apalancamiento Insuficiente',count($results['apalancamientoInsuficiente']),
                           'Maximo Apalancamiento',$results['maxCompraNum']));
 
+        $this->ajxRsp->debug('tokenDecPrice: '.$results['tokenDecPrice']);
+        $this->ajxRsp->debug('tokenDecUnits: '.$results['tokenDecUnits']);
 
         $dg = new HtmlTableDg();
         if (!empty($results['months']))
@@ -79,7 +115,8 @@ class TestAjax extends ControllerAjax
             $this->ajxRsp->assign('months','innerHTML',$dg->get());
         }
         
-        /**
+        /** 
+        */
         unset($dg);
         $dg = new HtmlTableDg();
         if (!empty($results['orders']))
@@ -87,8 +124,6 @@ class TestAjax extends ControllerAjax
             $dg->setCaption('Ordenes');
             $dg->addHeader('Fecha Hora');
             $dg->addHeader('OP#');
-            $dg->addHeader('O/C',null,null,'right');
-            $dg->addHeader('O/V',null,null,'right');
             $dg->addHeader('Tokens',null,null,'right');
             $dg->addHeader('Precio',null,null,'right');
             $dg->addHeader('USD',null,null,'right');
@@ -97,13 +132,11 @@ class TestAjax extends ControllerAjax
             $dg->addHeader('Comisiones',null,null,'right');
             foreach ($results['orders'] as $order)
             {
-                $strOp = $order['side'].' #'.($order['side']!='BUY'?$order['operaciones']:$order['compraNum']);
+                $strOp = $order['side'].' '.$order['orderId'].' #'.($order['side']!='BUY'?$order['operaciones']:$order['compraNum']);
                 if ($order['porcCompra'])
                     $strOp .= ' -'.toDec($order['porcCompra']*100).'%';
                 $row = array(strToDate($order['datetime'],true),
                              $strOp,
-                             $order['ordenCompra'],
-                             $order['ordenVenta'],
                              toDec($order['qty'],$results['tokenDecUnits']),
                              toDec($order['price'],$results['tokenDecPrice']),
                              ($order['side']=='BUY'?'-':'').toDec($order['usd'],2),
@@ -117,28 +150,27 @@ class TestAjax extends ControllerAjax
                 $dg->addRow($row,$classRow);
             }
             $this->ajxRsp->assign('ordenes','innerHTML',$dg->get());
+            $this->ajxRsp->append('ordenes','innerHTML',arrayToTable($results['openPos']));
         }
+        /*
         */
         
-        unset($dg);
-        $dg = new HtmlTableDg();
-        $ds[] = array('Fecha','Billetera (USD)','Total USD',$symbol.' (USD)','Precio '.$symbol);
-        if (!empty($results['days']))
+        $ds[] = array('Fecha','Billetera (USD)','Total USD',$symbol.' (USD)','Precio '.$symbol,'Compra','Venta');
+        if (!empty($results['hours']))
         {
-            foreach ($results['days'] as $day => $rw)
+            foreach ($results['hours'] as $hour => $rw)
             {
-                if ($day == '2021-12-01')
-                    $this->ajxRsp->script("console.log('".json_encode($rw)."')");
-                $ds[] = array($day,
+                $ds[] = array($hour,
                               toDec($rw['qtyUsd']+$rw['qtyTokenInUsd']),
                               toDec($rw['qtyUsd']),
                               toDec($rw['qtyTokenInUsd']),
-                              toDec($rw['tokenPrice'],10)
+                              toDec($rw['tokenPrice'],10),
+                              ($rw['buy'] ? toDec($rw['buy']) : null),
+                              ($rw['sell'] ? toDec($rw['sell']) : null)
                           );
             }
             
             $this->ajxRsp->script('info = '.json_encode($ds).';');
-            $this->ajxRsp->assign('days','innerHTML',$dg->get());
             $this->ajxRsp->script('daysGraph();');
         }
         

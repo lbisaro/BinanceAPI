@@ -60,6 +60,7 @@ class Test
         $qry = "SELECT max(datetime) maxDatetime
                 FROM klines_1m
                 WHERE symbol = '".$symbol."'";
+
         $stmt = $this->db->query($qry);
         while ($rw = $stmt->fetch())
         {
@@ -204,8 +205,15 @@ class Test
         //$compraInicial = $this->usdInicial*0.056; //Este numero se calcula para lograr 4/5 palancas con la billetera
 
         //Obtener datos de BinanceAPI
-        $this->tokenDecPrice = 3;
-        $this->tokenDecUnits = 3;
+        $auth = UsrUsuario::getAuthInstance();
+        $idusuario = $auth->get('idusuario');
+        $ak = $auth->getConfig('bncak');
+        $as = $auth->getConfig('bncas');
+        $api = new BinanceAPI($ak,$as); 
+
+        $symbolData = $api->getSymbolData($symbol);
+        $this->tokenDecPrice = $symbolData['qtyDecsPrice'];
+        $this->tokenDecUnits = $symbolData['qtyDecs'];
 
 
         $compraNum = 0;
@@ -217,9 +225,9 @@ class Test
         $totalCompra = 0.0;
         $comisiones = 0.0;
         $orders = array();
-        $days = array();
+        $hours = array();
         $months = array();
-        $apalancamientoInsuficiente = false;
+        $apalancamientoInsuficiente = array();
         $acumPorcCompra = 0;
 
 
@@ -244,8 +252,15 @@ class Test
             $day = substr($datetime,0,10);
             if (!isset($days[$day]))
             {
-                $days[$day]['qtyUsd'] = 0;
-                $days[$day]['qtyTokenInUsd'] = 0;
+                $days[$day] = $day;
+            }
+
+            //$hour = substr($datetime,0,13).':00';
+            $hour = substr($datetime,0,10);
+            if (!isset($hours[$hour]))
+            {
+                $hours[$hour]['qtyUsd'] = 0;
+                $hours[$hour]['qtyTokenInUsd'] = 0;
             }
             $month = substr($datetime,0,7);
             if (!isset($months[$month]))
@@ -285,7 +300,14 @@ class Test
                                       'operaciones'=>$operaciones,
                                       'comision'=>$comision,
                                       );
+                    $hours[$hour]['buy'] = $price;
                     $acumPorcCompra += $porcCompra;
+                }
+                else
+                {
+                    $aiKey = str_replace('.','_',$price);
+                    if (!isset($apalancamientoInsuficiente[$aiKey]))
+                        $apalancamientoInsuficiente[$aiKey]=$datetime;
                 }
 
             }
@@ -325,12 +347,14 @@ class Test
                                           'operaciones'=>$operaciones,
                                           'comision'=>$comision,
                                           );
+                        $hours[$hour]['buy'] = $price;
                         $acumPorcCompra += $porcCompra;
                     }
                     else
                     {
-                        if (!$apalancamientoInsuficiente)
-                            $apalancamientoInsuficiente = true;
+                        $aiKey = str_replace('.','_',$price);
+                        if (!isset($apalancamientoInsuficiente[$aiKey]))
+                            $apalancamientoInsuficiente[$aiKey]=$datetime;
                     }
                 }
 
@@ -363,6 +387,7 @@ class Test
                                           'operaciones'=>$operaciones,
                                           'comision'=>$comision,
                                           );
+                        $hours[$hour]['sell'] = $price;
                         
 
                         $acumPorcCompra = 0;
@@ -370,9 +395,9 @@ class Test
                     }
                 }
             }
-            $days[$day]['qtyUsd'] = toDec($this->qtyUsd);
-            $days[$day]['qtyTokenInUsd'] = toDec($this->qtyToken*$tokenPrice);
-            $days[$day]['tokenPrice'] = $tokenPrice;
+            $hours[$hour]['qtyUsd'] = toDec($this->qtyUsd);
+            $hours[$hour]['qtyTokenInUsd'] = toDec($this->qtyToken*$tokenPrice);
+            $hours[$hour]['tokenPrice'] = $tokenPrice;
 
         }
 
@@ -392,8 +417,271 @@ class Test
         $results['apalancamientoInsuficiente'] = $apalancamientoInsuficiente;
         $results['maxCompraNum'] = $maxCompraNum;
         $results['orders'] = $orders;
-        $results['days'] = $days;
+        $results['hours'] = $hours;
         $results['months'] = $months;
+        $results['qtyDays'] = count($days);
+        
+        return $results;
+
+    }
+
+    function testGrid($symbol,$usdInicial,$compraInicial,$prms)
+    {
+        # Agregar control sobre falta de palanca
+        # Agregar control sobre maximo invertido
+
+        $this->usdInicial = $usdInicial;
+        $this->qtyUsd = $this->usdInicial;
+        $this->qtyToken = 0.0;
+        $symbolCsv = "grid_".$symbol.".csv";
+
+        $multiplicadorCompra = $prms['multiplicadorCompra'];
+        $multiplicadorPorc = $prms['multiplicadorPorc']/100;
+        $incremental = $prms['incremental'];
+        $porcVentaUp = $prms['porcVentaUp']/100;
+        $porcVentaDown = $prms['porcVentaDown']/100;
+
+        //$compraInicial = $this->usdInicial*0.056; //Este numero se calcula para lograr 4/5 palancas con la billetera
+
+        //Obtener datos de BinanceAPI
+        $auth = UsrUsuario::getAuthInstance();
+        $idusuario = $auth->get('idusuario');
+        $ak = $auth->getConfig('bncak');
+        $as = $auth->getConfig('bncas');
+        $api = new BinanceAPI($ak,$as); 
+
+        $symbolData = $api->getSymbolData($symbol);
+        $this->tokenDecPrice = $symbolData['qtyDecsPrice'];
+        $this->tokenDecUnits = $symbolData['qtyDecs'];
+
+
+        $compraNum = 0;
+        $maxCompraNum = 0;
+        $operaciones = 0;
+        $openPos = array();
+        $ultimaCompra = 0.0;
+        $ordenCompra = 0.0;
+        $comisiones = 0.0;
+        $orders = array();
+        $hours = array();
+        $months = array();
+        $apalancamientoInsuficiente = array();
+        
+
+        $qry = "SELECT datetime,open,close,high,low 
+                FROM klines_1m 
+                WHERE symbol = '".$symbol."' ";
+        $qry .= " ORDER BY datetime ASC "; //LIMIT 1440
+
+        $stmt = $this->db->query($qry);
+
+        while ($rw = $stmt->fetch())
+        {
+            $datetime   = $rw['datetime'];
+            $open       = $rw['open'];
+            $close      = $rw['close'];
+            $high       = $rw['high'];
+            $low        = $rw['low'];
+            $volume     = $rw['volume'];
+
+            $tokenPrice = round($close,$this->tokenDecPrice);
+            
+            $day = substr($datetime,0,10);
+            if (!isset($days[$day]))
+            {
+                $days[$day] = $day;
+            }
+
+            //$hour = substr($datetime,0,13).':00';
+            $hour = substr($datetime,0,10);
+            if (!isset($hours[$hour]))
+            {
+                $hours[$hour]['qtyUsd'] = 0;
+                $hours[$hour]['qtyTokenInUsd'] = 0;
+            }
+            $month = substr($datetime,0,7);
+            if (!isset($months[$month]))
+            {
+                $months[$month]['ganancia'] = 0;
+            }
+
+            if (count($openPos)==0) //Si no hay posiciones abiertas, inicia compra
+            {
+
+                $price = $close;
+                $usd = round($compraInicial,2);
+                $qty = round($usd/$price,$this->tokenDecUnits);
+                if ($usd = $this->compra($qty,$price))
+                {
+                    $ultimaCompra = $usd;
+                    $compraNum++;
+                    
+                    $comision = $usd * ($this->comisionBinance / 100);
+                    $comisiones += $comision;
+            
+                    $porcCompra = ($multiplicadorPorc * ($incremental?$compraNum:1));
+                    
+                    $ordenCompra = round($price * (1 - $porcCompra ) ,$this->tokenDecPrice);
+                    $ordenVenta  = round($price * (1 + $porcVentaUp ) ,$this->tokenDecPrice);
+                    
+                    $orderId = $this->newOrderId();
+                    $openPos[$orderId] = array('qty'=>$qty,
+                                               'buyPrice'=>$price,
+                                               'sellPrice'=>$ordenVenta
+                                               );
+
+                    $orders[] = array('datetime'=>$datetime,
+                                      'side'=>'BUY',
+                                      'operacion'=>$operacion,
+                                      'qty'=>$qty,
+                                      'price'=>$price,
+                                      'usd'=>$usd,
+                                      'qtyUsd'=>$this->qtyUsd,
+                                      'qtyToken'=>$this->qtyToken,
+                                      'compraNum'=>$compraNum,
+                                      'operaciones'=>$operaciones,
+                                      'comision'=>$comision,
+                                      'orderId'=>$orderId
+                                      );
+                    $hours[$hour]['buy'] = $price;
+                }
+                else
+                {
+                    $aiKey = str_replace('.','_',$price);
+                    if (!isset($apalancamientoInsuficiente[$aiKey]))
+                        $apalancamientoInsuficiente[$aiKey]=$datetime;
+                }
+
+            }
+            else
+            {
+                if ($ordenCompra<$high && $ordenCompra>$low) //Ejecuta orden de compra
+                {
+                    foreach ($openPos as $rw)
+                        $ultimaCompraAbierta = toDec($rw['buyPrice']*$rw['qty']);
+                    $price = round($ordenCompra,$this->tokenDecPrice);
+                    $usd = round($ultimaCompraAbierta * $multiplicadorCompra ,2);
+                    $qty = round($usd/$price,$this->tokenDecUnits);
+                    if ($usd = $this->compra($qty,$price))
+                    {
+                        $ultimaCompra = $usd;
+                        $compraNum++;
+                        if ($compraNum>$maxCompraNum)
+                            $maxCompraNum = $compraNum;
+                        $comision = $usd * ($this->comisionBinance / 100);
+                        $comisiones += $comision;
+
+                        if ($compraNum>2)
+                            $dynPorcVentaDown = $porcVentaDown*($compraNum-2)*(1+($multiplicadorPorc*0.33));
+                        else
+                            $dynPorcVentaDown = $porcVentaDown;
+            
+                        $porcCompra = ($multiplicadorPorc * ($incremental?$compraNum:1));
+                        $ordenCompra = round($price * (1 - $porcCompra ) ,$this->tokenDecPrice);
+                        $usdAVender  = round($usd * (1 + $dynPorcVentaDown ),2);
+                        $ordenVenta  = round($usdAVender/$qty,$this->tokenDecPrice);
+                        
+                        $orderId = $this->newOrderId();
+                        $openPos[$orderId] = array('qty'=>$qty,
+                                                   'buyPrice'=>$price,
+                                                   'sellPrice'=>$ordenVenta
+                                                   );
+
+                        $orders[] = array('datetime'=>$datetime,
+                                          'side'=>'BUY',
+                                          'operacion'=>$operacion,
+                                          'qty'=>$qty,
+                                          'price'=>$price,
+                                          'usd'=>$usd,
+                                          'qtyUsd'=>$this->qtyUsd,
+                                          'qtyToken'=>$this->qtyToken,
+                                          'compraNum'=>$compraNum,
+                                          'operaciones'=>$operaciones,
+                                          'comision'=>$comision,
+                                          'orderId'=>$orderId
+                                          );
+                        $hours[$hour]['buy'] = $price;
+                    }
+                    else
+                    {
+                        $aiKey = str_replace('.','_',$price);
+                        if (!isset($apalancamientoInsuficiente[$aiKey]))
+                            $apalancamientoInsuficiente[$aiKey]=$datetime;
+                    }
+                }
+
+                $posToDelete=array();
+                foreach ($openPos as $orderId => $rw) //Revisa las posiciones abiertas para ver si se debe vender algo
+                {
+                    if ($rw['sellPrice']<$high && $rw['sellPrice']>$low) //Ejecuta orden de venta
+                    {
+                        $qty = round($rw['qty'],$this->tokenDecUnits);
+                        $price = round($rw['sellPrice'],$this->tokenDecPrice);
+                        if ($usd = $this->venta($qty,$price))
+                        {
+                            $resultadoVenta = toDec(($rw['sellPrice']*$rw['qty'])-($rw['buyPrice']*$rw['qty']));
+                            $months[$month]['ganancia'] += $resultadoVenta;
+                            
+                            $ordenCompra = $rw['buyPrice'];
+                            $ordenVenta = 0.0;
+                            $compraNum --;
+                            $operaciones++;
+                            $comision = $usd * ($this->comisionBinance / 100);
+                            $comisiones += $comision;
+
+                            $posToDelete[]=$orderId;
+
+                            $orders[] = array('datetime'=>$datetime,
+                                              'side'=>'SELL',
+                                              'qty'=>$qty,
+                                              'price'=>$price,
+                                              'usd'=>$usd,
+                                              'qtyUsd'=>$this->qtyUsd,
+                                              'qtyToken'=>$this->qtyToken,
+                                              'compraNum'=>$compraNum,
+                                              'operaciones'=>$operaciones,
+                                              'comision'=>$comision,
+                                              'orderId'=>$orderId
+                                              );
+                            $hours[$hour]['sell'] = $price;
+                        }
+                    }
+                }
+            }
+            $hours[$hour]['qtyUsd'] = toDec($this->qtyUsd);
+            $hours[$hour]['qtyTokenInUsd'] = toDec($this->qtyToken*$tokenPrice);
+            $hours[$hour]['tokenPrice'] = $tokenPrice;
+
+            if (!empty($posToDelete))
+            {
+                foreach ($posToDelete as $orderId)
+                    unset($openPos[$orderId]);
+            
+            }
+
+
+        }
+
+
+        $balance = toDec($this->qtyUsd + $this->qtyToken * $close,2);
+        $comisiones = toDec($comisiones,2);
+        $balanceFinal = toDec($balance - $comisiones,2);
+        $porcentajeGanancia = toDec((($balanceFinal-$this->usdInicial)*100)/$this->usdInicial,2);
+        $results['SaldoInicial'] = $usdInicial;
+        $results['Balance'] =       $balance;
+        $results['Comisiones'] =    $comisiones;
+        $results['BalanceFinal'] = $balanceFinal;
+        $results['Ganancia'] =      $porcentajeGanancia;
+        $results['Operaciones'] =   $operaciones;
+        $results['tokenDecPrice'] = $this->tokenDecPrice;
+        $results['tokenDecUnits'] = $this->tokenDecUnits;
+        $results['apalancamientoInsuficiente'] = $apalancamientoInsuficiente;
+        $results['maxCompraNum'] = $maxCompraNum;
+        $results['orders'] = $orders;
+        $results['hours'] = $hours;
+        $results['months'] = $months;
+        $results['openPos'] = $openPos;
+        $results['qtyDays'] = count($days);
         
         return $results;
 
@@ -413,7 +701,7 @@ class Test
 
     function venta($qty,$price)
     {
-        if (toDec($this->qtyToken,$this->tokenDecUnits)-$qty==0)
+        if (toDec($this->qtyToken,$this->tokenDecUnits)-$qty>=0)
         {
             $usd = toDec($qty*$price,2);
             $this->qtyToken = toDec($this->qtyToken - $qty,$this->tokenDecUnits);
@@ -421,6 +709,11 @@ class Test
             return $usd;
         }
         return null;
+    }
+
+    function newOrderId()
+    {
+        return date('U').'_'.rand(1000,9999);
     }
 
 }

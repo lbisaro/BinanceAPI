@@ -186,5 +186,16 @@ class AjaxResponse
         else
             $this->aErrors[] = $error;
     }  
+
+    public function debug($data)
+    {
+        if (is_array($data))
+            foreach ($data as $data)
+                $msgs[] = $msg;
+        else
+            $msgs[] = $data;
+        foreach ($msgs as $msg)
+            $this->script("console.log('".$msg."');");
+    }
 }
 ?>

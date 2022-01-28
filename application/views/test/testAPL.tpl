@@ -13,6 +13,20 @@
   <div class="row">
 		<div class="col">
 
+          <div class="form-group">
+            <div class="form-group">
+                <label for="estrategia">Estrategia</label>
+                <select id="estrategia" class="form-control" >
+                    <option value="0">Seleccionar</option>
+                    <option value="apalancamiento">Apalancamiento</option>
+                    <option value="grid">Grid</option>
+                </select>
+            </div>
+          </div>
+
+        </div>
+        <div class="col">
+
 		  <div class="form-group">
 			<div class="form-group">
 	        	<label for="symbol">Moneda</label>
@@ -138,7 +152,7 @@
 <div class="container" id="months"></div>
 
 
-<div class="container" id="days"></div>
+<div class="container" id="hours"></div>
 <div class="container" id="ordenes"></div>
 
 {{data}}
@@ -190,8 +204,8 @@
       '#009B0A',//2 //USD
       '#C47400',//3 //Token
       '#888888',//4 //Token Price
-      '#58A029',//5 
-      '#BF3C0F',//6 
+      '#58A029',//5 //Compra 
+      '#BF3C0F',//6 //Venta 
       '#88FF88',//7 
       '#FF8888',//8 
       '#4dc9f6',//9
@@ -257,6 +271,16 @@
                 series.data = createData(4);
                 series.yAxis = valueAxis2;
 
+                //Compra
+                series = createSeriesBullet(5,'compra');
+                series.data = createData(5);
+                series.yAxis = valueAxis2;
+
+                //Venta
+                series = createSeriesBullet(6,'venta');
+                series.data = createData(6);
+                series.yAxis = valueAxis2;
+
                 // Add scrollbar
                 //var scrollbarX = new am4charts.XYChartScrollbar();
                 //scrollbarX.series.push(series);
@@ -283,21 +307,21 @@
 
                         if (s==1 )
                         {
-                            srs.strokeWidth = 3; // px
+                            srs.strokeWidth = 1.2; // px
                         }
                         else if (s==2 || s==3)
                         {
-                            srs.strokeWidth = 1;
+                            srs.strokeWidth = 0.75;
                         }
                         else if (s==4)
                         {
-                            srs.strokeWidth = 1;
+                            srs.strokeWidth = 0.75;
                             srs.strokeDasharray = 5;
                         }
                         else
                         {
                             srs.strokeDasharray = 4;
-                            srs.strokeWidth = 1.5; // px
+                            srs.strokeWidth = 1; // px
                         }
 
                         srs.stroke = am4core.color(colors[s]); 
@@ -307,6 +331,63 @@
                     return srs;
                     
                 }
+                    
+                function createSeriesBullet(s,tipo)
+                {
+                    var srs = chart.series.push(new am4charts.LineSeries());
+                        srs.dataFields.valueY = "value" + s;
+                        srs.dataFields.dateX = "date";
+                        srs.name = labels[s];
+                        
+                        srs.tooltip.getFillFromObject = false;
+                        srs.tooltip.background.fill = am4core.color(colors[s]);
+                        srs.tooltip.label.fill = am4core.color('#fff');
+
+                        srs.strokeWidth = 10;
+
+                        // Add simple bullet
+                        var bullet = srs.bullets.push(new am4charts.Bullet());
+
+                        if (tipo=='compra')
+                        {
+                            var circle = bullet.createChild(am4core.Circle);
+                            circle.width = 4;
+                            circle.height = 4;
+                            circle.fillOpacity = 1;
+                        }
+                        else //Venta
+                        {
+                            var circle = bullet.createChild(am4core.Circle);
+                            circle.width = 8;
+                            circle.height = 8;
+                            circle.fillOpacity = 0.0;
+                        }
+                        circle.horizontalCenter = "middle";
+                        circle.verticalCenter = "middle";
+
+                        //// Add outline to the circle bullet
+                        //circle.stroke = am4core.color(colors[s]);
+                        //circle.strokeWidth = 1;
+
+                        // Make circle drop shadow by adding a DropShadow filter
+                        //var shadow = new am4core.DropShadowFilter();
+                        //shadow.dx = 2;
+                        //shadow.dy = 2;
+                        //circle.filters.push(shadow);
+
+                        // Make chart not mask the bullets
+                        chart.maskBullets = true;                            
+
+
+                        srs.strokeWidth = 0; // px
+                        srs.stroke = am4core.color(colors[s]); 
+                        srs.connect = false; 
+
+
+                    return srs;
+                    
+                }
+
 
                 function createData(s)
                 {
