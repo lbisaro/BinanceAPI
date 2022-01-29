@@ -123,9 +123,9 @@ class BotController extends Controller
         $symbolData = $api->getSymbolData($opr->get('symbol'));
         $symbolPrice = $symbolData['price'];
 
-        $link = '<a href="https://www.binance.com/es/trade/'.$opr->get('symbol').'" target="_blank">'.$opr->get('symbol').'</a>';
+        $link = $this->__selectOperacion($idoperacion,'app.bot.verOperacion+id=');
         $arr['idoperacion'] = $idoperacion;
-        $arr['symbol'] = $link;
+        $arr['symbolSelector'] = $link;
         $arr['inicio_usd'] = 'USD '.$opr->get('inicio_usd');
         $arr['multiplicador_compra'] = $opr->get('multiplicador_compra');
         $arr['multiplicador_porc'] = $opr->get('multiplicador_porc').'%'.
@@ -1120,6 +1120,41 @@ class BotController extends Controller
     }
     
     
-    
+    function __selectOperacion($idoperacion,$baseLink)
+    {
+        $auth = UsrUsuario::getAuthInstance();
+        $opr = new Operacion($idooperacion);
+        $ds = $opr->getDataset('idusuario = '.$auth->get('idusuario'),'symbol');
+        $options = array();
+        foreach ($ds as $rw)
+        {
+            if ($rw['idoperacion'] == $idoperacion)
+                $symbol = $rw['symbol'];
+            else
+                $options[$rw['idoperacion']] = $rw['symbol'].' #'.$rw['idoperacion'];
+        }
+
+        $html = '
+        <div class="dropdown">
+          <a class="btn btn-primary btn-sm dropdown-toggle" href="https://www.binance.com/es/trade/'.$symbol.'" target="_blank" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-expanded="false">
+            '.$symbol.'
+          </a>
+          ';
+        if (!empty($options))
+        {
+            $html .= '
+              <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">';
+            foreach ($options as $id => $label)
+                $html .= '
+                    <a class="dropdown-item" href="'.$baseLink.$id.'">'.$label.'</a>';
+                
+            $html .= '
+              </div>';
+        }
+        $html .= '
+        </div>';
+
+        return $html;
+    }
     
 }

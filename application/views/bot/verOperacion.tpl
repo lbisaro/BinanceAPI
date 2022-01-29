@@ -16,8 +16,7 @@
 <div class="container">
   <table class="table table-borderless">
     <tr>
-      <td>Moneda 
-        <span class="data">{{symbol}}</span></td>
+      <td>{{symbolSelector}}</td>
       <td>Cantidad de USD compra inicial 
         <span class="data">{{inicio_usd}}</span></td>
       <td style="text-align: right;">
