@@ -57,6 +57,12 @@
               <option value="2.5">2.50%</option>
               <option value="3">3.00%</option>
               <option value="4">4.00%</option>
+              <option value="5">5.00%</option>
+              <option value="6">6.00%</option>
+              <option value="7">7.00%</option>
+              <option value="8">8.00%</option>
+              <option value="9">9.00%</option>
+              <option value="10">10.00%</option>
           </select>
           <select id="porc_venta_down" class="form-control" onchange="refreshTable()" >
               <option value="1.15">1.15%</option>
@@ -67,6 +73,12 @@
               <option value="2.5">2.50%</option>
               <option value="3">3.00%</option>
               <option value="4">4.00%</option>
+              <option value="5">5.00%</option>
+              <option value="6">6.00%</option>
+              <option value="7">7.00%</option>
+              <option value="8">8.00%</option>
+              <option value="9">9.00%</option>
+              <option value="10">10.00%</option>
           </select>
         </div>
       </div>
