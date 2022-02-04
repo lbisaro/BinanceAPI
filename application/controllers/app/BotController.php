@@ -136,6 +136,8 @@ class BotController extends Controller
         $status = $opr->status();
         if ($status==Operacion::OP_STATUS_APALANCAOFF)
             $arr['estado'] .= '<br/><a class="btn btn-sm btn-warning" href="'.Controller::getLink('app','bot','resolverApalancamiento','id='.$idoperacion).'">Resolver Apalancamiento</a>';
+        if ($status==Operacion::OP_STATUS_READY)
+            $arr['crearOrdenDeCompra_btn'] .= '<br/><a class="btn btn-sm btn-success" href="'.Controller::getLink('app','bot','crearOrdenDeCompra','id='.$idoperacion).'">Crear Nueva Orden de Compra</a>';
 
         //if ($status==Operacion::OP_STATUS_VENTAOFF)
         //    $arr['estado'] .= '<br/><a class="btn btn-sm btn-danger" href="'.Controller::getLink('app','bot','resolverVenta','id='.$idoperacion).'">Resolver Venta</a>';
@@ -812,6 +814,59 @@ class BotController extends Controller
             $arr['addButtons'] = '<div class="alert alert-danger">No es posible resolver el apalancamiento debido a que el estado de la orden no es valido para la operacion.</div>';
 
         $this->addView('bot/resolverApalancamiento',$arr);
+    }    
+
+    function crearOrdenDeCompra($auth)
+    {
+        $idoperacion = $_REQUEST['id'];
+        $this->addTitle('Crear Orden de Compra -  Operacion #'.$idoperacion);
+
+        $opr = new Operacion($idoperacion);
+
+        if ($opr->get('idusuario') != $auth->get('idusuario'))
+        {
+            $this->addError('No esta autorizado a visualizar esta pagina.');
+            return false;
+        }
+        $link = '<a href="https://www.binance.com/es/trade/'.$opr->get('symbol').'" target="_blank">'.$opr->get('symbol').'</a>';
+        $arr['idoperacion'] = $idoperacion;
+        $arr['symbol'] = $link;
+        $arr['inicio_usd'] = 'USD '.$opr->get('inicio_usd');
+        $arr['multiplicador_compra'] = $opr->get('multiplicador_compra');
+        $arr['multiplicador_porc'] = $opr->get('multiplicador_porc').'%'.
+                                     ($opr->get('multiplicador_porc_inc')?' Incremental':'');
+        $arr['porc_venta_up'] = toDec($opr->get('real_porc_venta_up'));
+        $arr['porc_venta_down'] = toDec($opr->get('real_porc_venta_down'));
+        $arr['estado'] = $opr->get('strEstado');
+
+        if ($opr->autoRestart())
+            $autoRestart = '<span class="glyphicon glyphicon-ok"></span>';
+        else
+            $autoRestart = '<span class="glyphicon glyphicon-ban-circle"></span>';
+
+        $arr['auto-restart'] = $autoRestart;
+        $arr['hidden'] = Html::getTagInput('idoperacion',$opr->get('idoperacion'),'hidden');
+
+        $ak = $auth->getConfig('bncak');
+        $as = $auth->getConfig('bncas');
+
+        $api = new BinanceAPI($ak,$as);    
+
+        $symbol = $opr->get('symbol');
+
+        //Consulta billetera en Binance para ver si se puede recomprar
+        $symbolData = $api->getSymbolData($symbol);
+
+        $arr['precioActual'] = $symbolData['price'];
+                
+        $arr['idoperacion'] = $opr->get('idoperacion');
+
+        if ($opr->status() == Operacion::OP_STATUS_READY)
+            $arr['addButtons'] = '<button class="btn btn-warning btn-block" onclick="crearOrdenDeCompra();">Crear una nueva Orden de Compra LIMIT</button>';
+        else
+            $arr['addButtons'] = '<div class="alert alert-danger">No es posible resolver el apalancamiento debido a que el estado de la orden no es valido para la operacion.</div>';
+
+        $this->addView('bot/crearOrdenDeCompra',$arr);
     }
    
     function resolverVenta($auth)

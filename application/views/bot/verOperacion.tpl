@@ -69,6 +69,7 @@
 </div>
 <div class="container tabs" id="ordenesActivas">
     {{ordenesActivas}}
+    {{crearOrdenDeCompra_btn}}
 </div>
 <div class="container tabs" id="ordenesCompletas">
     {{ordenesCompletas}}
