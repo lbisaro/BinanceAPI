@@ -179,7 +179,7 @@ class TestAjax extends ControllerAjax
 
                     $ds[] = array($hour,
                                   toDec($rw['qtyUsd']+$rw['qtyTokenInUsd']),
-                                  toDec($rw['nuevaOC'],$results['tokenDecPrice']),//toDec($rw['qtyUsd']),
+                                  toDec($rw['qtyUsd']),
                                   toDec($rw['qtyTokenInUsd']),
                                   toDec($rw['tokenPrice'],$results['tokenDecPrice']),
                                   ($rw['buy'] ? toDec($rw['buy']) : null),
