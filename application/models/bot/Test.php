@@ -2,6 +2,7 @@
 <?php
 include_once LIB_PATH."DB.php";
 include_once MDL_PATH."binance/BinanceAPI.php";
+include_once MDL_PATH."Ticker.php";
 
 
 class Test 
@@ -188,21 +189,16 @@ class Test
 
     function testApalancamiento($symbol,$usdInicial,$compraInicial,$prms)
     {
-        # Agregar control sobre falta de palanca
-        # Agregar control sobre maximo invertido
 
         $this->usdInicial = $usdInicial;
         $this->qtyUsd = $this->usdInicial;
         $this->qtyToken = 0.0;
-        $symbolCsv = "apalancamiento_".$symbol.".csv";
 
         $multiplicadorCompra = $prms['multiplicadorCompra'];
         $multiplicadorPorc = $prms['multiplicadorPorc']/100;
         $incremental = $prms['incremental'];
         $porcVentaUp = $prms['porcVentaUp']/100;
         $porcVentaDown = $prms['porcVentaDown']/100;
-
-        //$compraInicial = $this->usdInicial*0.056; //Este numero se calcula para lograr 4/5 palancas con la billetera
 
         //Obtener datos de BinanceAPI
         $auth = UsrUsuario::getAuthInstance();
@@ -427,21 +423,18 @@ class Test
 
     function testGrid($symbol,$usdInicial,$compraInicial,$prms)
     {
-        # Agregar control sobre falta de palanca
-        # Agregar control sobre maximo invertido
+        $tck = new Ticker();
+        $aTec = array(); //Analisis tecnico
 
         $this->usdInicial = $usdInicial;
         $this->qtyUsd = $this->usdInicial;
         $this->qtyToken = 0.0;
-        $symbolCsv = "grid_".$symbol.".csv";
 
         $multiplicadorCompra = $prms['multiplicadorCompra'];
         $multiplicadorPorc = $prms['multiplicadorPorc']/100;
         $incremental = $prms['incremental'];
         $porcVentaUp = $prms['porcVentaUp']/100;
         $porcVentaDown = $prms['porcVentaDown']/100;
-
-        //$compraInicial = $this->usdInicial*0.056; //Este numero se calcula para lograr 4/5 palancas con la billetera
 
         //Obtener datos de BinanceAPI
         $auth = UsrUsuario::getAuthInstance();
@@ -467,14 +460,16 @@ class Test
         $months = array();
         $apalancamientoInsuficiente = array();
         
+        $klines_1h = array();
 
-        $qry = "SELECT datetime,open,close,high,low 
+        $qry = "SELECT datetime,open,close,high,low,volume 
                 FROM klines_1m 
                 WHERE symbol = '".$symbol."' ";
-        $qry .= " ORDER BY datetime ASC "; //LIMIT 1440
+        $qry .= " AND datetime > '2021-07-01 00:00:00' ";
+        $qry .= " AND datetime < '2021-08-01 00:00:00' ";
+        $qry .= " ORDER BY datetime ASC"; // LIMIT 28800
 
         $stmt = $this->db->query($qry);
-
         while ($rw = $stmt->fetch())
         {
             $datetime   = $rw['datetime'];
@@ -484,6 +479,46 @@ class Test
             $low        = $rw['low'];
             $volume     = $rw['volume'];
 
+            //Armando analisis tecnico 1h
+            if ($prms['at'])
+            {
+                $hh = substr($datetime,0,13).':00';
+                if (!isset($klines_1h[$hour]))
+                {
+                    $klines_1h[$hh]['open']       = $rw['open'];
+                    $klines_1h[$hh]['close']      = $rw['close'];
+                    $klines_1h[$hh]['high']       = $rw['high'];
+                    $klines_1h[$hh]['low']        = $rw['low'];
+                    $klines_1h[$hh]['volume']     = $rw['volume'];
+                }
+                else
+                {
+                    $klines_1h[$hh]['close']      = $rw['close'];
+                    if ($rw['high'] > $klines_1h[$hh]['high'])
+                        $klines_1h[$hh]['high']   = $rw['high'];
+                    if ($rw['low'] < $klines_1h[$hh]['low'])
+                        $klines_1h[$hh]['low']    = $rw['low'];
+                    $klines_1h[$hh]['volume']    += $rw['volume'];
+                }
+
+                //Luego de 30 horas, y solo si esta la hora completa, hace el analisis tecnico
+
+                if (count($klines_1h)>30 && substr($datetime,14,2)=='59')
+                {
+                    $candlesticks = array();
+                    
+                    for ($i=30;$i>=0;$i--)
+                    {
+                        $atKey = date('Y-m-d H:',strtotime($hh.' -'.$i.' hours')).'00'; 
+                        $candlesticks[$atKey] = $klines_1h[$atKey];
+                    }
+                    $aTec = $tck->analisisTecnico($candlesticks);
+                }
+            }
+            $atBuySignal = true;
+            if ($prms['at'] && $aTec['signal']['ema_cross']=='V')
+                $atBuySignal = false;            
+
             $tokenPrice = round($close,$this->tokenDecPrice);
             
             $day = substr($datetime,0,10);
@@ -492,8 +527,8 @@ class Test
                 $days[$day] = $day;
             }
 
-            //$hour = substr($datetime,0,13).':00';
-            $hour = substr($datetime,0,10);
+            $hour = substr($datetime,0,13).':00';
+            //$hour = substr($datetime,0,10);
             if (!isset($hours[$hour]))
             {
                 $hours[$hour]['qtyUsd'] = 0;
@@ -507,7 +542,6 @@ class Test
 
             if (count($openPos)==0) //Si no hay posiciones abiertas, inicia compra
             {
-
                 $price = $close;
                 $usd = round($compraInicial,2);
                 $qty = round($usd/$price,$this->tokenDecUnits);
@@ -555,8 +589,9 @@ class Test
             }
             else
             {
-                if ($ordenCompra<$high && $ordenCompra>$low) //Ejecuta orden de compra
+                if ($atBuySignal && $ordenCompra<$high && $ordenCompra>$low) //Ejecuta orden de compra
                 {
+
                     foreach ($openPos as $rw)
                         $ultimaCompraAbierta = toDec($rw['buyPrice']*$rw['qty']);
                     $price = round($ordenCompra,$this->tokenDecPrice);
@@ -572,7 +607,7 @@ class Test
                         $comisiones += $comision;
 
                         if ($compraNum>2)
-                            $dynPorcVentaDown = $porcVentaDown*($compraNum-2)*(1+($multiplicadorPorc*0.33));
+                            $dynPorcVentaDown = $porcVentaDown*($compraNum-2)*(1+($multiplicadorPorc*0.45));
                         else
                             $dynPorcVentaDown = $porcVentaDown;
             
@@ -609,6 +644,11 @@ class Test
                             $apalancamientoInsuficiente[$aiKey]=$datetime;
                     }
                 }
+                //Baja la orden de compra si esta en señal de venta
+                if (!$atBuySignal && $ordenCompra>($open) )
+                {
+                    $ordenCompra = $close;
+                }
 
                 $posToDelete=array();
                 foreach ($openPos as $orderId => $rw) //Revisa las posiciones abiertas para ver si se debe vender algo
@@ -619,6 +659,7 @@ class Test
                         $price = round($rw['sellPrice'],$this->tokenDecPrice);
                         if ($usd = $this->venta($qty,$price))
                         {
+                            $compro=false;
                             $resultadoVenta = toDec(($rw['sellPrice']*$rw['qty'])-($rw['buyPrice']*$rw['qty']));
                             $months[$month]['ganancia'] += $resultadoVenta;
                             
@@ -652,11 +693,15 @@ class Test
             $hours[$hour]['qtyTokenInUsd'] = toDec($this->qtyToken*$tokenPrice);
             $hours[$hour]['tokenPrice'] = $tokenPrice;
 
+            //Analisis tecnico de 1 hora
+            $hours[$hour]['at'] = $aTec['signal']['ema_cross'];
+
+            $hours[$hour]['nuevaOC'] = $ordenCompra;
+
             if (!empty($posToDelete))
             {
                 foreach ($posToDelete as $orderId)
                     unset($openPos[$orderId]);
-            
             }
 
 
@@ -682,7 +727,7 @@ class Test
         $results['months'] = $months;
         $results['openPos'] = $openPos;
         $results['qtyDays'] = count($days);
-        
+                
         return $results;
 
     }

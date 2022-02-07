@@ -347,19 +347,22 @@ class Ticker extends ModelDB
             $i++;
         }
 
+        $data_emaFast = trader_ema($data_close, $periods = 7);
+        $data_emaSlow = trader_ema($data_close, $periods = 14);
 
+        /*
         $data_ma24 = trader_ma($data_close, $periods = 24, TRADER_MA_TYPE_SMA);
         $data_macd = trader_macd($data_close, $fastPeriod=12, $slowPeriod=26, $signalPeriod=9 );
         $data_rsi = trader_rsi($data_close, $periods = 14);
         $data_bb = trader_bbands($data_close, $periods = 20,$upper_mult = 2,$lower_mult = 2,TRADER_MA_TYPE_SMA);
         $data_adx = trader_adx($data_high,$data_low,$data_close,$timePeriod = 14);
-        
+        */
         for ($j=($limit-5) ; $j<$i ; $j++)
         {
             $at['date'] = $data_date[$j];
             $at['price'] = $data_close[$j];
             $at['signal'] = array();
-
+            /*
             $at['ma24'] = $data_ma24[$j];
             $at['ma24_trend'] = '';
             $at['ma24_vporc'] = '';
@@ -387,10 +390,13 @@ class Ticker extends ModelDB
                 $at['bb_gap'] = '0.00';
             $at['bb_trend'] = '';
             $at['bb_vporc'] = '';
-          
+            */
+            if ($data_emaSlow[$j]!=0)
+                $at['ema_cross'] = toDec((($data_emaFast[$j]/$data_emaSlow[$j])-1)*100);
         }
 
         //Calculo de tendencias lineales
+        /*
         $trendItems=4;
         $aux = $this->getLastElementsFromArray($data_rsi,$trendItems);
         $at['rsi_trend'] = tendenciaLineal( $aux );
@@ -407,53 +413,65 @@ class Ticker extends ModelDB
         $aux = $this->getLastElementsFromArray($data_ma24,$trendItems);
         $at['ma24_trend'] = tendenciaLineal( $aux );
         $at['ma24_vporc'] = variacionPorcentual( $aux );
+        */
         
         //Señales
+        /*
         $at['signal']['rsi'] = '';
         $at['signal']['bb'] = '';
         $at['signal']['macd'] = '';
+        */
+        $at['signal']['ema_cross'] = '';
 
         //RSI
-        if ($at['rsi']>50 /*&& $at['rsi_trend'] > 1.2*/)
-        {
-            $at['signal']['rsi'] = 'C'; //Buy
-        }
-        elseif ($at['rsi']<50 /*&& $at['rsi_trend'] < -1.2*/)
-        {
-            $at['signal']['rsi'] = 'V'; //Sell
-        }
-        elseif ($at['rsi']>88)
-        {
-            $at['signal']['rsi'] = 'V'; //Sell
-        }
+        //if ($at['rsi']>50 /*&& $at['rsi_trend'] > 1.2*/)
+        //{
+        //    $at['signal']['rsi'] = 'C'; //Buy
+        //}
+        //elseif ($at['rsi']<50 /*&& $at['rsi_trend'] < -1.2*/)
+        //{
+        //    $at['signal']['rsi'] = 'V'; //Sell
+        //}
+        //elseif ($at['rsi']>88)
+        //{
+        //    $at['signal']['rsi'] = 'V'; //Sell
+        //}
 
         //Bollinger
-        if ($at['price']>$at['bb_mid'] /*&& $at['bb_gap'] > 3*/)
-        {
-            $at['signal']['bb'] = 'C'; //Buy
-        }
-        elseif ($at['price']<$at['bb_mid'] /*&& $at['bb_gap'] > 3*/)
-        {
-            $at['signal']['bb'] = 'V'; //Sell
-        }
+        //if ($at['price']>$at['bb_mid'] /*&& $at['bb_gap'] > 3*/)
+        //{
+        //    $at['signal']['bb'] = 'C'; //Buy
+        //}
+        //elseif ($at['price']<$at['bb_mid'] /*&& $at['bb_gap'] > 3*/)
+        //{
+        //    $at['signal']['bb'] = 'V'; //Sell
+        //}
 
         //MACD
-        if ($at['macd_val'] > $at['macd_sig'] /*&& $at['macd_trend'] > 0.5*/)
-        {
-            $at['signal']['macd'] = 'C'; //Buy
-        }
-        elseif ($at['macd_val'] < $at['macd_sig'] /*&& $at['macd_trend']< -0.5*/)
-        {
-            $at['signal']['macd'] = 'V'; //Sell
-        }
+        //if ($at['macd_val'] > $at['macd_sig'] /*&& $at['macd_trend'] > 0.5*/)
+        //{
+        //    $at['signal']['macd'] = 'C'; //Buy
+        //}
+        //elseif ($at['macd_val'] < $at['macd_sig'] /*&& $at['macd_trend']< -0.5*/)
+        //{
+        //    $at['signal']['macd'] = 'V'; //Sell
+        //}
 
+        //EMA_CROSS
+        $at['signal']['ema_cross'] = '-';
+        if ($at['ema_cross']>-0.04)
+            $at['signal']['ema_cross'] = 'C'; //Buy
+        elseif ($at['ema_cross']<-0.05)
+            $at['signal']['ema_cross'] = 'V'; //Buy
+        //print_r($at['signal']['ema_cross']." ".$at['ema_cross']."<br>");
+                
         return $at; 
 
     }
 
     function getLastElementsFromArray($array,$elements)
     {
-        if (count($array)<$elements)
+    if (empty($array) || count($array)<$elements)
             return false;
 
         $aux = array();

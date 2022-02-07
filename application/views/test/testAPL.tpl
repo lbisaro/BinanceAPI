@@ -18,7 +18,7 @@
                 <label for="estrategia">Estrategia</label>
                 <select id="estrategia" class="form-control" >
                     <option value="0">Seleccionar</option>
-                    <option value="apalancamiento">Apalancamiento</option>
+                    <option value="apalancamiento" SELECTED>Apalancamiento</option>
                     <option value="grid">Grid</option>
                 </select>
             </div>
@@ -128,6 +128,41 @@
 
 		</div>
 	</div>
+    <div class="row">
+        <div class="col">
+          <div class="form-group">
+            <label for="porcVentaUp">Grafico</label>
+            <div class="input-group mb-2">
+              <select id="grafico" class="form-control" >
+                  <option value="SI">SI</option>
+                  <option value="NO" SELECTED>NO</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="form-group">
+            <label for="porcVentaUp">Ordenes</label>
+            <div class="input-group mb-2">
+              <select id="ordenes" class="form-control" >
+                  <option value="SI">SI</option>
+                  <option value="NO" SELECTED>NO</option>
+              </select>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="form-group">
+            <label for="porcVentaUp">Analisis Tecnico</label>
+            <div class="input-group mb-2">
+              <select id="at" class="form-control" >
+                  <option value="SI">SI</option>
+                  <option value="NO" SELECTED>NO</option>
+              </select>
+            </div>
+          </div>
+        </div>
+    </div>
 	<div class="row">
 		<div class="col">
 
@@ -141,11 +176,11 @@
 
 <!-- FUENTE: 
     multiple
-    https://www.amcharts.com/demos/multiple-date-axes/?theme=material
+    https://www.amcharts.com/demos-v4/
     
-    https://www.amcharts.com/demos/range-area-chart/?theme=material 
-    https://www.amcharts.com/demos/line-different-colors-ups-downs/?theme=material  
-    https://www.amcharts.com/demos/highlighting-line-chart-series-on-legend-hover/?theme=material
+    https://www.amcharts.com/demos-v4/range-area-chart-v4/ 
+    https://www.amcharts.com/demos-v4/line-different-colors-ups-downs-v4/  
+    https://www.amcharts.com/demos-v4/highlighting-line-chart-series-on-legend-hover-v4/
 -->
 <div class="container" id="resultado"></div>
 <div class="container" id="chartdiv"></div>
@@ -153,7 +188,7 @@
 
 
 <div class="container" id="hours"></div>
-<div class="container" id="ordenes"></div>
+<div class="container" id="orderlist"></div>
 
 {{data}}
 
@@ -206,9 +241,9 @@
       '#888888',//4 //Token Price
       '#58A029',//5 //Compra 
       '#BF3C0F',//6 //Venta 
-      '#88FF88',//7 
-      '#FF8888',//8 
-      '#4dc9f6',//9
+      '#58A029',//7 //AT_COMPRA
+      '#BF3C0F',//8 //AT_VENTA
+      '#4dc9f6',//9 
       '#f53794',//10
       '#f67019',//11
       '#537bc4',//12
@@ -271,6 +306,17 @@
                 series.data = createData(4);
                 series.yAxis = valueAxis2;
 
+                series = createSeriesUsd(7);
+                series.data = createData(7);
+                series.yAxis = valueAxis2;
+                series.connect = false;
+
+                series = createSeriesUsd(8);
+                series.data = createData(8);
+                series.yAxis = valueAxis2;
+                series.connect = false;
+
+
                 //Compra
                 series = createSeriesBullet(5,'compra');
                 series.data = createData(5);
@@ -313,6 +359,10 @@
                         {
                             srs.strokeWidth = 0.75;
                         }
+                        else if (s==7 || s==8)
+                        {
+                            srs.strokeWidth = 1;
+                        }
                         else if (s==4)
                         {
                             srs.strokeWidth = 0.75;
@@ -331,7 +381,7 @@
                     return srs;
                     
                 }
-                    
+                
                 function createSeriesBullet(s,tipo)
                 {
                     var srs = chart.series.push(new am4charts.LineSeries());

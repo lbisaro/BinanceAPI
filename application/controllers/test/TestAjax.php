@@ -40,6 +40,10 @@ class TestAjax extends ControllerAjax
         $prms['incremental']            = ($_REQUEST['incremental']?true:false);
         $prms['porcVentaUp']            = $_REQUEST['porcVentaUp'];
         $prms['porcVentaDown']          = $_REQUEST['porcVentaDown'];
+        $prms['grafico']                = ($_REQUEST['grafico']=='SI'?true:false);
+        $prms['ordenes']                = ($_REQUEST['ordenes']=='SI'?true:false);
+        $prms['at']                     = ($_REQUEST['at']=='SI'?true:false);
+            
 
         $symbol = $_REQUEST['symbol'];
         $usdInicial = $_REQUEST['usdInicial'];
@@ -70,9 +74,13 @@ class TestAjax extends ControllerAjax
             return false;
 
         if ($_REQUEST['estrategia'] == 'apalancamiento')
+        {
             $results = $test->testApalancamiento($symbol,$usdInicial,$compraInicial,$prms);
+        }
         elseif ($_REQUEST['estrategia'] == 'grid')
+        {
             $results = $test->testGrid($symbol,$usdInicial,$compraInicial,$prms);
+        }
         else
         {
             $this->ajxRsp->addError('Se debe seleccionar una Estrategia.');
@@ -97,9 +105,6 @@ class TestAjax extends ControllerAjax
                           'Apalancamiento Insuficiente',count($results['apalancamientoInsuficiente']),
                           'Maximo Apalancamiento',$results['maxCompraNum']));
 
-        $this->ajxRsp->debug('tokenDecPrice: '.$results['tokenDecPrice']);
-        $this->ajxRsp->debug('tokenDecUnits: '.$results['tokenDecUnits']);
-
         $dg = new HtmlTableDg();
         if (!empty($results['months']))
         {
@@ -115,63 +120,82 @@ class TestAjax extends ControllerAjax
             $this->ajxRsp->assign('months','innerHTML',$dg->get());
         }
         
-        /** 
-        */
-        unset($dg);
-        $dg = new HtmlTableDg();
-        if (!empty($results['orders']))
+        if ($prms['ordenes'])
         {
-            $dg->setCaption('Ordenes');
-            $dg->addHeader('Fecha Hora');
-            $dg->addHeader('OP#');
-            $dg->addHeader('Tokens',null,null,'right');
-            $dg->addHeader('Precio',null,null,'right');
-            $dg->addHeader('USD',null,null,'right');
-            $dg->addHeader('Balance USD',null,null,'right');
-            $dg->addHeader('Balance Token',null,null,'right');
-            $dg->addHeader('Comisiones',null,null,'right');
-            foreach ($results['orders'] as $order)
+            unset($dg);
+            $dg = new HtmlTableDg();
+            if (!empty($results['orders']))
             {
-                $strOp = $order['side'].' '.$order['orderId'].' #'.($order['side']!='BUY'?$order['operaciones']:$order['compraNum']);
-                if ($order['porcCompra'])
-                    $strOp .= ' -'.toDec($order['porcCompra']*100).'%';
-                $row = array(strToDate($order['datetime'],true),
-                             $strOp,
-                             toDec($order['qty'],$results['tokenDecUnits']),
-                             toDec($order['price'],$results['tokenDecPrice']),
-                             ($order['side']=='BUY'?'-':'').toDec($order['usd'],2),
-                             toDec($order['qtyUsd'],2),
-                             toDec($order['qtyToken'],$results['tokenDecUnits']),
-                             toDec($order['comision'],2)
-                                );
-                $classRow = 'text-success';
-                if ($order['side']=='SELL')
-                    $classRow = 'text-danger';
-                $dg->addRow($row,$classRow);
+                $dg->setCaption('Ordenes');
+                $dg->addHeader('Fecha Hora');
+                $dg->addHeader('OP#');
+                $dg->addHeader('Tokens',null,null,'right');
+                $dg->addHeader('Precio',null,null,'right');
+                $dg->addHeader('USD',null,null,'right');
+                $dg->addHeader('Balance USD',null,null,'right');
+                $dg->addHeader('Balance Token',null,null,'right');
+                $dg->addHeader('Comisiones',null,null,'right');
+                foreach ($results['orders'] as $order)
+                {
+                    $strOp = $order['side'].' '.$order['orderId'].' #'.($order['side']!='BUY'?$order['operaciones']:$order['compraNum']);
+                    if ($order['porcCompra'])
+                        $strOp .= ' -'.toDec($order['porcCompra']*100).'%';
+                    $row = array(strToDate($order['datetime'],true),
+                                 $strOp,
+                                 toDec($order['qty'],$results['tokenDecUnits']),
+                                 toDec($order['price'],$results['tokenDecPrice']),
+                                 ($order['side']=='BUY'?'-':'').toDec($order['usd'],2),
+                                 toDec($order['qtyUsd'],2),
+                                 toDec($order['qtyToken'],$results['tokenDecUnits']),
+                                 toDec($order['comision'],2)
+                                    );
+                    $classRow = 'text-success';
+                    if ($order['side']=='SELL')
+                        $classRow = 'text-danger';
+                    $dg->addRow($row,$classRow);
+                }
+                $this->ajxRsp->assign('orderlist','innerHTML',$dg->get());
+                //$this->ajxRsp->append('orderlist','innerHTML',arrayToTable($results['openPos']));
             }
-            $this->ajxRsp->assign('ordenes','innerHTML',$dg->get());
-            $this->ajxRsp->append('ordenes','innerHTML',arrayToTable($results['openPos']));
         }
-        /*
-        */
         
-        $ds[] = array('Fecha','Billetera (USD)','Total USD',$symbol.' (USD)','Precio '.$symbol,'Compra','Venta');
-        if (!empty($results['hours']))
+        if ($prms['grafico'])
         {
-            foreach ($results['hours'] as $hour => $rw)
+            $this->ajxRsp->script("$('#chartdiv').show();");
+            $ds[] = array('Fecha','Billetera (USD)','Total USD',$symbol.' (USD)','Precio '.$symbol,'Compra','Venta','AT Compra','AT Venta');
+            if (!empty($results['hours']))
             {
-                $ds[] = array($hour,
-                              toDec($rw['qtyUsd']+$rw['qtyTokenInUsd']),
-                              toDec($rw['qtyUsd']),
-                              toDec($rw['qtyTokenInUsd']),
-                              toDec($rw['tokenPrice'],10),
-                              ($rw['buy'] ? toDec($rw['buy']) : null),
-                              ($rw['sell'] ? toDec($rw['sell']) : null)
-                          );
+                foreach ($results['hours'] as $hour => $rw)
+                {
+                    if ($rw['at']  == 'C')
+                        $at_compra  = toDec($rw['tokenPrice']*1.01,$results['tokenDecPrice']);
+                    else
+                        $at_compra  = null;
+
+                    if ($rw['at']  == 'V')
+                        $at_venta  = toDec($rw['tokenPrice']*0.99,$results['tokenDecPrice']);
+                    else
+                        $at_venta  = null;
+
+                    $ds[] = array($hour,
+                                  null,//toDec($rw['qtyUsd']+$rw['qtyTokenInUsd']),
+                                  toDec($rw['nuevaOC'],$results['tokenDecPrice']),//toDec($rw['qtyUsd']),
+                                  null,//toDec($rw['qtyTokenInUsd']),
+                                  toDec($rw['tokenPrice'],$results['tokenDecPrice']),
+                                  ($rw['buy'] ? toDec($rw['buy']) : null),
+                                  ($rw['sell'] ? toDec($rw['sell']) : null),
+                                  $at_compra,
+                                  $at_venta
+                              );
+                }
+                
+                $this->ajxRsp->script('info = '.json_encode($ds).';');
+                $this->ajxRsp->script('daysGraph();');
             }
-            
-            $this->ajxRsp->script('info = '.json_encode($ds).';');
-            $this->ajxRsp->script('daysGraph();');
+        }
+        else
+        {
+            $this->ajxRsp->script("$('#chartdiv').hide();");
         }
         
         $this->ajxRsp->assign('resultado','innerHTML',$fc->get());

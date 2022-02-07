@@ -79,6 +79,8 @@ function tendenciaLineal($real=array())
  */
 function variacionPorcentual($real=array())
 {
+    if (empty($real))
+        return false;
     foreach ($real as $k => $v)
     {
         if (!isset($iStart))

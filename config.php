@@ -2,7 +2,7 @@
 
 $rootFolder = dirname(__FILE__);
 include_once($rootFolder."/config.local.php");
-
+ini_set('memory_limit', '256M');
 
 /**
  * Archivo de configuración del sistema
