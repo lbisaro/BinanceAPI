@@ -382,7 +382,8 @@ class Operacion extends ModelDB
     {
         if ($this->status() == self::OP_STATUS_COMPLETED)
         {
-            $upd = "UPDATE operacion_orden SET completed = 1 
+            $pnlDate = date('Y-m-d H:i:s');
+            $upd = "UPDATE operacion_orden SET completed = 1 , pnlDate = '".$pnlDate."'
                     WHERE idoperacion = ".$this->data['idoperacion']." AND completed = 0";
             $this->db->query($upd);      
             $msg = ' COMPLETE ORDER';
