@@ -178,9 +178,9 @@ class TestAjax extends ControllerAjax
                         $at_venta  = null;
 
                     $ds[] = array($hour,
-                                  null,//toDec($rw['qtyUsd']+$rw['qtyTokenInUsd']),
+                                  toDec($rw['qtyUsd']+$rw['qtyTokenInUsd']),
                                   toDec($rw['nuevaOC'],$results['tokenDecPrice']),//toDec($rw['qtyUsd']),
-                                  null,//toDec($rw['qtyTokenInUsd']),
+                                  toDec($rw['qtyTokenInUsd']),
                                   toDec($rw['tokenPrice'],$results['tokenDecPrice']),
                                   ($rw['buy'] ? toDec($rw['buy']) : null),
                                   ($rw['sell'] ? toDec($rw['sell']) : null),
