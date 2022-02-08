@@ -459,9 +459,9 @@ class Ticker extends ModelDB
 
         //EMA_CROSS
         $at['signal']['ema_cross'] = '-';
-        if ($at['ema_cross']>-0.04)
+        if ($at['ema_cross']>0)
             $at['signal']['ema_cross'] = 'C'; //Buy
-        elseif ($at['ema_cross']<-0.05)
+        elseif ($at['ema_cross']<0)
             $at['signal']['ema_cross'] = 'V'; //Buy
         //print_r($at['signal']['ema_cross']." ".$at['ema_cross']."<br>");
                 

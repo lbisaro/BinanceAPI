@@ -20,6 +20,7 @@
                     <option value="0">Seleccionar</option>
                     <option value="apalancamiento" SELECTED>Apalancamiento</option>
                     <option value="grid">Grid</option>
+                    <option value="at">Analisis Tecnico</option>
                 </select>
             </div>
           </div>
@@ -151,6 +152,7 @@
             </div>
           </div>
         </div>
+        <!--
         <div class="col">
           <div class="form-group">
             <label for="porcVentaUp">Analisis Tecnico</label>
@@ -162,6 +164,7 @@
             </div>
           </div>
         </div>
+        -->
     </div>
 	<div class="row">
 		<div class="col">
@@ -229,7 +232,11 @@
 
 	function analizar()
 	{
-		CtrlAjax.sendCtrl("test","test","testAPL");   
+        $('#resultado').html('Aguarde.....');
+        $('#chartdiv').html('');
+        $('#orderlist').html('');
+        $('#months').html('');
+		CtrlAjax.sendCtrl("test","test","testEstrategias");   
 	}
 	
 

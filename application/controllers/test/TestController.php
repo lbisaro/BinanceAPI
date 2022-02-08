@@ -55,9 +55,40 @@ class TestController extends Controller
         $this->addView('test/updateKlines_1m',$arr);
     }
 
-    function testAPL($auth)
+    function testEstrategias($auth)
     {
-        $this->addTitle('BackTesting Apalancamiento');
+        $this->addTitle('BackTesting de Estrategia');
+
+        $test = new Test();
+
+        if (isset($_REQUEST['symbol']))
+        {
+            $symbols[] = strtoupper($_REQUEST['symbol']);
+        }
+        else
+        {
+            $symbols = $test->getSymbolsToUpdate();
+        }
+        $dataSymbols = '';
+        if (!empty($symbols))
+        {
+            foreach ($symbols as $symbol)
+            {
+                $dataSymbols .= ($dataSymbols?',':'')."'".$symbol."'";
+            }
+            $arr['dataSymbols'] = $dataSymbols;
+            $arr['fechaInicio'] = dateToStr($test->startKlines,true);
+        }
+
+        $arr['resultado'] = 'Completar los campos y hacer clic en el boton Analizar';
+        $arr['hidden'] = '';
+    
+        $this->addView('test/testEstrategias',$arr);
+    }
+    
+    function testAT($auth)
+    {
+        $this->addTitle('BackTesting Analisis Tecnico');
 
         $test = new Test();
 

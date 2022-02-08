@@ -29,7 +29,7 @@ class TestAjax extends ControllerAjax
 
     }
 
-    function testAPL()
+    function testEstrategias()
     {
         $fc = new HtmlTableFc();
         
