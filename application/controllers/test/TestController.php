@@ -17,13 +17,15 @@ class TestController extends Controller
         $this->addTitle('BackTesting - Home');
         if ($auth->get('idperfil') != UsrUsuario::PERFIL_ADM)
         {
-            $this->addOnloadJs("goTo('".Controller::getLink('test','test','testAPL')."');");
+            $this->addOnloadJs("goTo('".Controller::getLink('test','test','testEstrategias')."');");
         }
-    
-        $arr['data'] = '';
-        $arr['hidden'] = '';
-    
-        $this->addView('test/home',$arr);
+        else
+        {
+            $arr['data'] = '';
+            $arr['hidden'] = '';
+        
+            $this->addView('test/home',$arr);
+        }
     }
     
     
