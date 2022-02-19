@@ -1,3 +1,4 @@
+
 <?php
 include_once LIB_PATH."Controller.php";
 include_once LIB_PATH."Html.php";
@@ -1101,12 +1102,26 @@ class BotController extends Controller
         
         $api = new BinanceAPI($ak,$as);  
 
+        //Informacion de la moneda
+        $symbolData = $api->getSymbolData($symbol);
+        $qtyDecsPrice = $symbolData['qtyDecsPrice'];
+        
         //Historico
         $ordersHst = $api->orders($symbol); 
         $show = false; 
         foreach ($ordersHst as $k => $v)
         {
             $v['datetime'] = date('Y-m-d H:i:s',$ordersHst[$k]['time']/1000);
+
+            //Correccion para ordenes parciales
+            if (!isset($strQtyDecs))
+            {
+                $strQtyDecs = strlen($v['cummulativeQuoteQty'])-strpos($v['cummulativeQuoteQty'], '.')-1;
+                
+            }
+            $v['qtyDecs'] = $strQtyDecs;
+            if (($v['price']*1)==0)
+                $v['price'] = toDec(toDec($v['cummulativeQuoteQty']/$v['executedQty'],$qtyDecsPrice),$strQtyDecs);
 
             unset($v['clientOrderId']);
             unset($v['orderListId']);
@@ -1157,8 +1172,8 @@ class BotController extends Controller
                 //Preparando SQL
                 $side = ($rw['side']=='BUY'?'0':'1');
                 $status = ($rw['status']=='FILLED'?'10':'0');
-                $sql = "INSERT INTO operacion_orden (idoperacion,side,status,origQty,price,orderId,updated) VALUES ".
-                        "(".$idoperacion.",".$side.",".$status.",".$rw['origQty'].",".$rw['price'].",'".$rw['orderId']."','".$rw['datetime']."');<br>";
+                $sql = "INSERT INTO operacion_orden (idoperacion,side,status,origQty,price,orderId,updated,completed,pnlDate) VALUES ".
+                        "(".$idoperacion.",".$side.",".$status.",".$rw['origQty'].",".$rw['price'].",'".$rw['orderId']."','".$rw['datetime']."',1,'".date('Y-m-d H:i:s')."');<br>";
                 
             }
             $row[] = $sql;
