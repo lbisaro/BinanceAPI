@@ -662,66 +662,6 @@ class Operacion extends ModelDB
         return $data;
     }
 
-    function getEstadisticaDiariaOld()
-    {
-        $auth = UsrUsuario::getAuthInstance();
-        $idusuario = $auth->get('idusuario');
-        $qry ="SELECT operacion.*, operacion_orden.*
-                   FROM operacion_orden
-                   LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion
-                   WHERE idusuario = ".$idusuario." AND operacion_orden.completed >0 
-                   ORDER BY operacion_orden.idoperacion,updated,side";
-        $stmt = $this->db->query($qry);
-        $data=array();
-        $totalCompras=0;
-        $data['iniDate'] = date('Y-m-d',strtotime('+ 1 year'));
-        while ($rw = $stmt->fetch())
-        {
-            if (!isset($data['operaciones'][$rw['idoperacion']]))
-            {
-                $data['operaciones'][$rw['idoperacion']] = $rw['symbol'];
-            }
-
-            $dayKey = date('Y-m-d',strtotime($rw['updated']));
-            $monthKey = date('Y-m',strtotime($rw['updated']));
-
-            if ($data['iniDate'] > $dayKey)
-                $data['iniDate'] = $dayKey;
-
-            if ($rw['side']==self::SIDE_BUY) //Cierra operacion y la guarda en la fecha
-            {
-                $totalCompras -= toDec($rw['origQty']*$rw['price']);
-            }
-            else if ($rw['side']==self::SIDE_SELL) //Cierra operacion y la guarda en la fecha
-            {
-                $usd = toDec($rw['origQty']*$rw['price']);
-                $usd = $usd+$totalCompras;
-                if (date('m',strtotime($rw['updated']))==date('m'))
-                {
-                    $data['data']['d'][$dayKey]['total'] += $usd;
-                    $data['data']['d']['total']['total'] += $usd;
-                    $data['data']['d'][$dayKey][$rw['idoperacion']] += $usd;
-                    $data['data']['d']['total'][$rw['idoperacion']] += $usd;
-                }
-            
-                $data['data']['m'][$monthKey]['total'] += $usd;
-                $data['data']['m']['total']['total'] += $usd;
-                $data['data']['m'][$monthKey][$rw['idoperacion']] += $usd;
-                $data['data']['m']['total'][$rw['idoperacion']] += $usd;
-
-                $totalCompras = 0;
-
-            }
-            
-        }
-        if (!empty($data['data']['d']))
-            ksort($data['data']['d']);
-        if (!empty($data['data']['m']))
-            ksort($data['data']['m']);
-
-        return $data;
-    }
-
     //LOG del Crontab BOT
     static function logBot($msg,$echo=true)
     {
