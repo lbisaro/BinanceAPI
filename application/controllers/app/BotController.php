@@ -373,8 +373,10 @@ class BotController extends Controller
 
         //Revision de estadisticas Diaria y Mensual
 
-        $data = $opr->getEstadisticaDiaria();
-
+        if ($_REQUEST['mode']=='new')
+            $data = $opr->getEstadisticaDiaria();
+        else
+            $data = $opr->getEstadisticaDiariaOld();
         //Diaria 
         unset($dg);
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
