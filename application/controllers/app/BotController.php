@@ -1214,10 +1214,14 @@ class BotController extends Controller
         $options = array();
         foreach ($ds as $rw)
         {
+            $htmlSymbol = $rw['symbol'];
             if ($rw['idoperacion'] == $idoperacion)
+            {
+                $htmlSymbol = '<b class="text-success">'.$rw['symbol'].'</b>';
                 $symbol = $rw['symbol'];
-            else
-                $options[$rw['idoperacion']] = $rw['symbol'].' #'.$rw['idoperacion'];
+            }
+
+            $options[$rw['idoperacion']] = $htmlSymbol.' #'.$rw['idoperacion'];
         }
 
         $html = '
