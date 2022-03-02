@@ -80,7 +80,7 @@ class CriptoController extends Controller
 
             $ctrlBnb = 0;
             $ctrlBilletera = 0;
-            $porcMinimoUsdEnBnb = 0.5;//%
+            $porcMinimoUsdEnBnb = 0.25;//%
             $dg = new HtmlTableDg(null,null,'table table-hover table-striped');
             $dg->addHeader('Asset');
             $dg->addHeader('Total',null,null,'center');
