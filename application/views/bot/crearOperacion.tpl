@@ -151,9 +151,12 @@
 
     function crearOperacion()
     {
-        $('#btnAddOperacion').hide();
-        CtrlAjax.sendCtrl("app","bot","crearOperacion");
-        setTimeout(function () {$('#btnAddOperacion').show();},2000);
+        if (confirm('Desea crear la operacion con una compra inicial a precio MARKET?'))
+        {
+            $('#btnAddOperacion').hide();
+            CtrlAjax.sendCtrl("app","bot","crearOperacion");
+            setTimeout(function () {$('#btnAddOperacion').show();},2000);
+        }
     }
 
     function refreshTable()

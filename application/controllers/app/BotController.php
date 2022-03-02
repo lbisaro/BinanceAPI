@@ -1135,9 +1135,25 @@ class BotController extends Controller
             if ($v['datetime'] >= $lastComplete && $v['status']!='CANCELED' && $v['status']!='EXPIRED')
             {
                 if ($auditBot[$v['orderId']])
+                {
                     $v['bot'] = true;
+                }
                 else
+                {
+                    $tradeInfo = $api->orderTradeInfo($symbol,$v['orderId']);
+                    $tradeQty = 0;
+                    $tradeUsd = 0;
+                    if (!empty($tradeInfo))
+                    {
+                        foreach($tradeInfo as $tii)
+                        {
+                            $tradeQty += $tii['qty'];
+                            $tradeUsd += $tii['quoteQty'];
+                        }
+                        $v['price'] = toDec(toDec($tradeUsd/$tradeQty,$qtyDecsPrice),$strQtyDecs);
+                    }
                     $v['bot'] = false;
+                }
                 $audit[$v['orderId']] = $v;
             }
 
@@ -1226,5 +1242,74 @@ class BotController extends Controller
 
         return $html;
     }
+    
+
+    function repararPnlDate($auth)
+    {
+        $this->addTitle('Reparar Pnl-Date');
+    
+        $db = DB::getInstance();
+
+        $idusuario = $_REQUEST['idu'];
+        
+        $qry ="SELECT operacion.*, operacion_orden.*
+               FROM operacion_orden
+               LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion
+               WHERE pnlDate IS NULL AND operacion_orden.completed >0 
+               ORDER BY idusuario,operacion_orden.idoperacion,updated,side";
+
+        $stmt = $db->query($qry);
+        $dg = new HtmlTableDg();
+        $dg->addHeader('Usuario');
+        $dg->addHeader('Operacion');
+        $dg->addHeader('Importe');
+        $dg->addHeader('Fecha');
+        $dg->addHeader('PNL-DATE');
+        $idu = 0;
+        while ($rw = $stmt->fetch())
+        {
+            if ($rw['idusuario'] != $idu)
+            {
+                $idooToUpdate = array();
+                $lastUpdated = null;
+                $orders = array();
+                $idu = $rw['idusuario'];
+            }
+            $orders[$rw['idoperacionorden']] = $rw;
+            $idooToUpdate[] = $rw['idoperacionorden'];
+            if ($rw['side']==Operacion::SIDE_SELL)
+            {
+                $whereIn = '';
+                foreach ($idooToUpdate as $idoo)
+                {
+                    $orders[$idoo]['pnlDate'] = $rw['updated'];
+                    $idooToUpdate = array();
+                    $whereIn .= ($whereIn?',':'').$idoo;
+                }
+                $upd = "UPDATE operacion_orden SET pnlDate = '".$rw['updated']."' WHERE idoperacionorden IN (".$whereIn.")";
+                $db->query($upd);
+            }
+        }
+
+        foreach ($orders as $rw)
+        {
+            $dg->addRow(array($rw['idusuario'],
+                              $rw['symbol'],
+                              toDec($rw['origQty']*$rw['price']),
+                              dateToStr($rw['updated'],true),
+                              dateToStr($rw['pnlDate'],true)
+                             ),
+                        $class = ($rw['side']==Operacion::SIDE_BUY?'text-success':'text-danger')
+                        );
+
+        }
+
+    
+        $arr['data'] = $dg->get();
+        $arr['hidden'] = '';
+    
+        $this->addView('ver',$arr);
+    }
+    
     
 }
