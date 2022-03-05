@@ -402,7 +402,7 @@ class Operacion extends ModelDB
                 WHERE operacion_orden.idoperacion = ".$this->data['idoperacion'];
         if ($enCurso)
             $qry .= ' AND completed = 0'; 
-        $qry .= ' ORDER BY completed, orderId';
+        $qry .= ' ORDER BY completed, updated';
         $stmt = $this->db->query($qry);
 
         $ds = array();
