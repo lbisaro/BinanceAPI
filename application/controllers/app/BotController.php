@@ -1236,7 +1236,7 @@ class BotController extends Controller
               <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">';
             foreach ($options as $id => $label)
                 $html .= '
-                    <a class="dropdown-item" href="'.$baseLink.$id.'">'.$label.'</a>';
+                    <a class="dropdown-item btn btn-sm" href="'.$baseLink.$id.'">'.$label.'</a>';
                 
             $html .= '
               </div>';
