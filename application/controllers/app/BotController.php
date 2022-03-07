@@ -1214,18 +1214,16 @@ class BotController extends Controller
         $options = array();
         foreach ($ds as $rw)
         {
-            $htmlSymbol = $rw['symbol'];
             if ($rw['idoperacion'] == $idoperacion)
             {
-                //$htmlSymbol = '<b class="text-success">'.$rw['symbol'].'</b>';
                 $symbol = $rw['symbol'];
             }
 
-            $options[$rw['idoperacion']] = $htmlSymbol.' #'.$rw['idoperacion'];
+            $options[$rw['idoperacion']] = $rw['symbol'].' #'.$rw['idoperacion'];
         }
 
         $html = '
-        <div class="dropdown">
+        <div class="dropdown dropright" >
           <a class="btn btn-primary btn-sm dropdown-toggle" href="https://www.binance.com/es/trade/'.$symbol.'" target="_blank" role="button" id="dropdownMenuLink" data-toggle="dropdown" aria-expanded="false">
             '.$symbol.'
           </a>
@@ -1235,8 +1233,12 @@ class BotController extends Controller
             $html .= '
               <div class="dropdown-menu" aria-labelledby="dropdownMenuLink">';
             foreach ($options as $id => $label)
+            {
+                $class = ($id==$idoperacion?' active ':'');
+
                 $html .= '
-                    <a class="dropdown-item btn btn-sm" href="'.$baseLink.$id.'">'.$label.'</a>';
+                    <a style="font-size:0.7em;" class="dropdown-item btn btn-sm '.$class.'" href="'.$baseLink.$id.'">'.$label.'</a>';
+            }
                 
             $html .= '
               </div>';
@@ -1248,72 +1250,18 @@ class BotController extends Controller
     }
     
 
-    function repararPnlDate($auth)
+    function openOrders($auth)
     {
-        $this->addTitle('Reparar Pnl-Date');
+        $this->addTitle('Ordenes Abiertas');
     
-        $db = DB::getInstance();
-
-        $idusuario = $_REQUEST['idu'];
-        
-        $qry ="SELECT operacion.*, operacion_orden.*
-               FROM operacion_orden
-               LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion
-               WHERE pnlDate IS NULL AND operacion_orden.completed >0 
-               ORDER BY idusuario,operacion_orden.idoperacion,updated,side";
-
-        $stmt = $db->query($qry);
-        $dg = new HtmlTableDg();
-        $dg->addHeader('Usuario');
-        $dg->addHeader('Operacion');
-        $dg->addHeader('Importe');
-        $dg->addHeader('Fecha');
-        $dg->addHeader('PNL-DATE');
-        $idu = 0;
-        while ($rw = $stmt->fetch())
-        {
-            if ($rw['idusuario'] != $idu)
-            {
-                $idooToUpdate = array();
-                $lastUpdated = null;
-                $orders = array();
-                $idu = $rw['idusuario'];
-            }
-            $orders[$rw['idoperacionorden']] = $rw;
-            $idooToUpdate[] = $rw['idoperacionorden'];
-            if ($rw['side']==Operacion::SIDE_SELL)
-            {
-                $whereIn = '';
-                foreach ($idooToUpdate as $idoo)
-                {
-                    $orders[$idoo]['pnlDate'] = $rw['updated'];
-                    $idooToUpdate = array();
-                    $whereIn .= ($whereIn?',':'').$idoo;
-                }
-                $upd = "UPDATE operacion_orden SET pnlDate = '".$rw['updated']."' WHERE idoperacionorden IN (".$whereIn.")";
-                $db->query($upd);
-            }
-        }
-
-        foreach ($orders as $rw)
-        {
-            $dg->addRow(array($rw['idusuario'],
-                              $rw['symbol'],
-                              toDec($rw['origQty']*$rw['price']),
-                              dateToStr($rw['updated'],true),
-                              dateToStr($rw['pnlDate'],true)
-                             ),
-                        $class = ($rw['side']==Operacion::SIDE_BUY?'text-success':'text-danger')
-                        );
-
-        }
-
-    
-        $arr['data'] = $dg->get();
+           
+        $arr['data'] = '';
         $arr['hidden'] = '';
     
         $this->addView('ver',$arr);
     }
+    
+    
     
     
 }
