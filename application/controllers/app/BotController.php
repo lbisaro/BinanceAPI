@@ -1217,7 +1217,7 @@ class BotController extends Controller
             $htmlSymbol = $rw['symbol'];
             if ($rw['idoperacion'] == $idoperacion)
             {
-                $htmlSymbol = '<b class="text-success">'.$rw['symbol'].'</b>';
+                //$htmlSymbol = '<b class="text-success">'.$rw['symbol'].'</b>';
                 $symbol = $rw['symbol'];
             }
 
