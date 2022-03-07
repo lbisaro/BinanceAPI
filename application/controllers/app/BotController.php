@@ -1250,15 +1250,87 @@ class BotController extends Controller
     }
     
 
-    function openOrders($auth)
+    function ordenesActivas($auth)
     {
-        $this->addTitle('Ordenes Abiertas');
+        $this->addTitle('Ordenes Activas');
     
-           
-        $arr['data'] = '';
-        $arr['hidden'] = '';
-    
-        $this->addView('ver',$arr);
+        $ak = $auth->getConfig('bncak');
+        $as = $auth->getConfig('bncas');
+        
+        $api = new BinanceAPI($ak,$as);
+
+        $prices = $api->prices();
+
+        $opr = new Operacion();
+        $ordenes = $opr->getOrdenesActivas();
+
+        $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
+        $dg->addHeader('Moneda');
+        $dg->addHeader('Tipo');
+        $dg->addHeader('Fecha Hora');
+        $dg->addHeader('Unidades',null,null,'right');
+        $dg->addHeader('Precio',null,null,'right');
+        $dg->addHeader('USD',null,null,'right');
+        $dg->addHeader('Ref.',null,null,'right');
+
+        $idoperacion = 0;
+        foreach ($ordenes as $rw)
+        {
+            if ($rw['idoperacion']!=$idoperacion)
+            {
+                $totVentas = 0;
+                $gananciaUsd = 0;
+                $idoperacion = $rw['idoperacion'];
+                $dg->addSeparator($rw['symbol']);
+            }
+            
+            $symbolPrice = $prices[$rw['symbol']];
+            $usd = toDec($rw['origQty']*$rw['price']);
+
+            if ($rw['side']==Operacion::SIDE_BUY)
+                $rw['sideStr'] .= ' #'.$rw['compraNum'];
+
+            $status = '';
+            if (!$rw['completed'] && $rw['status']==Operacion::OR_STATUS_FILLED)
+                $status = ' <span class="glyphicon glyphicon-ok" style="font-size: 0.7em;"></span>';
+            $porc = 0;
+            if ($rw['side']==Operacion::SIDE_SELL || $rw['status']==Operacion::OR_STATUS_FILLED)
+                $porc = toDec((($symbolPrice/$rw['price'])-1)*100);
+
+            $rowClass = ($porc<=0?'porcDown':'');
+
+            $row = array($rw['symbol'],
+                         $rw['orderId'].$status,
+                         $rw['updatedStr'],
+                         ($rw['origQty']*1),
+                         ($rw['price']*1),
+                         ($rw['side']==Operacion::SIDE_BUY?'-':'').$usd,
+                         ($porc!=0? '<span class="'.($porc<0?'text-danger':'text-success').'">'.$porc.'%</span>' : '')
+                        );
+
+            
+
+            $dg->addRow($row,$rw['sideClass'].' '.$rowClass,null,null,$id='ord_'.$rw['orderId']);
+
+            if ($rw['completed'])
+            {
+                if ($rw['side']==Operacion::SIDE_SELL)
+                {
+                    $totVentas++;
+                    $gananciaUsd += $usd;
+                }
+                else
+                {
+                    $gananciaUsd -= $usd;
+                }
+            }
+
+        }
+
+        $arr['ordenesActivas'] = $dg->get();
+
+        $this->addView('bot/ordenesActivas',$arr);
+
     }
     
     

@@ -739,4 +739,40 @@ class Operacion extends ModelDB
         }
         return $data;
     }
+
+    function getOrdenesActivas()
+    {
+        $auth = UsrUsuario::getAuthInstance();
+        $idusuario = $auth->get('idusuario');
+
+        $qry = "SELECT operacion.symbol, operacion_orden.* 
+                FROM operacion_orden 
+                LEFT JOIN operacion ON operacion.idoperacion =operacion_orden.idoperacion
+                WHERE idusuario = ".$idusuario;
+        $qry .= ' AND completed = 0'; 
+        $qry .= ' ORDER BY symbol, price DESC';
+        $stmt = $this->db->query($qry);
+
+        $ds = array();
+        $idoperacion = 0;
+        while ($rw = $stmt->fetch())
+        {
+            if ($idoperacion != $rw['idoperacion'])
+            {
+                $idoperacion = $rw['idoperacion'];
+                $compraNum = 0;
+            }
+            $rw['sideStr'] = ($rw['side']==self::SIDE_BUY ? 'Compra' : 'Venta');
+            $rw['sideClass'] = ($rw['side']==self::SIDE_BUY ? 'text-success' : 'text-danger');
+            $rw['statusStr'] = $this->getTipoStatusOr($rw['status']);
+            $rw['updatedStr'] = dateToStr($rw['updated'],true);
+            if ($rw['side']==self::SIDE_BUY)
+            {
+                $compraNum++;
+                $rw['compraNum'] = $compraNum;
+            }
+            $ds[$rw['idoperacionorden']] = $rw;
+        }
+        return $ds;
+    }
 }
