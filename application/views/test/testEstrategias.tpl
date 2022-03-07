@@ -217,7 +217,7 @@
             
         }
 
-        //setDefaultValues();
+        setDefaultValues();
 	});
 
     function setDefaultValues()
@@ -250,7 +250,7 @@
       '#BF3C0F',//6 //Venta 
       '#58A029',//7 //AT_COMPRA
       '#BF3C0F',//8 //AT_VENTA
-      '#4dc9f6',//9 
+      '#000000',//9 //Apal. Insuficiente
       '#f53794',//10
       '#f67019',//11
       '#537bc4',//12
@@ -334,6 +334,11 @@
                 series.data = createData(6);
                 series.yAxis = valueAxis2;
 
+                //Apalancamiento Insuficiente
+                series = createSeriesBullet(9,'apins');
+                series.data = createData(9);
+                series.yAxis = valueAxis2;
+
                 // Add scrollbar
                 //var scrollbarX = new am4charts.XYChartScrollbar();
                 //scrollbarX.series.push(series);
@@ -410,14 +415,23 @@
                             var circle = bullet.createChild(am4core.Circle);
                             circle.width = 4;
                             circle.height = 4;
+                            circle.fill = am4core.color(colors[s]);
                             circle.fillOpacity = 1;
                         }
-                        else //Venta
+                        else if (tipo=='venta')
                         {
                             var circle = bullet.createChild(am4core.Circle);
                             circle.width = 8;
                             circle.height = 8;
                             circle.fillOpacity = 0.0;
+                        }
+                        else //Ap ins
+                        {
+                            var circle = bullet.createChild(am4core.Circle);
+                            circle.width = 6;
+                            circle.height = 6;
+                            circle.fill = am4core.color(colors[s]);
+                            circle.fillOpacity = 1;
                         }
                         circle.horizontalCenter = "middle";
                         circle.verticalCenter = "middle";

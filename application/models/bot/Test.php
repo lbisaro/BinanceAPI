@@ -231,8 +231,10 @@ class Test
 
         $qry = "SELECT datetime,open,close,high,low 
                 FROM klines_1m 
-                WHERE symbol = '".$symbol."' 
-                ORDER BY datetime ASC "; //LIMIT 1440
+                WHERE symbol = '".$symbol."' ";
+        //$qry .= " AND datetime > '2021-07-01 00:00:00' ";
+        //$qry .= " AND datetime < '2021-08-01 00:00:00' ";
+        $qry .= " ORDER BY datetime ASC "; //LIMIT 1440
         $stmt = $this->db->query($qry);
 
         while ($rw = $stmt->fetch())
@@ -248,7 +250,7 @@ class Test
             if ($prms['at'])
             {
                 $hh = substr($datetime,0,13).':00';
-                if (!isset($klines_1h[$hour]))
+                if (!isset($klines_1h[$hh]))
                 {
                     $klines_1h[$hh]['open']       = $rw['open'];
                     $klines_1h[$hh]['close']      = $rw['close'];
@@ -256,15 +258,12 @@ class Test
                     $klines_1h[$hh]['low']        = $rw['low'];
                     $klines_1h[$hh]['volume']     = $rw['volume'];
                 }
-                else
-                {
-                    $klines_1h[$hh]['close']      = $rw['close'];
-                    if ($rw['high'] > $klines_1h[$hh]['high'])
-                        $klines_1h[$hh]['high']   = $rw['high'];
-                    if ($rw['low'] < $klines_1h[$hh]['low'])
-                        $klines_1h[$hh]['low']    = $rw['low'];
-                    $klines_1h[$hh]['volume']    += $rw['volume'];
-                }
+                $klines_1h[$hh]['close']      = $rw['close'];
+                if ($rw['high'] > $klines_1h[$hh]['high'])
+                    $klines_1h[$hh]['high']   = $rw['high'];
+                if ($rw['low'] < $klines_1h[$hh]['low'])
+                    $klines_1h[$hh]['low']    = $rw['low'];
+                $klines_1h[$hh]['volume']    += $rw['volume'];
 
                 //Luego de 30 horas, y solo si esta la hora completa, hace el analisis tecnico
 
@@ -346,7 +345,10 @@ class Test
                 {
                     $aiKey = str_replace('.','_',$price);
                     if (!isset($apalancamientoInsuficiente[$aiKey]))
+                    {
+                        $hours[$hour]['apins'] = $price;
                         $apalancamientoInsuficiente[$aiKey]=$datetime;
+                    }
                 }
 
             }
@@ -393,7 +395,10 @@ class Test
                     {
                         $aiKey = str_replace('.','_',$price);
                         if (!isset($apalancamientoInsuficiente[$aiKey]))
+                        {
+                            $hours[$hour]['apins'] = $price;
                             $apalancamientoInsuficiente[$aiKey]=$datetime;
+                        }
                     }
                 }
 
@@ -512,8 +517,8 @@ class Test
         $qry = "SELECT datetime,open,close,high,low,volume 
                 FROM klines_1m 
                 WHERE symbol = '".$symbol."' ";
-        $qry .= " AND datetime > '2021-07-01 00:00:00' ";
-        $qry .= " AND datetime < '2021-08-01 00:00:00' ";
+        //$qry .= " AND datetime > '2021-07-01 00:00:00' ";
+        //$qry .= " AND datetime < '2021-08-01 00:00:00' ";
         $qry .= " ORDER BY datetime ASC"; // LIMIT 28800
 
         $stmt = $this->db->query($qry);
@@ -530,7 +535,7 @@ class Test
             if ($prms['at'])
             {
                 $hh = substr($datetime,0,13).':00';
-                if (!isset($klines_1h[$hour]))
+                if (!isset($klines_1h[$hh]))
                 {
                     $klines_1h[$hh]['open']       = $rw['open'];
                     $klines_1h[$hh]['close']      = $rw['close'];
@@ -538,15 +543,12 @@ class Test
                     $klines_1h[$hh]['low']        = $rw['low'];
                     $klines_1h[$hh]['volume']     = $rw['volume'];
                 }
-                else
-                {
-                    $klines_1h[$hh]['close']      = $rw['close'];
-                    if ($rw['high'] > $klines_1h[$hh]['high'])
-                        $klines_1h[$hh]['high']   = $rw['high'];
-                    if ($rw['low'] < $klines_1h[$hh]['low'])
-                        $klines_1h[$hh]['low']    = $rw['low'];
-                    $klines_1h[$hh]['volume']    += $rw['volume'];
-                }
+                $klines_1h[$hh]['close']      = $rw['close'];
+                if ($rw['high'] > $klines_1h[$hh]['high'])
+                    $klines_1h[$hh]['high']   = $rw['high'];
+                if ($rw['low'] < $klines_1h[$hh]['low'])
+                    $klines_1h[$hh]['low']    = $rw['low'];
+                $klines_1h[$hh]['volume']    += $rw['volume'];
 
                 //Luego de 30 horas, y solo si esta la hora completa, hace el analisis tecnico
 
@@ -805,26 +807,13 @@ class Test
         $this->tokenDecPrice = $symbolData['qtyDecsPrice'];
         $this->tokenDecUnits = $symbolData['qtyDecs'];
 
-
-        $compraNum = 0;
-        $maxCompraNum = 0;
-        $operaciones = 0;
-        $openPos = array();
-        $ultimaCompra = 0.0;
-        $ordenCompra = 0.0;
-        $comisiones = 0.0;
-        $orders = array();
-        $hours = array();
-        $months = array();
-        $apalancamientoInsuficiente = array();
-        
         $klines_1h = array();
 
         $qry = "SELECT datetime,open,close,high,low,volume 
                 FROM klines_1m 
                 WHERE symbol = '".$symbol."' ";
-        $qry .= " AND datetime > '2021-07-01 00:00:00' ";
-        $qry .= " AND datetime < '2021-08-01 00:00:00' ";
+        $qry .= " AND datetime > '2021-06-01 00:00:00' ";
+        $qry .= " AND datetime < '2021-07-01 00:00:00' ";
         $qry .= " ORDER BY datetime ASC"; // LIMIT 28800
 
         $stmt = $this->db->query($qry);
@@ -838,45 +827,37 @@ class Test
             $volume     = $rw['volume'];
 
             //Armando analisis tecnico 1h
-            if ($prms['at'])
+            $hh = substr($datetime,0,13).':00';
+            if (!isset($klines_1h[$hh]))
             {
-                $hh = substr($datetime,0,13).':00';
-                if (!isset($klines_1h[$hour]))
-                {
-                    $klines_1h[$hh]['open']       = $rw['open'];
-                    $klines_1h[$hh]['close']      = $rw['close'];
-                    $klines_1h[$hh]['high']       = $rw['high'];
-                    $klines_1h[$hh]['low']        = $rw['low'];
-                    $klines_1h[$hh]['volume']     = $rw['volume'];
-                }
-                else
-                {
-                    $klines_1h[$hh]['close']      = $rw['close'];
-                    if ($rw['high'] > $klines_1h[$hh]['high'])
-                        $klines_1h[$hh]['high']   = $rw['high'];
-                    if ($rw['low'] < $klines_1h[$hh]['low'])
-                        $klines_1h[$hh]['low']    = $rw['low'];
-                    $klines_1h[$hh]['volume']    += $rw['volume'];
-                }
-
-                //Luego de 30 horas, y solo si esta la hora completa, hace el analisis tecnico
-
-                if (count($klines_1h)>30 && substr($datetime,14,2)=='59')
-                {
-                    $candlesticks = array();
-                    
-                    for ($i=30;$i>=0;$i--)
-                    {
-                        $atKey = date('Y-m-d H:',strtotime($hh.' -'.$i.' hours')).'00'; 
-                        $candlesticks[$atKey] = $klines_1h[$atKey];
-                    }
-                    $aTec = $tck->analisisTecnico($candlesticks);
-                }
+                $klines_1h[$hh]['open']       = $rw['open'];
+                $klines_1h[$hh]['close']      = $rw['close'];
+                $klines_1h[$hh]['high']       = $rw['high'];
+                $klines_1h[$hh]['low']        = $rw['low'];
+                $klines_1h[$hh]['volume']     = $rw['volume'];
             }
-            $atBuySignal = true;
-            if ($prms['at'] && $aTec['signal']['ema_cross']=='V')
-                $atBuySignal = false;            
+            $klines_1h[$hh]['close']      = $rw['close'];
+            if ($rw['high'] > $klines_1h[$hh]['high'])
+                $klines_1h[$hh]['high']   = $rw['high'];
+            if ($rw['low'] < $klines_1h[$hh]['low'])
+                $klines_1h[$hh]['low']    = $rw['low'];
+            $klines_1h[$hh]['volume']    += $rw['volume'];
 
+            //Luego de 30 horas, y solo si esta la hora completa, hace el analisis tecnico
+            if (count($klines_1h)>30 && substr($datetime,14,2)=='59')
+            {
+                $candlesticks = array();
+                
+                for ($i=30;$i>=0;$i--)
+                {
+                    $atKey = date('Y-m-d H:',strtotime($hh.' -'.$i.' hours')).'00'; 
+                    $candlesticks[$atKey] = $klines_1h[$atKey];
+                }
+                $aTec = $tck->analisisTecnico($candlesticks);
+            }
+        
+
+            //$tokenPrice = round( (($close+$open)/2),$this->tokenDecPrice);
             $tokenPrice = round($close,$this->tokenDecPrice);
             
             $day = substr($datetime,0,10);
@@ -886,7 +867,6 @@ class Test
             }
 
             $hour = substr($datetime,0,13).':00';
-            //$hour = substr($datetime,0,10);
             if (!isset($hours[$hour]))
             {
                 $hours[$hour]['qtyUsd'] = 0;
@@ -898,171 +878,12 @@ class Test
                 $months[$month]['ganancia'] = 0;
             }
 
-            if (count($openPos)==0) //Si no hay posiciones abiertas, inicia compra
-            {
-                $price = $close;
-                $usd = round($compraInicial,2);
-                $qty = round($usd/$price,$this->tokenDecUnits);
-                if ($usd = $this->compra($qty,$price))
-                {
-                    $ultimaCompra = $usd;
-                    $compraNum++;
-                    
-                    $comision = $usd * ($this->comisionBinance / 100);
-                    $comisiones += $comision;
-            
-                    $porcCompra = ($multiplicadorPorc * ($incremental?$compraNum:1));
-                    
-                    $ordenCompra = round($price * (1 - $porcCompra ) ,$this->tokenDecPrice);
-                    $ordenVenta  = round($price * (1 + $porcVentaUp ) ,$this->tokenDecPrice);
-                    
-                    $orderId = $this->newOrderId();
-                    $openPos[$orderId] = array('qty'=>$qty,
-                                               'buyPrice'=>$price,
-                                               'sellPrice'=>$ordenVenta
-                                               );
-
-                    $orders[] = array('datetime'=>$datetime,
-                                      'side'=>'BUY',
-                                      'operacion'=>$operacion,
-                                      'qty'=>$qty,
-                                      'price'=>$price,
-                                      'usd'=>$usd,
-                                      'qtyUsd'=>$this->qtyUsd,
-                                      'qtyToken'=>$this->qtyToken,
-                                      'compraNum'=>$compraNum,
-                                      'operaciones'=>$operaciones,
-                                      'comision'=>$comision,
-                                      'orderId'=>$orderId
-                                      );
-                    $hours[$hour]['buy'] = $price;
-                }
-                else
-                {
-                    $aiKey = str_replace('.','_',$price);
-                    if (!isset($apalancamientoInsuficiente[$aiKey]))
-                        $apalancamientoInsuficiente[$aiKey]=$datetime;
-                }
-
-            }
-            else
-            {
-                if ($atBuySignal && $ordenCompra<$high && $ordenCompra>$low) //Ejecuta orden de compra
-                {
-
-                    foreach ($openPos as $rw)
-                        $ultimaCompraAbierta = toDec($rw['buyPrice']*$rw['qty']);
-                    $price = round($ordenCompra,$this->tokenDecPrice);
-                    $usd = round($ultimaCompraAbierta * $multiplicadorCompra ,2);
-                    $qty = round($usd/$price,$this->tokenDecUnits);
-                    if ($usd = $this->compra($qty,$price))
-                    {
-                        $ultimaCompra = $usd;
-                        $compraNum++;
-                        if ($compraNum>$maxCompraNum)
-                            $maxCompraNum = $compraNum;
-                        $comision = $usd * ($this->comisionBinance / 100);
-                        $comisiones += $comision;
-
-                        if ($compraNum>2)
-                            $dynPorcVentaDown = $porcVentaDown*($compraNum-2)*(1+($multiplicadorPorc*0.45));
-                        else
-                            $dynPorcVentaDown = $porcVentaDown;
-            
-                        $porcCompra = ($multiplicadorPorc * ($incremental?$compraNum:1));
-                        $ordenCompra = round($price * (1 - $porcCompra ) ,$this->tokenDecPrice);
-                        $usdAVender  = round($usd * (1 + $dynPorcVentaDown ),2);
-                        $ordenVenta  = round($usdAVender/$qty,$this->tokenDecPrice);
-                        
-                        $orderId = $this->newOrderId();
-                        $openPos[$orderId] = array('qty'=>$qty,
-                                                   'buyPrice'=>$price,
-                                                   'sellPrice'=>$ordenVenta
-                                                   );
-
-                        $orders[] = array('datetime'=>$datetime,
-                                          'side'=>'BUY',
-                                          'operacion'=>$operacion,
-                                          'qty'=>$qty,
-                                          'price'=>$price,
-                                          'usd'=>$usd,
-                                          'qtyUsd'=>$this->qtyUsd,
-                                          'qtyToken'=>$this->qtyToken,
-                                          'compraNum'=>$compraNum,
-                                          'operaciones'=>$operaciones,
-                                          'comision'=>$comision,
-                                          'orderId'=>$orderId
-                                          );
-                        $hours[$hour]['buy'] = $price;
-                    }
-                    else
-                    {
-                        $aiKey = str_replace('.','_',$price);
-                        if (!isset($apalancamientoInsuficiente[$aiKey]))
-                            $apalancamientoInsuficiente[$aiKey]=$datetime;
-                    }
-                }
-                //Baja la orden de compra si esta en señal de venta
-                if (!$atBuySignal && $ordenCompra>($open) )
-                {
-                    $ordenCompra = $close;
-                }
-
-                $posToDelete=array();
-                foreach ($openPos as $orderId => $rw) //Revisa las posiciones abiertas para ver si se debe vender algo
-                {
-                    if ($rw['sellPrice']<$high && $rw['sellPrice']>$low) //Ejecuta orden de venta
-                    {
-                        $qty = round($rw['qty'],$this->tokenDecUnits);
-                        $price = round($rw['sellPrice'],$this->tokenDecPrice);
-                        if ($usd = $this->venta($qty,$price))
-                        {
-                            $compro=false;
-                            $resultadoVenta = toDec(($rw['sellPrice']*$rw['qty'])-($rw['buyPrice']*$rw['qty']));
-                            $months[$month]['ganancia'] += $resultadoVenta;
-                            
-                            $ordenCompra = $rw['buyPrice'];
-                            $ordenVenta = 0.0;
-                            $compraNum --;
-                            $operaciones++;
-                            $comision = $usd * ($this->comisionBinance / 100);
-                            $comisiones += $comision;
-
-                            $posToDelete[]=$orderId;
-
-                            $orders[] = array('datetime'=>$datetime,
-                                              'side'=>'SELL',
-                                              'qty'=>$qty,
-                                              'price'=>$price,
-                                              'usd'=>$usd,
-                                              'qtyUsd'=>$this->qtyUsd,
-                                              'qtyToken'=>$this->qtyToken,
-                                              'compraNum'=>$compraNum,
-                                              'operaciones'=>$operaciones,
-                                              'comision'=>$comision,
-                                              'orderId'=>$orderId
-                                              );
-                            $hours[$hour]['sell'] = $price;
-                        }
-                    }
-                }
-            }
             $hours[$hour]['qtyUsd'] = toDec($this->qtyUsd);
             $hours[$hour]['qtyTokenInUsd'] = toDec($this->qtyToken*$tokenPrice);
             $hours[$hour]['tokenPrice'] = $tokenPrice;
 
             //Analisis tecnico de 1 hora
-            $hours[$hour]['at'] = $aTec['signal']['ema_cross'];
-
-            $hours[$hour]['nuevaOC'] = $ordenCompra;
-
-            if (!empty($posToDelete))
-            {
-                foreach ($posToDelete as $orderId)
-                    unset($openPos[$orderId]);
-            }
-
-
+            $hours[$hour]['at'] = $aTec;
         }
 
 
