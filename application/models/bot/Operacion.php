@@ -609,8 +609,8 @@ class Operacion extends ModelDB
         $qry ="SELECT operacion.*, operacion_orden.*
                    FROM operacion_orden
                    LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion
-                   WHERE idusuario = ".$idusuario." AND operacion_orden.completed >0 
-                   ORDER BY operacion_orden.idoperacion,updated,side";
+                   WHERE idusuario = ".$idusuario." AND operacion_orden.completed > 0 
+                   ORDER BY operacion_orden.idoperacion,pnlDate,side";
         $stmt = $this->db->query($qry);
         $data=array();
         $totalCompras=0;
@@ -775,4 +775,5 @@ class Operacion extends ModelDB
         }
         return $ds;
     }
+
 }
