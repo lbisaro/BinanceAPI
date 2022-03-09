@@ -1188,14 +1188,23 @@ class BotController extends Controller
                 //Preparando SQL
                 $side = ($rw['side']=='BUY'?'0':'1');
                 $status = ($rw['status']=='FILLED'?'10':'0');
-                $sql = "INSERT INTO operacion_orden (idoperacion,side,status,origQty,price,orderId,updated,completed,pnlDate) VALUES ".
-                        "(".$idoperacion.",".$side.",".$status.",".$rw['origQty'].",".$rw['price'].",'".$rw['orderId']."','".$rw['datetime']."',1,'".date('Y-m-d H:i:s')."');<br>";
-                
+                if ($rw['status']=='NEW')
+                {
+                    $sql = "INSERT INTO operacion_orden (idoperacion,side,status,origQty,price,orderId,updated) VALUES ".
+                            "(".$idoperacion.",".$side.",".$status.",".$rw['origQty'].",".$rw['price'].",'".$rw['orderId']."','".$rw['datetime']."');<br>";
+                }
+                else
+                {
+                    $sql = "INSERT INTO operacion_orden (idoperacion,side,status,origQty,price,orderId,updated,completed,pnlDate) VALUES ".
+                            "(".$idoperacion.",".$side.",".$status.",".$rw['origQty'].",".$rw['price'].",'".$rw['orderId']."','".$rw['datetime']."',1,'".date('Y-m-d H:i:s')."');<br>";
+                }
             }
             $row[] = $sql;
             $class='';
-            if (!$rw['bot'])
-                $class='text-danger';
+            if (!$rw['bot'] && $rw['status']=='NEW')
+                $class='text-success';
+            elseif (!$rw['bot'] && $rw['status']!='NEW')
+                $class='text-primary';
             $dg->addRow($row,$class);
         }
         
