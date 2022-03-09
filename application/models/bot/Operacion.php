@@ -9,7 +9,12 @@ class Operacion extends ModelDB
                                    FROM operacion_orden 
                                   WHERE operacion.idoperacion = operacion_orden.idoperacion
                                     AND completed = 0 AND status = 10 AND side = 0) 
-                                compras  
+                                compras,
+                                ( SELECT count(idoperacionorden) 
+                                   FROM operacion_orden 
+                                  WHERE operacion.idoperacion = operacion_orden.idoperacion
+                                    AND completed = 0 ) 
+                                ordenesActivas 
                         FROM operacion";
 
     protected $pKey  = 'idoperacion';
