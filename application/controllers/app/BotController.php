@@ -50,7 +50,15 @@ class BotController extends Controller
                           $opr->get('strEstado').$strCompras,
                           $autoRestart
                           );
-            $dg->addRow($data);
+            if ($opr->get('ordenesActivas')>0)
+                $dg->addRow($data);
+            else
+                $inactivas[] = $data;
+        }
+        if (!empty($inactivas))
+        {
+            foreach ($inactivas as $data)
+                $dg->addRow($data,'tachado');
         }
 
         $arr['lista'] = $dg->get();
