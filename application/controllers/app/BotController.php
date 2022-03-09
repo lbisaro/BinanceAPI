@@ -389,7 +389,7 @@ class BotController extends Controller
                 $dg->addHeader('<span title="Operacion #'.$idoperacion.'">'.$strSymbol.'<span>',null,null,'right');
             }
         }
-        $dg->addHeader('Total',null,null,'right');
+        $dg->addHeader('Total<br>USD',null,null,'right');
 
         $curDate = date('Y-m-d');
         $days=0;
@@ -405,7 +405,7 @@ class BotController extends Controller
             {
                 $row[] = ($data['data']['d'][$curDate][$idoperacion] ?toDec($data['data']['d'][$curDate][$idoperacion]) : '-');
             }
-            $row[] = 'USD '.toDec($data['data']['d'][$curDate]['total']);
+            $row[] = toDec($data['data']['d'][$curDate]['total']);
             $dg->addRow($row);
             $curDate = date('Y-m-d',strtotime($curDate.' - 1 day'));
         }
