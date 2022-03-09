@@ -58,7 +58,7 @@ class BotController extends Controller
         if (!empty($inactivas))
         {
             foreach ($inactivas as $data)
-                $dg->addRow($data,'table-light text-light');
+                $dg->addRow($data,'table-secondary text-secondary');
         }
 
         $arr['lista'] = $dg->get();
