@@ -13,8 +13,10 @@ class Test
     public $startKlines = '2021-06-01 00:00:00';
 
     protected $usdInicial = 0.0;
+    protected $billetera = 0.0;
     protected $qtyUsd = 0.0;
     protected $qtyToken = 0.0;
+    protected $totalComprado = 0.0;
 
     protected $comisionBinance = 0.075 ;
 
@@ -193,6 +195,7 @@ class Test
         $aTec = array(); //Analisis tecnico
 
         $this->usdInicial = $usdInicial;
+        $this->billetera = $usdInicial;
         $this->qtyUsd = $this->usdInicial;
         $this->qtyToken = 0.0;
 
@@ -348,6 +351,20 @@ class Test
                     {
                         $hours[$hour]['apins'] = $price;
                         $apalancamientoInsuficiente[$aiKey]=$datetime;
+                        $orders[] = array('datetime'=>$datetime,
+                                      'side'=>'AP_INS',
+                                      'operacion'=>$operacion,
+                                      'qty'=>$qty,
+                                      'price'=>$price,
+                                      'usd'=>$price*$qty,
+                                      'qtyUsd'=>$this->qtyUsd,
+                                      'qtyToken'=>$this->qtyToken,
+                                      'compraNum'=>$compraNum,
+                                      'operaciones'=>$operaciones,
+                                      'comision'=>0,
+                                      'orderId'=>''
+                                      );
+
                     }
                 }
 
@@ -398,6 +415,19 @@ class Test
                         {
                             $hours[$hour]['apins'] = $price;
                             $apalancamientoInsuficiente[$aiKey]=$datetime;
+                            $orders[] = array('datetime'=>$datetime,
+                                        'side'=>'AP_INS',
+                                        'operacion'=>$operacion,
+                                        'qty'=>$qty,
+                                        'price'=>$price,
+                                        'usd'=>$price*$qty,
+                                        'qtyUsd'=>$this->qtyUsd,
+                                        'qtyToken'=>$this->qtyToken,
+                                        'compraNum'=>$compraNum,
+                                        'operaciones'=>$operaciones,
+                                        'comision'=>0,
+                                        'orderId'=>''
+                                        );
                         }
                     }
                 }
@@ -479,6 +509,7 @@ class Test
         $aTec = array(); //Analisis tecnico
 
         $this->usdInicial = $usdInicial;
+        $this->billetera = $usdInicial;
         $this->qtyUsd = $this->usdInicial;
         $this->qtyToken = 0.0;
 
@@ -632,7 +663,22 @@ class Test
                 {
                     $aiKey = str_replace('.','_',$price);
                     if (!isset($apalancamientoInsuficiente[$aiKey]))
+                    {
                         $apalancamientoInsuficiente[$aiKey]=$datetime;
+                        $orders[] = array('datetime'=>$datetime,
+                                      'side'=>'AP_INS',
+                                      'operacion'=>$operacion,
+                                      'qty'=>$qty,
+                                      'price'=>$price,
+                                      'usd'=>$price*$qty,
+                                      'qtyUsd'=>$this->qtyUsd,
+                                      'qtyToken'=>$this->qtyToken,
+                                      'compraNum'=>$compraNum,
+                                      'operaciones'=>$operaciones,
+                                      'comision'=>0,
+                                      'orderId'=>''
+                                      );
+                    }
                 }
 
             }
@@ -690,7 +736,22 @@ class Test
                     {
                         $aiKey = str_replace('.','_',$price);
                         if (!isset($apalancamientoInsuficiente[$aiKey]))
+                        {
                             $apalancamientoInsuficiente[$aiKey]=$datetime;
+                            $orders[] = array('datetime'=>$datetime,
+                                          'side'=>'AP_INS',
+                                          'operacion'=>$operacion,
+                                          'qty'=>$qty,
+                                          'price'=>$price,
+                                          'usd'=>$price*$qty,
+                                          'qtyUsd'=>$this->qtyUsd,
+                                          'qtyToken'=>$this->qtyToken,
+                                          'compraNum'=>$compraNum,
+                                          'operaciones'=>$operaciones,
+                                          'comision'=>0,
+                                          'orderId'=>''
+                                          );                        
+                        }
                     }
                 }
                 //Baja la orden de compra si esta en señal de venta
@@ -789,6 +850,7 @@ class Test
         $this->usdInicial = $usdInicial;
         $this->qtyUsd = $this->usdInicial;
         $this->qtyToken = 0.0;
+        $this->totalComprado = 0.0;
 
         $multiplicadorCompra = $prms['multiplicadorCompra'];
         $multiplicadorPorc = $prms['multiplicadorPorc']/100;
@@ -914,10 +976,11 @@ class Test
     function compra($qty,$price)
     {
         $usd = round($qty*$price,2);
-        if ($this->qtyUsd-$usd>0)
+        if ($this->qtyUsd-$usd>=0 && $this->totalComprado+$usd<=$this->billetera)
         {
             $this->qtyToken = toDec($this->qtyToken + $qty,$this->tokenDecUnits);
             $this->qtyUsd -= $usd;
+            $this->totalComprado += $usd;
             return $usd;
         }
         return null;
@@ -930,6 +993,7 @@ class Test
             $usd = toDec($qty*$price,2);
             $this->qtyToken = toDec($this->qtyToken - $qty,$this->tokenDecUnits);
             $this->qtyUsd += $usd;
+            $this->totalComprado = 0.0;
             return $usd;
         }
         return null;
@@ -939,5 +1003,6 @@ class Test
     {
         return date('U').'_'.rand(1000,9999);
     }
+
 
 }

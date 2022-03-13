@@ -95,7 +95,7 @@ class TestAjax extends ControllerAjax
         $fc->addRow(array('Ganancia Mensual Promedio','<strong>'.$gananciaMensualPromedio.'%'.'</strong>',
                           'Operaciones',$results['Operaciones'],
                           'Apalancamiento Insuficiente',count($results['apalancamientoInsuficiente']),
-                          'Maximo Apalancamiento',$results['maxCompraNum']));
+                          'Cantidad de compras Maxima',$results['maxCompraNum']));
 
         $dg = new HtmlTableDg();
         if (!empty($results['months']))
@@ -136,14 +136,16 @@ class TestAjax extends ControllerAjax
                                  $strOp,
                                  toDec($order['qty'],$results['tokenDecUnits']),
                                  toDec($order['price'],$results['tokenDecPrice']),
-                                 ($order['side']=='BUY'?'-':'').toDec($order['usd'],2),
+                                 ($order['side']!='SELL'?'-':'').toDec($order['usd'],2),
                                  toDec($order['qtyUsd'],2),
                                  toDec($order['qtyToken'],$results['tokenDecUnits']),
                                  toDec($order['comision'],2)
                                     );
-                    $classRow = 'text-success';
+                    $classRow = '';
                     if ($order['side']=='SELL')
                         $classRow = 'text-danger';
+                    elseif ($order['side']=='BUY')
+                        $classRow = 'text-success';
                     $dg->addRow($row,$classRow);
                 }
                 $this->ajxRsp->assign('orderlist','innerHTML',$dg->get());
