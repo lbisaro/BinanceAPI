@@ -26,7 +26,30 @@ $htmlStyle .= '</style>';
 
 switch ($parametro) {
     case 'apalancamiento':
-        include "crontab/crontab_apalancamiento.php";
+    
+        include_once MDL_PATH."bot/Operacion.php";
+
+        $lockFile = file_get_contents(LOCK_FILE);
+        if (!empty($lockFile))
+        {
+            $msg = 'Error - Bot Apalancamiento Bloqueado desde '.$lockFile;
+            Operacion::logBot($msg);
+        }
+        else
+        {
+            file_put_contents(LOCK_FILE, $procStart);
+            include "crontab/crontab_apalancamiento.php";
+            
+            /*
+            crontab_apalancamiento_post.php es para ejecutar cuestiones almacenadas 
+            en la tabla operacion_post gestionada desde Operacion.php
+            Operacion::tipoAccionesPost($key)
+            Operacion::getAccionesPost()
+            Operacion::addAccionesPost($idoperacion,$accion,$params)
+            */
+            //include "crontab/crontab_apalancamiento_post.php";
+        }
+        file_put_contents(LOCK_FILE, '');
         break;
     
     case 'arbitrajeTriangular':

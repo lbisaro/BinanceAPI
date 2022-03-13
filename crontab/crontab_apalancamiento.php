@@ -6,7 +6,6 @@ $procStart = date('Y-m-d H:i:s');
 $procStartU = microtime(true);
 file_put_contents(STATUS_FILE, $procStart);
 
-
 //Operacion::logBot('START');
 
 $usr = new UsrUsuario();

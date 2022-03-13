@@ -781,4 +781,84 @@ class Operacion extends ModelDB
         return $ds;
     }
 
+    function tipoAccionesPost($key)
+    {
+        $acc['VENTA_PARCIAL'] = array('idoperacionorden'=>true //orden a vender
+                                    );
+        return $acc[$key];
+    }    
+
+    function addAccionesPost($idoperacion,$accion,$params)
+    {
+        $accion = $this->tipoAccionesPost($accion);
+        if (!empty($accion))
+        {
+            $params_json = json_encode($params);
+            $ins = 'INSERT INTO operacion (idoperacion,accion,params_json,status,updated,done) VALUES ('.
+                   "'".$idoperacion."',".
+                   "'".strToUpper($accion)."',".
+                   "'".$params_json."',".
+                   "'Registrado',".
+                   "'".date('Y-m-d H:i:s')."',".
+                   "'0'".
+                   ")";
+            $this->db->query($ins);
+            return true;
+
+        }
+        return false;
+    }
+
+    function getAccionesPost()
+    {
+        $qry = 'SELECT * FROM operacion_post WHERE done = 0';
+        $stmt = $this->db->query($qry);
+        $acciones = array();
+        while ($rw = $stmt->fetch())
+        {
+            //Cargar parametros serializados en el registro de la DB
+            $prms = $rw['params_json'];
+            if (!empty($prms))
+                foreach ($prms as $k => $v)
+                    $rw[$k] = $v;
+
+            //Buscar informacion adicional de acuerdo a la accion
+            switch ($rw['accion']) {
+                case 'VENTA_PARCIAL':
+                    $idoperacion = $rw['idoperacion'];
+                    $idoperacionorden = $rw['idoperacionorden'];
+                    
+                    $qry = "SELECT operacion.*,
+                                   operacion_orden.* 
+                              FROM operacion_orden
+                              LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion
+                              WHERE operacion.idoperacion = '".$idoperacion."' AND completed = 0
+                              ORDER BY price";
+                    $stmt2 = $this->db->query($qry);
+                    while ($rw2 = $stmt2->fetch())
+                    {
+                        $rw['idusuario'] = $rw2['idusuario'];
+                        $rw['symbol'] = $rw2['symbol'];
+                        $rw['ordenes'][$rw2['idoperacionorden']] = array(
+                                                 'idoperacionorden'=>$rw2['idoperacionorden'],
+                                                 'side'=>$rw2['side'],
+                                                 'status'=>$rw2['status'],
+                                                 'origQty'=>$rw2['origQty'],
+                                                 'price'=>$rw2['price'],
+                                                 'orderId'=>$rw2['orderId'],
+                                                 );
+                    }
+                    break;
+                
+                default:
+                    # code...
+                    break;
+            }
+            //switch por tipo de accion
+            //Buscar info de la operacion, operacion_orden y usuario y agregar datos al $rw
+
+            $acciones[] = $rw;
+        }
+        return $acciones;
+    }
 }
