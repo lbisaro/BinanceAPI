@@ -116,7 +116,7 @@ class TestController extends Controller
         $arr['resultado'] = 'Completar los campos y hacer clic en el boton Analizar';
         $arr['hidden'] = '';
     
-        $this->addView('test/testAPL',$arr);
+        $this->addView('test/testAT',$arr);
     }
     
     
