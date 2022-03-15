@@ -191,7 +191,7 @@
 
                 precio = (parseFloat(precio)*(parseFloat(1-(psuc/100))));
                 
-                psci = ((parseFloat(symbolPrice)/parseFloat(precio))-1)*100;
+                psci = ((parseFloat(precio)/parseFloat(symbolPrice))-1)*100;
 
                 compraUsd = parseFloat(compraUsd)*parseFloat(m_compra);
 
