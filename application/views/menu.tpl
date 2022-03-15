@@ -55,10 +55,12 @@
         </li>        
         <li class="nav-item">
           <a class="nav-link rounded" href="app.Bot.estadisticas+"><span class="glyphicon glyphicon-signal"></span> Estadisticas</a>
-        </li>        
+        </li>   
+        <!--     
         <li class="nav-item menu-admin">
           <a class="nav-link rounded" href="app.Cripto.compararPorcentaje+"><span class="glyphicon glyphicon-sort"></span> Compara %</a>
-        </li>        
+        </li>  
+        -->      
         <li class="nav-item">
           <a class="nav-link rounded" href="app.bot.operaciones+"><span class="glyphicon glyphicon-modal-window"></span> Bot</a>
         </li>        

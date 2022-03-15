@@ -104,27 +104,18 @@
 
 		  <div class="form-group">
 			<label for="porcVentaUp">Porcentaje de venta inicial/palanca</label>
-			<div class="input-group mb-2">
-			  <select id="porcVentaUp" class="form-control" >
-				  <option value="1.15">1.15%</option>
-				  <option value="1.5">1.50%</option>
-				  <option value="1.75">1.75%</option>
-				  <option value="2" SELECTED>2.00%</option>
-				  <option value="2.5">2.50%</option>
-				  <option value="3">3.00%</option>
-				  <option value="4">4.00%</option>
-			  </select>
-			  <select id="porcVentaDown" class="form-control" >
-				  <option value="1.15">1.15%</option>
-				  <option value="1.25">1.25%</option>
-				  <option value="1.5">1.50%</option>
-				  <option value="1.75" SELECTED>1.75%</option>
-				  <option value="2">2.00%</option>
-				  <option value="2.5">2.50%</option>
-				  <option value="3">3.00%</option>
-				  <option value="4">4.00%</option>
-			  </select>
-			</div>
+            <div class="input-group mb-2">
+              <input type="text" class="form-control" id="porcVentaUp"  value="" placeholder="1.15/5.00">
+              <div class="input-group-append">
+                <div class="input-group-text">%</div>
+              </div>
+              &nbsp;
+              <input type="text" class="form-control" id="porcVentaDown"  value="" placeholder="1.15/5.00">
+              <div class="input-group-append">
+                <div class="input-group-text">%</div>
+              </div>
+            </div>
+
 		  </div>
 
 		</div>
@@ -217,17 +208,19 @@
             
         }
 
-        if (SERVER_ENTORNO == 'Test')
-            setDefaultValues();
+        setDefaultValues();
 	});
 
     function setDefaultValues()
     {
-        $('#usdInicial').val(1000);
-        $('#compraInicial').val(100);
-        $('#multiplicadorPorc').val(2.75);
-        $('#multiplicadorCompra').val(1.75);
-        $('#symbol option[value="MATICUSDT"]').attr('selected',true);
+        $('#usdInicial').val('1010');
+        $('#compraInicial').val('100');
+        $('#multiplicadorCompra').val('1.75');
+        $('#multiplicadorPorc').val('2.75');
+        $('#porcVentaUp').val('1.75');
+        $('#porcVentaDown').val('2.0');
+        if (SERVER_ENTORNO == 'Test')
+            $('#symbol option[value="MATICUSDT"]').attr('selected',true);
 
     }
 
