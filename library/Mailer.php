@@ -21,6 +21,7 @@ class Mailer extends phpmailer
 
     public $FromName   = 'Bisaro Cripto';
   
+/**
     public $From       = 'lbisaro@outlook.com.ar';
     public $SMTPSecure = "STARTTLS";                 
     public $Port       = "587";              
@@ -28,15 +29,15 @@ class Mailer extends phpmailer
     public $Host       = "smtp.office365.com";
     public $Username   = "lbisaro@outlook.com.ar"; 
     public $Password   = "Fmn361612@";         
-/**
+    */
 
     public $From       = 'criptalknode@gmail.com';
+    public $SMTPAuth   = true;
     public $SMTPSecure = "tls";                 // sets the prefix to the server
     public $Host       = "smtp.gmail.com";      // sets GMAIL as the SMTP server
     public $Port       = 587;                   // set the SMTP port for the GMAIL server
     public $Username   = "criptalknode@gmail.com";  // GMAIL username
     public $Password   = "Criptalk2021";
-    */
     
 
     function __Contruct()
