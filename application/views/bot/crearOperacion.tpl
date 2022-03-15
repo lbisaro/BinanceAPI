@@ -178,7 +178,7 @@
                 table = table + '<td>#'+i+'</td>';
                 table = table + '<td>'+toDec(precio)+'</td>';
                 table = table + '<td class="text-danger">'+(psuc!=0?'-':'')+format_number(psuc,2)+'%</td>';
-                table = table + '<td class="text-danger">'+(psci!=0?'-':'')+format_number(psci,2)+'%</td>';
+                table = table + '<td class="text-danger">'+format_number(psci,2)+'%</td>';
                 table = table + '<td>'+format_number(compraUsd,2)+'</td>';
                 table = table + '<td>'+format_number(totalCompra,2)+'</td>';
                 table = table + '<td class="text-success">'+venta+'</td>';
