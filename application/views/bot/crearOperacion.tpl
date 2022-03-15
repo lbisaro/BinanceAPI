@@ -161,7 +161,7 @@
                 <tbody>
                 `;
             
-            symbolPrice = 50;
+            symbolPrice = 100;
             symbolDecs = 2;
             precio = format_number(symbolPrice,symbolDecs);
             psuc = 0;
@@ -175,8 +175,8 @@
             while (totalCompra<=capital_usd)
             {
                 table = table + '<tr>';
-                table = table + '<td>#'+toDec(precio)+'</td>';
                 table = table + '<td>#'+i+'</td>';
+                table = table + '<td>'+toDec(precio)+'</td>';
                 table = table + '<td class="text-danger">'+(psuc!=0?'-':'')+format_number(psuc,2)+'%</td>';
                 table = table + '<td class="text-danger">'+(psci!=0?'-':'')+format_number(psci,2)+'%</td>';
                 table = table + '<td>'+format_number(compraUsd,2)+'</td>';
