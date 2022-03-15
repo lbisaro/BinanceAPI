@@ -34,7 +34,6 @@ switch ($parametro) {
         {
             $msg = 'Error - Bot Apalancamiento Bloqueado desde '.$lockFile;
             Operacion::logBot($msg);
-            include "crontab/crontab_mailer.php";
         }
         else
         {
