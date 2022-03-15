@@ -23,37 +23,41 @@ class BotController extends Controller
         
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped');
         $dg->addHeader('Moneda');
-        $dg->addHeader('Cantidad de USD compra inicial',null,null,'center');
-        $dg->addHeader('Multiplicador Compras',null,null,'center');
-        $dg->addHeader('Multiplicador Porcentajes',null,null,'center');
+        $dg->addHeader('Capital',null,null,'center');
+        $dg->addHeader('Compra inicial',null,null,'center');
+        $dg->addHeader('Multiplicadores',null,null,'center');
         $dg->addHeader('Porcentaje de venta',null,null,'center');
         $dg->addHeader('Estado',null,null,'center');
         $dg->addHeader('Recompra Automatica',null,null,'center');
 
-        foreach ($ds as $rw)
+        if (!empty($ds))
         {
-            $opr->reset();
-            $opr->set($rw);
-            $link = '<a class="" href="'.Controller::getLink('app','bot','verOperacion','id='.$opr->get('idoperacion')).'">'.$opr->get('symbol').'</a>';
-            $autoRestart = '<span class="glyphicon glyphicon-'.($opr->autoRestart()?'ok text-success':'ban-circle text-danger').'"></span>';
-            $compras = $opr->get('compras');
-            if ($compras < 1)
-                $strCompras = '';
-            else
-                $strCompras = ' <br/>Compras x '.$compras;
-            $data = array($link,
-                          $opr->get('inicio_usd'),
-                          $opr->get('multiplicador_compra'),
-                          $opr->get('multiplicador_porc').
-                                     ($opr->get('multiplicador_porc_inc')?' Incremental':''),
-                          $opr->get('strPorcVenta'),
-                          $opr->get('strEstado').$strCompras,
-                          $autoRestart
-                          );
-            if ($rw['ordenesActivas']>0)
-                $dg->addRow($data);
-            else
-                $inactivas[] = $data;
+            foreach ($ds as $rw)
+            {
+                $opr->reset();
+                $opr->set($rw);
+                $link = '<a class="" href="'.Controller::getLink('app','bot','verOperacion','id='.$opr->get('idoperacion')).'">'.$opr->get('symbol').'</a>';
+                $autoRestart = '<span class="glyphicon glyphicon-'.($opr->autoRestart()?'ok text-success':'ban-circle text-danger').'"></span>';
+                $compras = $opr->get('compras');
+                if ($compras < 1)
+                    $strCompras = '';
+                else
+                    $strCompras = ' <br/>Compras x '.$compras;
+                $data = array($link,
+                              $opr->get('capital_usd'),
+                              $opr->get('inicio_usd'),
+                              'x'.$opr->get('multiplicador_compra').' / '.
+                              $opr->get('multiplicador_porc').'% '.
+                                         ($opr->get('multiplicador_porc_inc')?' Inc':''),
+                              $opr->get('strPorcVenta'),
+                              $opr->get('strEstado').$strCompras,
+                              $autoRestart
+                              );
+                if ($rw['ordenesActivas']>0)
+                    $dg->addRow($data);
+                else
+                    $inactivas[] = $data;
+            }
         }
         if (!empty($inactivas))
         {
@@ -93,6 +97,7 @@ class BotController extends Controller
         }
 
         $arr['symbol'] = $opr->get('symbol');
+        $arr['capital_usd'] = $opr->get('capital_usd');
         $arr['inicio_usd'] = $opr->get('inicio_usd');
         $arr['multiplicador_compra'] = $opr->get('multiplicador_compra');
         $arr['multiplicador_porc'] = $opr->get('multiplicador_porc');
@@ -135,6 +140,7 @@ class BotController extends Controller
         $link = $this->__selectOperacion($idoperacion,'app.bot.verOperacion+id=');
         $arr['idoperacion'] = $idoperacion;
         $arr['symbolSelector'] = $link;
+        $arr['capital_usd'] = 'USD '.$opr->get('capital_usd');
         $arr['inicio_usd'] = 'USD '.$opr->get('inicio_usd');
         $arr['multiplicador_compra'] = $opr->get('multiplicador_compra');
         $arr['multiplicador_porc'] = $opr->get('multiplicador_porc').'%'.
@@ -145,8 +151,13 @@ class BotController extends Controller
         $status = $opr->status();
         if ($status==Operacion::OP_STATUS_APALANCAOFF)
             $arr['estado'] .= '<br/><a class="btn btn-sm btn-warning" href="'.Controller::getLink('app','bot','resolverApalancamiento','id='.$idoperacion).'">Resolver Apalancamiento</a>';
+        elseif ($status==Operacion::OP_STATUS_STOP_CAPITAL)
+            $arr['estado'] .= '<br/><a class="btn btn-sm btn-info" href="'.Controller::getLink('app','bot','resolverApalancamiento','id='.$idoperacion).'&msg=addCompra">Agregar Apalancamiento</a>';
         if ($status==Operacion::OP_STATUS_READY)
-            $arr['crearOrdenDeCompra_btn'] .= '<br/><a class="btn btn-sm btn-success" href="'.Controller::getLink('app','bot','crearOrdenDeCompra','id='.$idoperacion).'">Crear Nueva Orden de Compra</a>';
+        {
+            $arr['crearOrdenDeCompra_btn'] .= '<br/><a class="btn btn-sm btn-success" href="'.Controller::getLink('app','bot','crearOrdenDeCompra','id='.$idoperacion).'">Crear Nueva Orden de Compra LIMIT</a>';
+            $arr['start_btn'] .= '&nbsp;<button class="btn btn-sm btn-success" onclick="startOperacion();">Crear Nueva Orden de Compra MARKET</button>';
+        }
 
         //if ($status==Operacion::OP_STATUS_VENTAOFF)
         //    $arr['estado'] .= '<br/><a class="btn btn-sm btn-danger" href="'.Controller::getLink('app','bot','resolverVenta','id='.$idoperacion).'">Resolver Venta</a>';
@@ -589,7 +600,7 @@ class BotController extends Controller
         $scandir = scandir($folder,SCANDIR_SORT_DESCENDING);
         foreach ($scandir as $file)
         {
-            if ($file != '.' && $file != '..' && $file != 'status.log')
+            if ($file != '.' && $file != '..' && $file != 'status.log' && $file != 'lock.status')
             {
                 $logFiles[] = $file;
             }
@@ -659,7 +670,10 @@ class BotController extends Controller
     function resolverApalancamiento($auth)
     {
         $idoperacion = $_REQUEST['id'];
-        $this->addTitle('Resolver Apalancamiento Operacion #'.$idoperacion);
+        if ($_REQUEST['msg']=='addCompra')
+            $this->addTitle('Agregar Apalancamiento Operacion #'.$idoperacion);
+        else
+            $this->addTitle('Resolver Apalancamiento Operacion #'.$idoperacion);
 
         $opr = new Operacion($idoperacion);
 
@@ -817,7 +831,7 @@ class BotController extends Controller
         $arr['ordenesActivas'] = $dgA->get();
         $arr['idoperacion'] = $opr->get('idoperacion');
 
-        if ($opr->status() == Operacion::OP_STATUS_APALANCAOFF)
+        if ($opr->status() == Operacion::OP_STATUS_APALANCAOFF || $opr->status() == Operacion::OP_STATUS_STOP_CAPITAL)
             $arr['addButtons'] = '<button class="btn btn-warning btn-block" onclick="resolverApalancamiento();">Crear una nueva Orden de Compra LIMIT</button>';
         else
             $arr['addButtons'] = '<div class="alert alert-danger">No es posible resolver el apalancamiento debido a que el estado de la orden no es valido para la operacion.</div>';

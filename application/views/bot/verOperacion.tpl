@@ -17,14 +17,19 @@
   <table class="table table-borderless">
     <tr>
       <td>{{symbolSelector}}</td>
-      <td>Cantidad de USD compra inicial 
-        <span class="data">{{inicio_usd}}</span></td>
       <td style="text-align: right;">
         {{addButtons}}
         <a class="btn btn-info btn-sm" href="app.bot.auditarOrdenes+id={{idoperacion}}">Auditar Ordenes</a>
         <a class="btn btn-info btn-sm" href="app.bot.editarOperacion+id={{idoperacion}}">Modificar</a>
         <a class="btn btn-info btn-sm" href="app.bot.revisarEstrategia+id={{idoperacion}}">Grafica</a>
         </td>
+    </tr>
+    <tr>
+      <td>Capital 
+        <span class="data">{{capital_usd}}</span></td>
+      <td>Compra inicial 
+        <span class="data">{{inicio_usd}}</span></td>
+      
     </tr>
     <tr>
       <td>Multiplicador Compras 
@@ -70,6 +75,7 @@
 <div class="container tabs" id="ordenesActivas">
     {{ordenesActivas}}
     {{crearOrdenDeCompra_btn}}
+    {{start_btn}}
 </div>
 <div class="container tabs" id="ordenesCompletas">
     {{ordenesCompletas}}
@@ -132,6 +138,11 @@
         $('.tabs').hide();
         $('#'+id).show();
         $('#tab_'+id+' a').addClass('active');
+    }
+
+    function startOperacion()
+    {
+        CtrlAjax.sendCtrl("app","bot","start");
     }
 
 </script>

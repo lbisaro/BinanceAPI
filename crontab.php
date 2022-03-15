@@ -34,6 +34,7 @@ switch ($parametro) {
         {
             $msg = 'Error - Bot Apalancamiento Bloqueado desde '.$lockFile;
             Operacion::logBot($msg);
+            include "crontab/crontab_mailer.php";
         }
         else
         {
@@ -48,8 +49,10 @@ switch ($parametro) {
             Operacion::addAccionesPost($idoperacion,$accion,$params)
             */
             //include "crontab/crontab_apalancamiento_post.php";
+            
+            file_put_contents(LOCK_FILE, '');
         }
-        file_put_contents(LOCK_FILE, '');
+        Operacion::cleanLog();
         break;
     
     case 'arbitrajeTriangular':

@@ -1,9 +1,14 @@
 <script language="javascript" >
 
+    {{server_entorno}}
+
     $(document).ready( function () {
 
         //jsMenuAdmin
         {{jsMenuAdmin}}
+
+        
+        
     
     });
 

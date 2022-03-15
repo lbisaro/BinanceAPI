@@ -217,7 +217,8 @@
             
         }
 
-        setDefaultValues();
+        if (SERVER_ENTORNO == 'Test')
+            setDefaultValues();
 	});
 
     function setDefaultValues()

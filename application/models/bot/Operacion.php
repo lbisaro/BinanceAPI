@@ -25,13 +25,14 @@ class Operacion extends ModelDB
     const SIDE_SELL = 1;
 
     //Operacion status
-    const OP_STATUS_ERROR       = 1;
-    const OP_STATUS_READY       = 10;
-    const OP_STATUS_OPEN        = 20;
-    const OP_STATUS_APALANCAOFF = 30;
-    const OP_STATUS_WAITING     = 40;
-    const OP_STATUS_VENTAOFF    = 50;
-    const OP_STATUS_COMPLETED   = 90;
+    const OP_STATUS_ERROR        = 1;
+    const OP_STATUS_READY        = 10;
+    const OP_STATUS_OPEN         = 20;
+    const OP_STATUS_APALANCAOFF  = 30;
+    const OP_STATUS_STOP_CAPITAL = 31;
+    const OP_STATUS_WAITING      = 40;
+    const OP_STATUS_VENTAOFF     = 50;
+    const OP_STATUS_COMPLETED    = 90;
 
     //Order status
     const OR_STATUS_NEW = 0;
@@ -126,10 +127,16 @@ class Operacion extends ModelDB
             $err[] = 'Se debe especificar un Symbol';
         if ($this->data['inicio_usd']<=0)
             $err[] = 'Se debe especificar un importe de compra inicial en USD';
+        if ($this->data['capital_usd'] < $this->data['inicio_usd'])
+            $err[] = 'El capital destinado a la operacion debe ser mayor o igual a la compra inicial';
         if ($this->data['multiplicador_compra']<1 || $this->data['multiplicador_compra']>2.5 )
             $err[] = 'Se debe especificar un multiplicador de compra entre 1 y 2.5';
         if ($this->data['multiplicador_porc']<1 || $this->data['multiplicador_porc']>10 )
             $err[] = 'Se debe especificar un multiplicador de porcentaje entre 1 y 10';
+        if ($this->data['porc_venta_up']<1 || $this->data['porc_venta_up']>10 )
+            $err[] = 'Se debe especificar un porcentaje de venta inicial entre 1 y 10';
+        if ($this->data['porc_venta_down']<1 || $this->data['porc_venta_down']>10 )
+            $err[] = 'Se debe especificar un porcentaje de venta palanca entre 1 y 10';
 
         if (!$this->data['idusuario'])
         {
@@ -185,13 +192,14 @@ class Operacion extends ModelDB
 
     function getTipoStatus($id='ALL')
     {
-        $arr[self::OP_STATUS_ERROR]         = 'Error';
-        $arr[self::OP_STATUS_READY]         = 'Lista para iniciar';
-        $arr[self::OP_STATUS_OPEN]          = 'Abierta - Esperando confirmar compra';
-        $arr[self::OP_STATUS_APALANCAOFF]   = 'En curso - Apalancamiento insuficiente';
-        $arr[self::OP_STATUS_WAITING]       = 'En curso';
-        $arr[self::OP_STATUS_VENTAOFF]      = 'En curso - Sin orden de venta';
-        $arr[self::OP_STATUS_COMPLETED]     = 'Completa';
+        $arr[self::OP_STATUS_ERROR]          = 'Error';
+        $arr[self::OP_STATUS_READY]          = 'Lista para iniciar';
+        $arr[self::OP_STATUS_OPEN]           = 'Abierta - Esperando confirmar compra';
+        $arr[self::OP_STATUS_APALANCAOFF]    = 'En curso - Apalancamiento insuficiente';
+        $arr[self::OP_STATUS_STOP_CAPITAL]   = 'En curso - Stop por Limite de Capital';
+        $arr[self::OP_STATUS_WAITING]        = 'En curso';
+        $arr[self::OP_STATUS_VENTAOFF]       = 'En curso - Sin orden de venta';
+        $arr[self::OP_STATUS_COMPLETED]      = 'Completa';
 
         if ($id=='ALL')
             return $arr;
@@ -228,19 +236,32 @@ class Operacion extends ModelDB
         $openSell = 0;
         $closedBuy = 0;
         $closedSell = 0;
+        $totalBuyed = 0;
+        $lastUsdBuyed = 0; 
+        $lastBuyPrice = 0;
 
         $qty = 0;
         while ($rw = $stmt->fetch())
         {
             $qty++;
             if ($rw['side'] == self::SIDE_BUY && $rw['status'] == self::OR_STATUS_NEW)
+            {
                 $openBuy++;
+            }
             if ($rw['side'] == self::SIDE_BUY && $rw['status'] == self::OR_STATUS_FILLED)
+            {
+                $totalBuyed += ($rw['origQty']*$rw['price']);
+                $lastUsdBuyed = ($rw['origQty']*$rw['price']);
                 $closedBuy++;
+            }
             if ($rw['side'] == self::SIDE_SELL && $rw['status'] == self::OR_STATUS_NEW)
+            {
                 $openSell++;
+            }
             if ($rw['side'] == self::SIDE_SELL && $rw['status'] == self::OR_STATUS_FILLED)
+            {
                 $closedSell++;
+            }
         }
 
         //Prepara un binario para definir el estado
@@ -265,6 +286,18 @@ class Operacion extends ModelDB
         $arr['1101'] = self::OP_STATUS_ERROR;
         $arr['1110'] = self::OP_STATUS_WAITING;
         $arr['1111'] = self::OP_STATUS_ERROR;
+
+
+        //Control sobre APALANCAMIENTO INSUFICIENTE vs LIMITE DE CAPITAL
+        if ($this->data['capital_usd']>0)
+        {
+            $totalBuyed = toDec($totalBuyed);
+            $nextBuy = $lastUsdBuyed*$this->data['multiplicador_compra'];
+            if (($totalBuyed+$nextBuy)>$this->data['capital_usd'])
+                 $arr['0110'] = self::OP_STATUS_STOP_CAPITAL;
+            
+        }
+
 
         $this->binStatus = $bin;
 
@@ -312,7 +345,13 @@ class Operacion extends ModelDB
         if (!$this->data['idoperacion'])
             return false;
         if (!$this->canStart())
+        {
+            if (!$this->data['auto_restart'])
+                $this->errLog->add('No es posible iniciar la operacion - La recompra automatica se encuentra bloqueada.');
+            else
+                $this->errLog->add('No es posible iniciar la operacion');
             return false;
+        }
 
         $symbol = $this->data['symbol'];
         if ($this->data['idusuario'])
@@ -682,6 +721,20 @@ class Operacion extends ModelDB
         file_put_contents($logFile, $msg,FILE_APPEND);
         if ($echo)  
             echo $msg; 
+    }
+
+    static function cleanLog()
+    {
+        $folder = LOG_PATH.'bot/';
+        $logFiles=array();
+        $errorFiles=array();
+
+        $scandir = scandir($folder,SCANDIR_SORT_DESCENDING);
+        foreach ($scandir as $file)
+        {
+            if (substr($file,0,4) == 'bot_' && $file < 'bot_'.date('Ymd',strtotime('-1 month')).'.log')
+                unlink($folder.$file);
+        }
     }
 
     function delete()

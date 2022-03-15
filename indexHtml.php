@@ -67,6 +67,7 @@ if (!$isLogScrn )
     if ($auth->get('idperfil') != UsrUsuario::USUARIO_ADM)
         $arr['jsMenuAdmin'] = " $('.menu-admin').remove(); ";
     $arr['title']=str_replace($baseTitle.' - ','',$controller->getTitle());
+    $arr['server_entorno'] = "var SERVER_ENTORNO = '".SERVER_ENTORNO."';";
     echo $view->get($arr);
 
 }

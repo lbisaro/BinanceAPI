@@ -132,12 +132,11 @@ foreach ($usuarios as $idusuario => $usuarioData)
                 $msg = ' ORDEN DE '.strtoupper($strSide).' CANCELADA EN BINANCE (orderId = '.$orderId.')';
                 Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
                 $opr->deleteOrder($orderId);
+                $opr->status();
             }
         }
         if ($ordenEliminadaEnBinance)
             continue;
-
-
         
         if ($data['update'])
         {
@@ -263,9 +262,25 @@ foreach ($usuarios as $idusuario => $usuarioData)
                     $newPrice = toDec($lastBuyPrice - ( ($lastBuyPrice * $multiplicador_porc) / 100 ),$symbolData['qtyDecsPrice']);
                     $newQty = toDec(($newUsd/$newPrice),($symbolData['qtyDecs']*1));
         
-                    if ($newUsd < $usdFreeToBuy) //Hay billetera para comprar
+                    /* Condiciones para crear orden de compra
+                        El total comprado no supera capital_usd de la operacion
+                        Hay billetera para comprar
+                    */
+                    if ($opr->get('capital_usd')>0 && ($totUsdBuyed+$newUsd) > $opr->get('capital_usd'))
                     {
-                        $msg = ' Buy -> Qty:'.$newQty.' Price:'.$newPrice.' USD:'.toDec($newPrice).' -'.$multiplicador_porc.'%';
+                        $msg = ' Stop -> LIMITE DE CAPITAL '.$opr->get('capital_usd').' USD -> Qty:'.$newQty.' Price:'.$newPrice.' Total USD:'.($totUsdBuyed+$newUsd);
+                        Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.'  '.$msg);
+                        //Se omite la compra por superar el limite de capital de la operacion (si esta seteado)
+                        //No se agrega al Log para no generar cantidad de registros sin sentido
+                    }
+                    elseif ($newUsd > $usdFreeToBuy)
+                    {
+                        $msg = ' Stop -> APALANCAMIENTO INSUFICIENTE '.$strControlUsdFreeToBuy.' USD -> Qty:'.$newQty.' Price:'.$newPrice;
+                        Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
+                    }
+                    else
+                    {
+                        $msg = ' Buy -> Qty:'.$newQty.' Price:'.$newPrice.' USD:'.toDec($newUsd).' -'.$multiplicador_porc.'%';
                         Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
 
                         try {
@@ -281,11 +296,6 @@ foreach ($usuarios as $idusuario => $usuarioData)
                             Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
                             $errorEnOrden = true;
                         }
-                    }
-                    else
-                    {
-                        $msg = ' Buy -> Qty:'.$newQty.' Price:'.$newPrice.' APALANCAMIENTO INSUFICIENTE '.$strControlUsdFreeToBuy;
-                        Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
                     }
                 }
 

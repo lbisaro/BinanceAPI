@@ -157,8 +157,6 @@ class BotAjax extends ControllerAjax
         $data = $api->getSymbolData($symbol);
         
         echo json_encode($data);
-        
-    
     }
 
     function crearOperacion()
@@ -170,6 +168,7 @@ class BotAjax extends ControllerAjax
 
         $arrToSet['symbol'] = $_REQUEST['symbol'];
         $arrToSet['inicio_usd'] = $_REQUEST['inicio_usd'];
+        $arrToSet['capital_usd'] = $_REQUEST['capital_usd'];
         $arrToSet['multiplicador_porc'] = $_REQUEST['multiplicador_porc'];
         $arrToSet['multiplicador_porc_inc'] = ($_REQUEST['multiplicador_porc_inc']?1:0);
         $arrToSet['multiplicador_compra'] = $_REQUEST['multiplicador_compra'];
@@ -206,6 +205,7 @@ class BotAjax extends ControllerAjax
         $as = $auth->getConfig('bncas');
         $api = new BinanceAPI($ak,$as);
 
+        $arrToSet['capital_usd'] = $_REQUEST['capital_usd'];
         $arrToSet['inicio_usd'] = $_REQUEST['inicio_usd'];
         $arrToSet['multiplicador_porc'] = $_REQUEST['multiplicador_porc'];
         $arrToSet['multiplicador_compra'] = $_REQUEST['multiplicador_compra'];
@@ -286,6 +286,7 @@ class BotAjax extends ControllerAjax
 
         $content = str_ireplace('Buy ','<b class="badge badge-success">BUY </b>',$content);
         $content = str_ireplace('Sell ','<b class="badge badge-danger">SELL </b>',$content);
+        $content = str_ireplace('Stop ','<b class="badge badge-warning">STOP </b>',$content);
         $content = str_ireplace('PENDIENTE DE ELIMINAR ','<b class="badge badge-warning">PENDIENTE DE ELIMINAR </b>',$content);
         $content = str_ireplace('START ORDER ','<b class="badge badge-info">START ORDER </b>',$content);
         if (!empty($content))

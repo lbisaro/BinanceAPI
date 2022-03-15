@@ -6,14 +6,25 @@
 <div class="container">
 
   <div class="row">
-    <div class="col3">
+    <div class="col4">
+      <h5>Configuracion de la operacion</h5>
       <div class="form-group">
         <label for="symbol">Moneda</label>
         <input type="text" class="form-control" id="symbol" onchange="validSymbol()" placeholder="xxxUSDT">
       </div>
 
       <div class="form-group">
-        <label for="inicio_usd">Cantidad de USD compra inicial</label>
+        <label for="inicio_usd">Capital</label>
+        <div class="input-group mb-2">
+            <div class="input-group-prepend">
+                <div class="input-group-text">USD</div>
+            </div>
+            <input type="text" class="form-control" id="capital_usd" onchange="refreshTable()" placeholder="0.000">
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label for="inicio_usd">Compra inicial</label>
         <div class="input-group mb-2">
             <div class="input-group-prepend">
                 <div class="input-group-text">USD</div>
@@ -30,7 +41,7 @@
         <label for="multiplicador_porc">Multiplicador Porcentajes</label>
         <div class="input-group mb-2">
           <input type="text" class="form-control" id="multiplicador_porc"  onchange="refreshTable()" placeholder="Recomendado 2.70 a 4.50">
-          <div class="input-group-prepend">
+          <div class="input-group-append">
             <div class="input-group-text">%</div>
           </div>
         </div>
@@ -49,37 +60,16 @@
       <div class="form-group">
         <label for="porc_venta_up">Porcentaje de venta inicial/palanca</label>
         <div class="input-group mb-2">
-          <select id="porc_venta_up" class="form-control" onchange="refreshTable()" >
-              <option value="1.15">1.15%</option>
-              <option value="1.5">1.50%</option>
-              <option value="1.75">1.75%</option>
-              <option value="2">2.00%</option>
-              <option value="2.5">2.50%</option>
-              <option value="3">3.00%</option>
-              <option value="4">4.00%</option>
-              <option value="5">5.00%</option>
-              <option value="6">6.00%</option>
-              <option value="7">7.00%</option>
-              <option value="8">8.00%</option>
-              <option value="9">9.00%</option>
-              <option value="10">10.00%</option>
-          </select>
-          <select id="porc_venta_down" class="form-control" onchange="refreshTable()" >
-              <option value="1.15">1.15%</option>
-              <option value="1.25">1.25%</option>
-              <option value="1.5">1.50%</option>
-              <option value="1.75">1.75%</option>
-              <option value="2">2.00%</option>
-              <option value="2.5">2.50%</option>
-              <option value="3">3.00%</option>
-              <option value="4">4.00%</option>
-              <option value="5">5.00%</option>
-              <option value="6">6.00%</option>
-              <option value="7">7.00%</option>
-              <option value="8">8.00%</option>
-              <option value="9">9.00%</option>
-              <option value="10">10.00%</option>
-          </select>
+          <input type="text" class="form-control" id="porc_venta_up"  onchange="refreshTable()" placeholder="Recomendado 1.15 a 5.00">
+          <div class="input-group-append">
+            <div class="input-group-text">%</div>
+          </div>
+        </div>
+        <div class="input-group mb-2">
+          <input type="text" class="form-control" id="porc_venta_down"  onchange="refreshTable()" placeholder="Recomendado 1.15 a 5.00">
+          <div class="input-group-append">
+            <div class="input-group-text">%</div>
+          </div>
         </div>
       </div>
 
@@ -90,10 +80,7 @@
 
 
       <div class="col">
-        Referencia sobre la operacion
-        <h6 cass=""text-info">
-          Precio de referencia aproximado: <span class="data">USD</span> <span id="symbolPrice" class="data">0.00</span>
-        </h6>
+        <h5>Referencia sobre la operacion</h5>
         <div class="container" id="oprTable"></div>
       </div>
 
@@ -106,25 +93,11 @@
     
     $(document).ready( function () {
         $('#btnAddOperacion').hide();
-        $('#porc_venta_up option').each( function () {
-            if ($(this).val() == {{PORCENTAJE_VENTA_UP}})
-            {
-                $(this).html(toDec({{PORCENTAJE_VENTA_UP}})+'% Default');
-                $(this).attr('SELECTED',true);
-            }
-        });
-        $('#porc_venta_down option').each( function () {
-            if ($(this).val() == {{PORCENTAJE_VENTA_DOWN}})
-            {
-                $(this).html(toDec({{PORCENTAJE_VENTA_DOWN}})+'% Default');
-                $(this).attr('SELECTED',true);
-            }
-        });
+
+        if (SERVER_ENTORNO == 'Test')
+            setDefaultValues();
 
     });
-
-    var symbolPrice = 0;
-    var symbolDecs = 0;
 
     function validSymbol()
     {
@@ -133,11 +106,13 @@
             $.getJSON('app.BotAjax.symbolData+symbol='+$('#symbol').val(), function( data ) {
                 if (data.symbol)
                 {
-                    console.log(data);
+                    if (data.baseAsset == 'BNB')
+                    {
+                        alert('No es posible operar BNB dado que esa moneda se utiliza para la gestion de comisiones.');
+                        return false;                        
+                    }
                     $('#symbol').val(data.symbol);
                     $('#symbol').addClass('text-success');
-                    symbolPrice = data.price*1;
-                    symbolDecs = data.qtyDecsPrice*1;
                     $('#btnAddOperacion').show();
                     return true;
                 }
@@ -161,21 +136,20 @@
 
     function refreshTable()
     {
-        $('#symbolPrice').html(symbolPrice);
+        var capital_usd = $('#capital_usd').val();
         var inicio_usd = $('#inicio_usd').val();
         var m_compra = $('#multiplicador_compra').val();
         var m_porc = $('#multiplicador_porc').val();
         var m_porc_inc = $('#multiplicador_porc_inc option:selected ').val();
         var table = '';
         
-        if (symbolPrice && inicio_usd>0 && m_compra>0 && m_porc>0)
+        if (capital_usd>0 && inicio_usd>0 && m_compra>0 && m_porc>0)
         {
 
             table = `<table class="table">
                 <thead>
                     <tr>
                         <th>&nbsp;</th>
-                        <th>Precio</th>
                         <th>% Sobre ultima compra </th>
                         <th>% Sobre compra Inicial</th>
                         <th>Compra USD</th>
@@ -186,21 +160,23 @@
                 <tbody>
                 `;
             
+            symbolPrice = 50;
+            symbolDecs = 2;
             precio = format_number(symbolPrice,symbolDecs);
             psuc = 0;
             psci = 0;
-            compraUsd = inicio_usd;
+            compraUsd = inicio_usd*1;
             totalCompra = compraUsd;
-            venta = '+'+toDec($('#porc_venta_up option:selected').val())+'%';
+            venta = '+'+toDec($('#porc_venta_up').val())+'%';
 
-
-            for (var i=1; i<6; i++)
+            var i=1;
+            console.log(totalCompra,'<=',capital_usd);
+            while (totalCompra<=capital_usd)
             {
                 table = table + '<tr>';
-                table = table + '<td>Compra #'+i+'</td>';
-                table = table + '<td>'+format_number(precio,symbolDecs)+'</td>';
-                table = table + '<td class="text-danger">-'+format_number(psuc,2)+'%</td>';
-                table = table + '<td class="text-danger">-'+format_number(psci,2)+'%</td>';
+                table = table + '<td>#'+i+'</td>';
+                table = table + '<td class="text-danger">'+(psuc!=0?'-':'')+format_number(psuc,2)+'%</td>';
+                table = table + '<td class="text-danger">'+(psci!=0?'-':'')+format_number(psci,2)+'%</td>';
                 table = table + '<td>'+format_number(compraUsd,2)+'</td>';
                 table = table + '<td>'+format_number(totalCompra,2)+'</td>';
                 table = table + '<td class="text-success">'+venta+'</td>';
@@ -219,8 +195,8 @@
 
                 totalCompra = parseFloat(totalCompra) + parseFloat(compraUsd);
 
-                venta = '+'+toDec($('#porc_venta_down option:selected').val())+'%';
-
+                venta = '+'+toDec($('#porc_venta_down').val())+'%';
+                i++;
             }
             
             table = table + `
@@ -230,5 +206,19 @@
         
         $('#oprTable').html(table);        
     }
+
+
+    function setDefaultValues()
+    {
+        $('#capital_usd').val(1000);
+        $('#inicio_usd').val(100);
+        $('#multiplicador_compra').val(1.75);
+        $('#multiplicador_porc').val(2.75);
+        $('#porc_venta_up').val(1.75);
+        $('#porc_venta_down').val(2.00);
+        $('#symbol').val('MATICUSDT');
+
+    }
+
     
 </script>
