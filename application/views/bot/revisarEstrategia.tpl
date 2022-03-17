@@ -1,4 +1,5 @@
 <!-- Styles -->
+<!-- Styles -->
 <style>
 #chartdiv {
   width: 100%;
@@ -82,7 +83,6 @@
             if (info)
             {
                 var labels = info[0];
-                console.log(labels);
                 
                 am4core.ready(function() 
                 {

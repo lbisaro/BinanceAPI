@@ -141,9 +141,9 @@ class Test
                 FROM klines_1m 
                 WHERE symbol = '".$symbol."' ";
         if ($from)
-            $qry .= " AND datetime > '".$from."' "; 
+            $qry .= " AND datetime >= '".$from."' "; 
         if ($to)
-            $qry .= " AND datetime < '".$to."' "; 
+            $qry .= " AND datetime <= '".$to."' "; 
         $qry .= " ORDER BY datetime ASC "; //LIMIT 1440
 
         $stmt = $this->db->query($qry);

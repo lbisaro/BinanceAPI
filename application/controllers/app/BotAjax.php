@@ -3,6 +3,7 @@ include_once LIB_PATH."Controller.php";
 include_once LIB_PATH."ControllerAjax.php";
 include_once MDL_PATH."binance/BinanceAPI.php";
 include_once MDL_PATH."Ticker.php";
+include_once MDL_PATH."bot/Test.php";
 include_once MDL_PATH."bot/Operacion.php";
 
 /**
@@ -51,39 +52,18 @@ class BotAjax extends ControllerAjax
             }
             
             //Agrega 3 horas antes de la primer operacion
-            $iniDate = date('Y-m-d H:i:s',strToTime($iniDate.' -3 hour'));
+            $startTime = date('Y-m-d H:i:s',strToTime($iniDate.' -3 hour'));
+            $endTime = date('Y-m-d H:i:s');
             
-            $tck = new Ticker();
-            $prms=array();
-            if ($iniDate>date('Y-m-d H:i:s',strToTime($iniDate.' -1000 hour')))
-            {
-                $prms['startTime']    = $iniDate;
-                $prms['limit']    = '1000';
-            }
-            else
-            {
-                $prms['limit']    = '1000';
-            }
-
-            $prms['interval'] ='1h';
-            $ds = $tck->getHistorico($symbol,$prms);
-
-            foreach ($ds['prices'][$symbol] as $rw)
+            $test = new Test();
+            $ds = $test->getKlines($symbol,$interval='1h',$startTime,$endTime);
+            foreach ($ds as $rw)
             {   
-                $date = date('Y-m-d H:i',strtotime($rw['date']));
-                if (!isset($minKline))
-                    $minKline = $date;
-                $prices[$date]['datetime'] = $date;
+                $date = $rw['datetime'];
+                $prices[$date]['datetime'] = $rw['datetime'];
                 $prices[$date]['price'] = ($rw['high']+$rw['low'])/2;
                 $prices[$date]['high'] = $rw['high'];
                 $prices[$date]['low'] = $rw['low'];
-            }
-
-            //Eliminando registros de compra y venta anteriores a la primer vela 
-            foreach ($prices as $k=>$v)
-            {
-                if ($k<$minKline)
-                    unset($prices[$k]);
             }
 
             ksort($prices);
