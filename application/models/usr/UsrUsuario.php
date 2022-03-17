@@ -1432,5 +1432,12 @@ class UsrUsuario extends Model
         
     }
 
+    function isAdmin()
+    {
+        if ($this->data['idperfil'] == self::PERFIL_ADM)
+            return true;
+        return false;        
+    }
+
 }
 ?>

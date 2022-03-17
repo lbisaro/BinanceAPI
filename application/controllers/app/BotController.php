@@ -593,6 +593,12 @@ class BotController extends Controller
     {
         $this->addTitle('Log');
 
+        if (!$auth->isAdmin())
+        {
+            $this->addError('No esta autorizado a visualizar esta pagina.');
+            return null;
+        }
+
         $folder = LOG_PATH.'bot/';
         $logFiles=array();
         $errorFiles=array();

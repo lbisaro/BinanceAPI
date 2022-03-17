@@ -171,7 +171,6 @@
             venta = '+'+toDec($('#porc_venta_up').val())+'%';
 
             var i=1;
-            console.log(totalCompra,'<=',capital_usd);
             while (totalCompra<=capital_usd)
             {
                 table = table + '<tr>';

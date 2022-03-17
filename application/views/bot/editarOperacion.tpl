@@ -123,6 +123,7 @@
                 <thead>
                     <tr>
                         <th>&nbsp;</th>
+                        <th>Precio Generico</th>
                         <th>% Sobre ultima compra </th>
                         <th>% Sobre compra Inicial</th>
                         <th>Compra USD</th>
@@ -133,7 +134,7 @@
                 <tbody>
                 `;
             
-            symbolPrice = 50;
+            symbolPrice = 100;
             symbolDecs = 2;
             precio = format_number(symbolPrice,symbolDecs);
             psuc = 0;
@@ -143,13 +144,13 @@
             venta = '+'+toDec($('#porc_venta_up').val())+'%';
 
             var i=1;
-            console.log(totalCompra,'<=',capital_usd);
             while (totalCompra<=capital_usd)
             {
                 table = table + '<tr>';
                 table = table + '<td>#'+i+'</td>';
+                table = table + '<td>'+toDec(precio)+'</td>';
                 table = table + '<td class="text-danger">'+(psuc!=0?'-':'')+format_number(psuc,2)+'%</td>';
-                table = table + '<td class="text-danger">'+(psci!=0?'-':'')+format_number(psci,2)+'%</td>';
+                table = table + '<td class="text-danger">'+format_number(psci,2)+'%</td>';
                 table = table + '<td>'+format_number(compraUsd,2)+'</td>';
                 table = table + '<td>'+format_number(totalCompra,2)+'</td>';
                 table = table + '<td class="text-success">'+venta+'</td>';
@@ -162,7 +163,7 @@
 
                 precio = (parseFloat(precio)*(parseFloat(1-(psuc/100))));
                 
-                psci = ((parseFloat(symbolPrice)/parseFloat(precio))-1)*100;
+                psci = ((parseFloat(precio)/parseFloat(symbolPrice))-1)*100;
 
                 compraUsd = parseFloat(compraUsd)*parseFloat(m_compra);
 
