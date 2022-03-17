@@ -15,6 +15,8 @@ class TestController extends Controller
     function home($auth)
     {
         $this->addTitle('BackTesting - Home');
+        $this->addOnloadJs("goTo('".Controller::getLink('test','test','testEstrategias')."');");
+        /*
         if ($auth->get('idperfil') != UsrUsuario::PERFIL_ADM)
         {
             $this->addOnloadJs("goTo('".Controller::getLink('test','test','testEstrategias')."');");
@@ -26,6 +28,7 @@ class TestController extends Controller
         
             $this->addView('test/home',$arr);
         }
+        */
     }
     
     

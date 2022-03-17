@@ -23,8 +23,15 @@ $htmlStyle .= '</style>';
 
 //--------------------------------------------------------------------------------------------------------------------
 
-
 switch ($parametro) {
+    
+    case 'updateKlines':
+
+        //Da tiempo para que el bot de apalancamiento se ejecute
+        sleep(10);
+        include "crontab/crontab_updateKlines.php";
+        break;
+        
     case 'apalancamiento':
     
         include_once MDL_PATH."bot/Operacion.php";
@@ -51,24 +58,28 @@ switch ($parametro) {
             
             file_put_contents(LOCK_FILE, '');
         }
+
+        //Elimina los archivos viejos del log 
         Operacion::cleanLog();
+        
         break;
+
+
+    //case 'arbitrajeTriangular':
+    //    include "crontab/crontab_arbitrajeTriangular.php";
+    //    break;
     
-    case 'arbitrajeTriangular':
-        include "crontab/crontab_arbitrajeTriangular.php";
-        break;
+    //case 'scalper':
+    //    include "crontab/crontab_scalper.php";
+    //    break;
     
-    case 'scalper':
-        include "crontab/crontab_scalper.php";
-        break;
+    //case 'getprices_binance':
+    //    include "crontab/crontab_getprices_binance.php";
+    //    break;
     
-    case 'getprices_binance':
-        include "crontab/crontab_getprices_binance.php";
-        break;
-    
-    case 'mailer':
-        include "crontab/crontab_mailer.php";
-        break;
+    //case 'mailer':
+    //    include "crontab/crontab_mailer.php";
+    //    break;
     
     default:
         break;

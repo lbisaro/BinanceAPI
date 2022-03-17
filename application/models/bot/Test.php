@@ -55,10 +55,7 @@ class Test
     function updateKlines_1m($symbol='ALL')
     {
 
-        $auth = UsrUsuario::getAuthInstance();
-        $ak = $auth->getConfig('bncak');
-        $as = $auth->getConfig('bncas');
-        $api = new BinanceAPI($ak,$as);
+        $api = new BinanceAPI();
 
         $qry = "SELECT max(datetime) maxDatetime
                 FROM klines_1m
