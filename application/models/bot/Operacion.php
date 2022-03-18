@@ -125,8 +125,8 @@ class Operacion extends ModelDB
 
         if (!$this->data['symbol'])
             $err[] = 'Se debe especificar un Symbol';
-        if ($this->data['inicio_usd']<=0)
-            $err[] = 'Se debe especificar un importe de compra inicial en USD';
+        if ($this->data['inicio_usd']<=11)
+            $err[] = 'Se debe especificar un importe de compra inicial mayor o igual a 11.00 USD';
         if ($this->data['capital_usd'] < $this->data['inicio_usd'])
             $err[] = 'El capital destinado a la operacion debe ser mayor o igual a la compra inicial';
         if ($this->data['multiplicador_compra']<1 || $this->data['multiplicador_compra']>2.5 )
