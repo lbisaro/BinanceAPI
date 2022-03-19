@@ -176,25 +176,110 @@ class CriptoController extends Controller
 
     }    
 
-    function operaciones($auth)    
-    {
-        $this->addTitle('Bot');
-        $tkr = new Ticker();
-        $ds = $tkr->getDataSet('','tickerid');
-
-        $arr['availableTickers'] = 'var availableTickers = [';
-        foreach ($ds as $rw)
-            $arr['availableTickers'] .= "\n   '".$rw['tickerid']."',"; 
-        $arr['availableTickers'] .= '
-        ];'; 
-        $this->addView('operaciones',$arr);
-
-    }
-
     function depth($auth)
     {
         $this->addTitle('Ordenes de Mercado');
         $arr = array();
         $this->addView('cripto/depth',$arr);        
     }
+
+    function tickers($auth)
+    {
+        $this->addTitle('Tickers');
+    
+        if (!$auth->isAdmin())
+        {
+            $this->addError('No esta autorizado a visualizar esta pagina.');
+            return null;
+        }
+    
+        $tck = new Ticker();
+        $ds = $tck->getDataSet('','tickerid');
+
+        $dg = new HtmlTableDg();
+        $dg->addHeader('Ticker');
+        $dg->addHeader('Min.Hst',null,null,'right');
+        $dg->addHeader('Max.Hst',null,null,'right');
+
+        if (!empty($ds))
+        {
+            foreach ($ds as $rw)
+            {
+                $tck->reset();
+                $tck->set($rw);
+                $link = '<a href="'.Controller::getLink('app','cripto','verTicker','id='.$rw['tickerid']).'">'.$rw['tickerid'].'</a>';
+                $row = array($link,$tck->get('hst_min'),$tck->get('hst_max'));
+                $dg->addRow($row);
+            }
+        }
+
+    
+        $arr['data'] = $dg->get();
+        $arr['hidden'] = '';
+    
+        $this->addView('cripto/tickers',$arr);
+    }
+
+    function verTicker($auth)
+    {
+        $this->addTitle('Ver Ticker');
+        
+        if (!$auth->isAdmin())
+        {
+            $this->addError('No esta autorizado a visualizar esta pagina.');
+            return null;
+        }
+    
+        $tck = new Ticker($_REQUEST['id']);
+        if ($_REQUEST['id']  && $tck->get('tickerid')!=$_REQUEST['id'])
+        {
+            $this->addError('Se debe especificar un ID valido.');
+            return null;
+        }
+
+        $arr['tickerid'] = $tck->get('tickerid');
+        $arr['hst_min'] = $tck->get('hst_min');
+        $arr['hst_max'] = $tck->get('hst_max');
+    
+        $arr['data'] = '';
+    
+        $this->addView('cripto/tickerVer',$arr);
+    }
+
+    function editarTicker($auth)
+    {
+        if ($_REQUEST['id'])
+            $this->addTitle('Editar Ticker');
+        else
+            $this->addTitle('Crear Ticker');
+    
+        if (!$auth->isAdmin())
+        {
+            $this->addError('No esta autorizado a visualizar esta pagina.');
+            return null;
+        }
+    
+        $tck = new Ticker($_REQUEST['id']);
+        if ($_REQUEST['id']  && $tck->get('tickerid')!=$_REQUEST['id'])
+        {
+            $this->addError('Se debe especificar un ID valido.');
+            return null;
+        }
+        
+        if (!$_REQUEST['id'])
+            $arr['hidden'] = Html::getTagInput('new_tickerid','new','hidden');
+        else
+            $arr['readonly'] = 'READONLY';
+
+        $arr['tickerid'] = $tck->get('tickerid');
+        $arr['hst_min'] = $tck->get('hst_min');
+        $arr['hst_max'] = $tck->get('hst_max');
+    
+        $arr['data'] = '';
+    
+        $this->addView('cripto/tickerEditar',$arr);
+    }
+
+
+    
 }

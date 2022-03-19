@@ -70,6 +70,9 @@
         </li>        
         -->
         <li class="nav-item menu-admin">
+          <a class="nav-link rounded" href="app.cripto.tickers+"><span class="glyphicon glyphicon-cog"></span> Tickers</a>
+        </li>        
+        <li class="nav-item menu-admin">
           <a class="nav-link rounded" href="app.bot.log+"><span class="glyphicon glyphicon-th-list"></span> Log</a>
         </li>        
         <li class="nav-item">

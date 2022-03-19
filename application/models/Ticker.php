@@ -1,3 +1,4 @@
+
 <?php
 include_once LIB_PATH."ModelDB.php";
 include_once LIB_PATH."trade_functions.php";
@@ -25,6 +26,10 @@ class Ticker extends ModelDB
 
     function get($field)
     {
+        if ($field == 'hst_min')
+            return toDec($this->data['hst_min'],$this->data['qty_decs_price']);
+        if ($field == 'hst_max')
+            return toDec($this->data['hst_max'],$this->data['qty_decs_price']);
         return parent::get($field);
     }
 
@@ -46,11 +51,17 @@ class Ticker extends ModelDB
         $err=null;
 
         // Control de errores
+        $this->data['tickerid'] = strtoupper($this->data['tickerid']);
 
-        if (!$this->data['OK'])
-        {
-            $err[] = 'Descripcion del error';
-        }
+        if (!$this->data['tickerid'])
+            $err[] = 'Se debe especificar un Ticker valido'.$this->data['tickerid'];
+        
+        if ($this->data['hst_min']<=0)
+            $err[] = 'Se debe especificar un Minimo historico mayor a 0';
+        
+        if ($this->data['hst_max']<=$this->data['hst_min'])
+            $err[] = 'Se debe especificar un Maximo historico mayor al Minimo';
+        
 
         // FIN - Control de errores
 
@@ -66,18 +77,27 @@ class Ticker extends ModelDB
     {
         $err   = 0;
         $isNew = false;
-
-        // Creando el Id en caso que no este
-        if (!$this->data['tickerid'])
-        {
+        
+        $ds = $this->getDataSet("tickerid = '".$this->data['tickerid']."'");
+        if (empty($ds))
             $isNew = true;
-            $this->data['tickerid'] = $this->getNewId();
-        }
-
+        
         if (!$this->valid())
         {
             return false;
         }
+
+        //Verificando el ticker en Binance
+        $auth = UsrUsuario::getAuthInstance();
+        $idusuario = $auth->get('idusuario');
+        $ak = $auth->getConfig('bncak');
+        $as = $auth->getConfig('bncas');
+        $api = new BinanceAPI($ak,$as); 
+        $symbolData = $api->getSymbolData($this->data['tickerid']);
+        $this->data['qty_decs_units'] = $symbolData['qtyDecs'];
+        $this->data['qty_decs_price'] = $symbolData['qtyDecsPrice'];
+        $this->data['quote_asset'] = $symbolData['quoteAsset'];
+        $this->data['base_asset'] = $symbolData['baseAsset'];
 
         //Grabando datos en las tablas de la db
         if ($isNew) // insert
@@ -305,9 +325,8 @@ class Ticker extends ModelDB
         return $this->newTicker;
     } 
 
-    public function getAnalisisTecnico($symbol,$interval='1h')
+    public function getAnalisisTecnico($symbol,$interval='1h',$limit=40)
     {
-        $limit     = 40;
         $startTime = null;// Ej: date('Y-m-d H:i',strtotime('-10 days'));
         $endTime   = null;//'Ej: 2021-12-10 10:00';
 
@@ -331,7 +350,7 @@ class Ticker extends ModelDB
         return $at;
     }
 
-    function analisisTecnico($candlesticks)
+    function analisisTecnico($candlesticks,$prms=array())
     {
         $i=0;
         foreach ($candlesticks as $timestamp => $candel)
@@ -346,54 +365,58 @@ class Ticker extends ModelDB
             $at['candel']['close'] = (float)$candel['close'];
             $i++;
         }
-
+        $lastPos = $i-1;
         $data_emaFast = trader_ema($data_close, $periods = 7);
         $data_emaSlow = trader_ema($data_close, $periods = 14);
+        $data_bb = trader_bbands($data_close, $periods = 20,$upper_mult = 2,$lower_mult = 2,TRADER_MA_TYPE_SMA);
+        $data_ma24 = trader_ma($data_close, $periods = 24, TRADER_MA_TYPE_SMA);
 
         /*
-        $data_ma24 = trader_ma($data_close, $periods = 24, TRADER_MA_TYPE_SMA);
         $data_macd = trader_macd($data_close, $fastPeriod=12, $slowPeriod=26, $signalPeriod=9 );
         $data_rsi = trader_rsi($data_close, $periods = 14);
-        $data_bb = trader_bbands($data_close, $periods = 20,$upper_mult = 2,$lower_mult = 2,TRADER_MA_TYPE_SMA);
         $data_adx = trader_adx($data_high,$data_low,$data_close,$timePeriod = 14);
         */
-        for ($j=($limit-5) ; $j<$i ; $j++)
-        {
-            $at['date'] = $data_date[$j];
-            $at['price'] = $data_close[$j];
-            $at['signal'] = array();
-            /*
-            $at['ma24'] = $data_ma24[$j];
-            $at['ma24_trend'] = '';
-            $at['ma24_vporc'] = '';
+        
 
-            $at['macd_val'] = $data_macd[0][$j];
-            $at['macd_sig'] = $data_macd[1][$j];
-            $at['macd_diverg'] = $data_macd[2][$j];
-            $at['macd_trend'] = '';
-            $at['macd_vporc'] = '';
+        /*
+        $at['date'] = $data_date[$lastPos];
+        $at['price'] = $data_close[$lastPos];
+        $at['signal'] = array();
 
-            $at['rsi'] = $data_rsi[$j];
-            $at['rsi_trend'] = '';
-            $at['rsi_vporc'] = '';
+        $at['macd_val'] = $data_macd[0][$lastPos];
+        $at['macd_sig'] = $data_macd[1][$lastPos];
+        $at['macd_diverg'] = $data_macd[2][$lastPos];
+        $at['macd_trend'] = '';
+        $at['macd_vporc'] = '';
 
-            $at['adx'] = $data_adx[$j];
-            $at['adx_trend'] = '';
-            $at['adx_vporc'] = '';
+        $at['rsi'] = $data_rsi[$lastPos];
+        $at['rsi_trend'] = '';
+        $at['rsi_vporc'] = '';
 
-            $at['bb_up'] = $data_bb[0][$j];
-            $at['bb_mid'] = $data_bb[1][$j];
-            $at['bb_low'] = $data_bb[2][$j];
-            if ($data_bb[2][$j]!=0)
-                $at['bb_gap'] = toDec((($data_bb[0][$j]/$data_bb[2][$j])-1)*100);
-            else
-                $at['bb_gap'] = '0.00';
-            $at['bb_trend'] = '';
-            $at['bb_vporc'] = '';
-            */
-            if ($data_emaSlow[$j]!=0)
-                $at['ema_cross'] = toDec((($data_emaFast[$j]/$data_emaSlow[$j])-1)*100);
-        }
+        $at['adx'] = $data_adx[$lastPos];
+        $at['adx_trend'] = '';
+        $at['adx_vporc'] = '';
+
+        $at['bb_trend'] = '';
+        $at['bb_vporc'] = '';
+        */
+
+        #MA
+        $at['ma24'] = $data_ma24[$lastPos];
+
+        #Bollinger Bands
+        $at['bb_high'] = $data_bb[0][$lastPos];
+        $at['bb_mid'] = $data_bb[1][$lastPos];
+        $at['bb_low'] = $data_bb[2][$lastPos];
+        //if ($data_bb[2][$lastPos]!=0)
+        //    $at['bb_gap'] = toDec((($data_bb[0][$lastPos]/$data_bb[2][$lastPos])-1)*100);
+        //else
+        //    $at['bb_gap'] = '0.00';
+
+        #EMA Cross
+        $at['ema_fast'] = $data_emaFast[$lastPos];
+        $at['ema_slow'] = $data_emaSlow[$lastPos];
+        $at['ema_cross'] = toDec((($data_emaFast[$lastPos]/$data_emaSlow[$lastPos])-1)*100);
 
         //Calculo de tendencias lineales
         /*
@@ -416,28 +439,28 @@ class Ticker extends ModelDB
         */
         
         //Señales
+        
+        
+
+        #RSI
         /*
         $at['signal']['rsi'] = '';
-        $at['signal']['bb'] = '';
-        $at['signal']['macd'] = '';
+        if ($at['rsi']>50) // && $at['rsi_trend'] > 1.2)
+        {
+            $at['signal']['rsi'] = 'C'; //Buy
+        }
+        elseif ($at['rsi']<50) // && $at['rsi_trend'] < -1.2)
+        {
+            $at['signal']['rsi'] = 'V'; //Sell
+        }
+        elseif ($at['rsi']>88)
+        {
+            $at['signal']['rsi'] = 'V'; //Sell
+        }
         */
-        $at['signal']['ema_cross'] = '';
 
-        //RSI
-        //if ($at['rsi']>50 /*&& $at['rsi_trend'] > 1.2*/)
-        //{
-        //    $at['signal']['rsi'] = 'C'; //Buy
-        //}
-        //elseif ($at['rsi']<50 /*&& $at['rsi_trend'] < -1.2*/)
-        //{
-        //    $at['signal']['rsi'] = 'V'; //Sell
-        //}
-        //elseif ($at['rsi']>88)
-        //{
-        //    $at['signal']['rsi'] = 'V'; //Sell
-        //}
-
-        //Bollinger
+        #Bollinger
+        //$at['signal']['bb'] = '';
         //if ($at['price']>$at['bb_mid'] /*&& $at['bb_gap'] > 3*/)
         //{
         //    $at['signal']['bb'] = 'C'; //Buy
@@ -448,6 +471,7 @@ class Ticker extends ModelDB
         //}
 
         //MACD
+        //$at['signal']['macd'] = '';
         //if ($at['macd_val'] > $at['macd_sig'] /*&& $at['macd_trend'] > 0.5*/)
         //{
         //    $at['signal']['macd'] = 'C'; //Buy
@@ -458,13 +482,11 @@ class Ticker extends ModelDB
         //}
 
         //EMA_CROSS
-        $at['signal']['ema_cross'] = '-';
-        if ($at['ema_cross']>0)
-            $at['signal']['ema_cross'] = 'C'; //Buy
-        elseif ($at['ema_cross']<0)
-            $at['signal']['ema_cross'] = 'V'; //Buy
-        //print_r($at['signal']['ema_cross']." ".$at['ema_cross']."<br>");
-                
+        //$at['signal']['ema_cross'] = '-';
+        //if ($at['ema_cross']>0)
+        //    $at['signal']['ema_cross'] = 'C'; //Buy
+        //elseif ($at['ema_cross']<0)
+        //    $at['signal']['ema_cross'] = 'V'; //Buy
         return $at; 
 
     }

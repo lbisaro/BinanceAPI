@@ -12,18 +12,15 @@
 <div class="container">
   <div class="row">
 		<div class="col">
-
           <div class="form-group">
             <div class="form-group">
                 <label for="estrategia">Estrategia</label>
                 <select id="estrategia" class="form-control" >
                     <option value="0">Seleccionar</option>
-                    <option value="apalancamiento" SELECTED>Apalancamiento</option>
-                    <option value="grid">Grid</option>
+                    <option value="estandar" SELECTED>Estandar</option>
                 </select>
             </div>
           </div>
-
         </div>
         <div class="col">
 
@@ -216,7 +213,8 @@
             
         }
 
-        //setDefaultValues();
+        if (SERVER_ENTORNO == 'Test')
+            setDefaultValues();
 	});
 
     function setDefaultValues()
@@ -226,6 +224,7 @@
         $('#multiplicadorPorc').val(2.75);
         $('#multiplicadorCompra').val(1.75);
         $('#symbol option[value="MATICUSDT"]').attr('selected',true);
+        $('#grafico option[value="SI"]').attr('selected',true);
 
     }
 
@@ -235,20 +234,20 @@
         $('#chartdiv').html('');
         $('#orderlist').html('');
         $('#months').html('');
-		CtrlAjax.sendCtrl("test","test","testAPL");   
+		CtrlAjax.sendCtrl("test","test","testAT");   
 	}
 	
 
     var colors = [
       '#000000',//0 //Fecha
-      '#4C0784',//1 //Billetera
-      '#009B0A',//2 //USD
-      '#C47400',//3 //Token
-      '#888888',//4 //Token Price
-      '#58A029',//5 //Compra 
-      '#BF3C0F',//6 //Venta 
-      '#58A029',//7 //AT_COMPRA
-      '#BF3C0F',//8 //AT_VENTA
+      '#555555',//1 //Token Price
+      '#009B0A',//2 //EMA slow
+      '#C47400',//3 //EMA fast
+      '#ff00e0',//4 //BB high
+      '#888888',//5 //BB mid
+      '#ff00e0',//6 //BB low
+      '#58A029',//7 
+      '#BF3C0F',//8 
       '#4dc9f6',//9 
       '#f53794',//10
       '#f67019',//11
@@ -310,28 +309,29 @@
                 //Token Price
                 series = createSeriesUsd(4);
                 series.data = createData(4);
-                series.yAxis = valueAxis2;
+                series.yAxis = valueAxis;
 
-                series = createSeriesUsd(7);
-                series.data = createData(7);
-                series.yAxis = valueAxis2;
-                series.connect = false;
-
-                series = createSeriesUsd(8);
-                series.data = createData(8);
-                series.yAxis = valueAxis2;
-                series.connect = false;
-
-
-                //Compra
-                series = createSeriesBullet(5,'compra');
+                series = createSeriesUsd(5);
                 series.data = createData(5);
+                series.yAxis = valueAxis;
+                series.connect = false;
+
+                series = createSeriesUsd(6);
+                series.data = createData(6);
+                series.yAxis = valueAxis;
+                series.connect = false;
+
+                /*
+                //Compra
+                series = createSeriesBullet(7,'compra');
+                series.data = createData(7);
                 series.yAxis = valueAxis2;
 
                 //Venta
-                series = createSeriesBullet(6,'venta');
-                series.data = createData(6);
+                series = createSeriesBullet(8,'venta');
+                series.data = createData(8);
                 series.yAxis = valueAxis2;
+                */
 
                 // Add scrollbar
                 //var scrollbarX = new am4charts.XYChartScrollbar();
@@ -357,28 +357,16 @@
                         srs.tooltip.background.fill = am4core.color(colors[s]);
                         srs.tooltip.label.fill = am4core.color('#fff');
 
-                        if (s==1 )
+                        if (s==5 )
                         {
-                            srs.strokeWidth = 1.2; // px
-                        }
-                        else if (s==2 || s==3)
-                        {
-                            srs.strokeWidth = 0.75;
-                        }
-                        else if (s==7 || s==8)
-                        {
-                            srs.strokeWidth = 1;
-                        }
-                        else if (s==4)
-                        {
-                            srs.strokeWidth = 0.75;
+                            srs.strokeWidth = 0.6; // px
                             srs.strokeDasharray = 5;
                         }
-                        else
+                        else if (s>=1 && s<=7)
                         {
-                            srs.strokeDasharray = 4;
                             srs.strokeWidth = 1; // px
                         }
+                        
 
                         srs.stroke = am4core.color(colors[s]); 
                         srs.connect = true; 
