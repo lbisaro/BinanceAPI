@@ -95,6 +95,8 @@ class CriptoAjax extends ControllerAjax
         //Labels
         $i=0;
         $info['labels'] = array('Fecha','Open','High','Low','Close');
+        $info['tickerid'] = $symbol;
+        $info['interval'] = $interval;
         
         if (!empty($candlesticks))
         {

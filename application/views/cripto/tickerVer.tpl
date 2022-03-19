@@ -89,9 +89,6 @@
             if (info)
             {
                 var labels = info.labels;
-
-                console.log(info.labels);
-                console.log(info.data);
                 
                 am4core.ready(function() 
                 {
@@ -144,7 +141,7 @@
 
                     chart.legend = new am4charts.Legend();
 
-                    chart.legend.position = "top";
+                    //chart.legend.position = "top";
                     chart.legend.scrollable = false;
 
                     function createSeriesCandlestick()
@@ -163,7 +160,7 @@
                         srs.riseFromOpenState.properties.fill = am4core.color("#008800AA");
                         srs.riseFromOpenState.properties.stroke = am4core.color("#008800AA");
                         
-                        srs.name = 'Precio USD';
+                        srs.name = info.tickerid+' ('+info.interval+')';
                         //srs.tooltipText = "Open:${openValueY.value}\nLow:${lowValueY.value}\nHigh:${highValueY.value}\nClose:${valueY.value}";
 
                         srs.data = info.data;
