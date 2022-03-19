@@ -21,28 +21,19 @@
     <div class="container">
         <table class="table table-borderless">
             <tr>
-                <td></td>
+                <td>
+                    <div class="form-group">
+                        <h5 class="data">{{tickerid}}</h5>
+                        <input type="hidden" class="form-control" value="{{tickerid}}" id="tickerid">
+                      </div>
+                </td>
                 <td style="text-align: right;">
                     <a class="btn btn-info btn-sm" href="app.cripto.editarTicker+id={{tickerid}}">Editar</a>
                 </td>
             </tr>
         </table>
     </div>
-    <div class="container">
-      <div class="form-group">
-        <label for="tickerid">Ticker</label>
-        <h5 class="data">{{tickerid}}</h5>
-        <input type="hidden" class="form-control" value="{{tickerid}}" id="tickerid">
-      </div>
-      <div class="form-group">
-        <label for="hst_min">Rango de precio Historico</label>
-        <span> Mminimo </span>
-        <span class="data">USD {{hst_min}}</span>
-        <span> Maximo </span>
-        <span class="data">USD {{hst_max}}</span>
-        
-    </div>
-     
+    
     <div id="chartdiv"></div>
 
     </div>
@@ -139,8 +130,8 @@
                     series = createSeriesHistorico('hst_min','Minimo','#BF3C0F');
                     series = createSeriesHistorico('hst_mid','Medio','#888888');
                     series = createSeriesHistorico('hst_max','Maximo','#58A029');
-                    series = createSeriesHistorico('hst_ter_t','Tercio Up','#888888');
-                    series = createSeriesHistorico('hst_ter_d','Tercio Down','#888888');
+                    series = createSeriesHistorico('hst_ter_t','Tercio Up','#55AA55');
+                    series = createSeriesHistorico('hst_ter_d','Tercio Down','#AA5555');
 
                     
                     
@@ -186,8 +177,17 @@
                             srs.dataFields.valueY = value;
                             
                             srs.stroke = am4core.color(color);
-                            srs.strokeWidth = 1; // px
-                            srs.strokeDasharray = 10;
+                            if (value == 'hst_min' || value == 'hst_max' )
+                            {
+                                srs.strokeWidth = 1; // px
+                                srs.strokeDasharray = 3;
+                            }
+                            else
+                            {
+                                srs.strokeWidth = 1; // px
+                                srs.strokeDasharray = 3;
+                            }
+
                             
                             srs.name = label;
 

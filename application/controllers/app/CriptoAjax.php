@@ -73,8 +73,8 @@ class CriptoAjax extends ControllerAjax
         $this->ajxRsp->setEchoOut(true);
 
         $symbol = $_REQUEST['tickerid'];
-        $interval='3d';
-        $limit=((52*7)/3);
+        $interval='1d';
+        $limit=(52*7);
         $startTime = null;
         $endTime = null;
 
