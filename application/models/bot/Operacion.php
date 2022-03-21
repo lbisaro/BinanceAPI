@@ -529,7 +529,8 @@ class Operacion extends ModelDB
             $this->data['auto_restart'] = 0;
         else
             $this->data['auto_restart'] = 1;
-        $this->save();
+        $upd = "UPDATE operacion SET auto_restart = '".($this->data['auto_restart']?'1':'0')."' WHERE idoperacion = ".$this->data['idoperacion'];
+        $this->db->query($upd);
         return $this->data['auto_restart'];
     }
 
