@@ -1307,7 +1307,6 @@ class BotController extends Controller
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
         $dg->addHeader('Moneda');
         $dg->addHeader('ID');
-        $dg->addHeader('Tipo');
         $dg->addHeader('Fecha Hora');
         $dg->addHeader('Unidades',null,null,'right');
         $dg->addHeader('Precio',null,null,'right');
@@ -1340,14 +1339,16 @@ class BotController extends Controller
 
             $rowClass = ($porc<=0?'porcDown':'');
 
+            $btnLiquidar = '';
+            if ($porc>1)
+                $btnLiquidar = '<a href="'.Contorller::getLink('app','bot','liquidarOrden','id='.$rw['idoperacionorden'].'&idoo='.$rw['idoperacionorden']).'" class="btn btn-sml btn-warning"><span class="glyphicon glyphicon-usd" ></a>'
             $row = array($rw['symbol'],
-                         ($rw['side']==Operacion::SIDE_SELL?'Venta':'Compra'),
                          $rw['orderId'].$status,
                          $rw['updatedStr'],
                          ($rw['origQty']*1),
                          ($rw['price']*1),
                          ($rw['side']==Operacion::SIDE_BUY?'-':'').$usd,
-                         ($porc!=0? '<span class="'.($porc<0?'text-danger':'text-success').'">'.$porc.'%</span>' : '')
+                         ($porc!=0? '<span class="'.($porc<0?'text-danger':'text-success').'">'.$porc.'%</span>' : '').$btnLiquidar
                         );
 
             
