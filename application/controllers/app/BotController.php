@@ -1115,6 +1115,7 @@ class BotController extends Controller
 
         $oprOrders = $opr->getOrdenes($enCurso = false);
         $audit = array();
+        $lastComplete = null;
         foreach ($oprOrders as $k => $v)
         {
             if ($v['completed'])
@@ -1124,6 +1125,8 @@ class BotController extends Controller
             }
             $auditBot[$v['orderId']] = $v;
         }
+        if (!$lastComplete)
+            $lastComplete = '2021-06-01 00:00:00';
 
         $ak = $auth->getConfig('bncak');
         $as = $auth->getConfig('bncas');
@@ -1160,8 +1163,6 @@ class BotController extends Controller
             unset($v['updateTime']);
             unset($v['isWorking']);
             unset($v['time']);
-            if (!$lastComplete)
-                $lastComplete = '2021-06-01 00:00:00';
             if ($v['datetime'] >= $lastComplete && $v['status']!='CANCELED' && $v['status']!='EXPIRED')
             {
                 if ($auditBot[$v['orderId']])
@@ -1305,6 +1306,7 @@ class BotController extends Controller
 
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
         $dg->addHeader('Moneda');
+        $dg->addHeader('ID');
         $dg->addHeader('Tipo');
         $dg->addHeader('Fecha Hora');
         $dg->addHeader('Unidades',null,null,'right');
@@ -1339,6 +1341,7 @@ class BotController extends Controller
             $rowClass = ($porc<=0?'porcDown':'');
 
             $row = array($rw['symbol'],
+                         ($rw['side']==Operacion::SIDE_SELL?'Venta':'Compra'),
                          $rw['orderId'].$status,
                          $rw['updatedStr'],
                          ($rw['origQty']*1),
