@@ -154,14 +154,18 @@ class BotAjax extends ControllerAjax
         $arrToSet['multiplicador_compra'] = $_REQUEST['multiplicador_compra'];
         $arrToSet['porc_venta_up'] = $_REQUEST['porc_venta_up'];
         $arrToSet['porc_venta_down'] = $_REQUEST['porc_venta_down'];
-        $arrToSet['auto_restart'] = 1; //Por default, la operacion se reinicia despues de cada venta
+        $arrToSet['auto_restart'] = $_REQUEST['auto_restart'];
 
 
         $opr = new Operacion();
         $opr->set($arrToSet);
         if ($opr->save())
         {
-            if ($opr->start())
+            if (!$arrToSet['auto_restart'])
+            {
+                $this->ajxRsp->redirect('app.bot.verOperacion+id='.$opr->get('idoperacion'));        
+            }
+            elseif ($opr->start())
             {
                 $this->ajxRsp->redirect('app.bot.verOperacion+id='.$opr->get('idoperacion'));        
             }

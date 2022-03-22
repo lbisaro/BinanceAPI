@@ -73,6 +73,17 @@
         </div>
       </div>
 
+      <div class="form-group">
+        <label for="auto_restart">Iniciar compra al grabar</label>
+        <div class="input-group mb-2">
+          <select id="auto_restart" class="form-control" >
+              <option value="1">Si</option>
+              <option value="0">No</option>
+          </select>
+        </div>
+      </div>
+
+
         <div class="form-group" id="btnAddOperacion">
             <button onclick="crearOperacion()" class="btn btn-success" >Crear Operacion</button>
         </div>
@@ -126,7 +137,9 @@
 
     function crearOperacion()
     {
-        if (confirm('Desea crear la operacion con una compra inicial a precio MARKET?'))
+        var auto_restart = $('#auto_restart option:selected').val();
+        console.log(auto_restart);
+        if (auto_restart=='0' || (auto_restart=='1' && confirm('Desea crear la operacion con una compra inicial a precio MARKET?')))
         {
             $('#btnAddOperacion').hide();
             CtrlAjax.sendCtrl("app","bot","crearOperacion");
