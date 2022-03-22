@@ -1160,6 +1160,8 @@ class BotController extends Controller
             unset($v['updateTime']);
             unset($v['isWorking']);
             unset($v['time']);
+            if (!$lastComplete)
+                $lastComplete = '2021-06-01 00:00:00';
             if ($v['datetime'] >= $lastComplete && $v['status']!='CANCELED' && $v['status']!='EXPIRED')
             {
                 if ($auditBot[$v['orderId']])
