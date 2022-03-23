@@ -1312,6 +1312,7 @@ class BotController extends Controller
         $dg->addHeader('Precio',null,null,'right');
         $dg->addHeader('USD',null,null,'right');
         $dg->addHeader('Ref.',null,null,'right');
+        $dg->addHeader('Accion',null,null,'center');
 
         $idoperacion = 0;
         foreach ($ordenes as $rw)
@@ -1339,16 +1340,17 @@ class BotController extends Controller
 
             $rowClass = ($porc<=0?'porcDown':'');
 
-            $btnLiquidar = '';
+            $btnLiquidar = '&nbsp;';
             if ($porc>1)
-                $btnLiquidar = '&nbsp;<a href="'.Controller::getLink('app','bot','liquidarOrden','id='.$rw['idoperacionorden'].'&idoo='.$rw['idoperacionorden']).'" class="badge badge-danger">Liquidar Orden</a>';
+                $btnLiquidar = '<a href="'.Controller::getLink('app','bot','liquidarOrden','id='.$rw['idoperacionorden'].'&idoo='.$rw['idoperacionorden']).'" class="badge badge-danger">Liquidar Orden</a>';
             $row = array($rw['symbol'],
                          $rw['orderId'].$status,
                          $rw['updatedStr'],
                          ($rw['origQty']*1),
                          ($rw['price']*1),
                          ($rw['side']==Operacion::SIDE_BUY?'-':'').$usd,
-                         ($porc!=0? '<span class="'.($porc<0?'text-danger':'text-success').'">'.$porc.'%</span>' : '').$btnLiquidar
+                         ($porc!=0? '<span class="'.($porc<0?'text-danger':'text-success').'">'.$porc.'%</span>' : ''),
+                         $btnLiquidar
                         );
 
             
