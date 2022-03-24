@@ -3,7 +3,7 @@
       <li class="nav-item">
         <a href="app.bot.crearOperacion+" class="nav-link " >Nueva operacion</a>
       </li>
-      <li class="nav-item">
+      <li class="nav-item menu-admin">
         <a href="app.bot.ordenesActivas+" class="nav-link " >Ordenes Activas</a>
       </li>
     </ul>
