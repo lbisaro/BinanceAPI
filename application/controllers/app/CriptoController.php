@@ -200,6 +200,7 @@ class CriptoController extends Controller
         $dg->addHeader('Ticker');
         $dg->addHeader('Min.Hst',null,null,'right');
         $dg->addHeader('Max.Hst',null,null,'right');
+        $dg->addHeader('Max.Drawdown',null,null,'right');
 
         if (!empty($ds))
         {
@@ -208,7 +209,10 @@ class CriptoController extends Controller
                 $tck->reset();
                 $tck->set($rw);
                 $link = '<a href="'.Controller::getLink('app','cripto','verTicker','id='.$rw['tickerid']).'">'.$rw['tickerid'].'</a>';
-                $row = array($link,$tck->get('hst_min'),$tck->get('hst_max'));
+                $row = array($link,
+                             $tck->get('hst_min'),
+                             $tck->get('hst_max'),
+                             $tck->get('max_drawdown').'%');
                 $dg->addRow($row);
             }
         }
@@ -240,6 +244,7 @@ class CriptoController extends Controller
         $arr['tickerid'] = $tck->get('tickerid');
         $arr['hst_min'] = $tck->get('hst_min');
         $arr['hst_max'] = $tck->get('hst_max');
+        $arr['max_drawdown'] = $tck->get('max_drawdown');
     
         $arr['data'] = '';
     
@@ -274,6 +279,7 @@ class CriptoController extends Controller
         $arr['tickerid'] = $tck->get('tickerid');
         $arr['hst_min'] = $tck->get('hst_min');
         $arr['hst_max'] = $tck->get('hst_max');
+        $arr['max_drawdown'] = $tck->get('max_drawdown');
     
         $arr['data'] = '';
     
