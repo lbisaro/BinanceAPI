@@ -654,9 +654,13 @@ class Ticker extends ModelDB
     {
         $coefPalanca3 = 0.17;
         $coefPalanca4 = 0.35;
+        $coefPalanca5 = 0.85;
+
         $min = $this->data['hst_min'];
         $max = $this->data['hst_max'];
         $porcToMin = toDec((1-($min/$precioActual))*100);
+
+
 
         //Control sobre MaxDrawdown
         if ($porcToMin>$this->data['max_drawdown'])
@@ -675,7 +679,7 @@ class Ticker extends ModelDB
             $palancas['porc'][2] = 6.00;
             $palancas['porc'][3] = toDec($palancas['porc'][2]+(($porcToMin-$palancas['porc'][2])*$coefPalanca3));
             $palancas['porc'][4] = toDec($palancas['porc'][3]+(($porcToMin-$palancas['porc'][3])*$coefPalanca4));
-            $palancas['porc'][5] = $porcToMin;
+            $palancas['porc'][5] = toDec($palancas['porc'][4]+(($porcToMin-$palancas['porc'][4])*$coefPalanca5));
 
         }
         foreach ($palancas['porc'] as $k => $v)
