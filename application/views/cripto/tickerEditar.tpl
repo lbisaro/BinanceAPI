@@ -28,6 +28,15 @@
             <input type="text" class="form-control" value="{{hst_max}}" id="hst_max">
         </div>
       </div>
+      <div class="form-group">
+        <label for="hst_max">Drowdawn Maximo</label>
+        <div class="input-group mb-2">
+            <div class="input-group-prepend">
+                <div class="input-group-text">%</div>
+            </div>
+            <input type="text" class="form-control" value="{{max_drawdown}}" id="max_drawdown">
+        </div>
+      </div>
     
 
       <div class="form-group">

@@ -1,4 +1,3 @@
-
 <?php
 include_once LIB_PATH."ModelDB.php";
 include_once LIB_PATH."trade_functions.php";
@@ -62,6 +61,14 @@ class Ticker extends ModelDB
         if ($this->data['hst_max']<=$this->data['hst_min'])
             $err[] = 'Se debe especificar un Maximo historico mayor al Minimo';
         
+        if ($this->data['max_drawdown']<6)
+            $err[] = 'Se debe especificar un Drawdown Maximo mayor 6.00%';
+        elseif ($this->data['hst_min']>0 && $this->data['hst_max']>0)
+        {
+            $mdd = (1-($this->data['hst_min']/$this->data['hst_max']))*100;
+            if ($this->data['max_drawdown']>toDec($mdd,2))
+                $err[] = 'El Drawdown Maximo no puede ser superior a '.toDec($mdd,2).'% de acuerdo a minimo y maximo historico especificado.';
+        }
 
         // FIN - Control de errores
 
@@ -641,5 +648,40 @@ class Ticker extends ModelDB
         }
 
         return $data;             
+    }
+
+    function calcularPalancas($precioActual)
+    {
+        $coefPalanca3 = 0.17;
+        $coefPalanca4 = 0.35;
+        $min = $this->data['hst_min'];
+        $max = $this->data['hst_max'];
+        $porcToMin = toDec((1-($min/$precioActual))*100);
+
+        //Control sobre MaxDrawdown
+        if ($porcToMin>$this->data['max_drawdown'])
+            $porcToMin = $this->data['max_drawdown'];
+
+        $palancas['porc'][1] = 2.00;
+        if ($porcToMin <= 10) //El precio esta igualando o por debajo del minimo historico
+        {
+            $palancas['porc'][2] = 4.00;
+            $palancas['porc'][3] = 6.00;
+            $palancas['porc'][4] = 8.00;
+            $palancas['porc'][5] = 10.00;
+        }
+        else
+        {
+            $palancas['porc'][2] = 6.00;
+            $palancas['porc'][3] = toDec($palancas['porc'][2]+(($porcToMin-$palancas['porc'][2])*$coefPalanca3));
+            $palancas['porc'][4] = toDec($palancas['porc'][3]+(($porcToMin-$palancas['porc'][3])*$coefPalanca4));
+            $palancas['porc'][5] = $porcToMin;
+
+        }
+        foreach ($palancas['porc'] as $k => $v)
+        {
+            $palancas['price'][$k] = toDec($precioActual - (($precioActual * $v) / 100),$this->data['qty_decs_price']);
+        }
+        return $palancas;
     }
 }

@@ -59,6 +59,7 @@ class CriptoAjax extends ControllerAjax
 
         $arrToSet['hst_min'] = $_REQUEST['hst_min'];
         $arrToSet['hst_max'] = $_REQUEST['hst_max'];
+        $arrToSet['max_drawdown'] = $_REQUEST['max_drawdown'];
 
         $tck->set($arrToSet);
         if ($tck->save())
@@ -120,6 +121,11 @@ class CriptoAjax extends ControllerAjax
 
                 $ref_perc = (($candel['close']/$info['data'][$i]['hst_mid'])-1)*100;
                 $info['data'][$i]['ref_perc'] = (float)toDec($ref_perc);
+
+                //Calculo de palancas
+                $palancas = $tck->calcularPalancas($candel['close']);
+                foreach ($palancas['price'] as $num => $price)
+                    $info['data'][$i]['pal'.$num] = $price;
                 
 
                 $i++;

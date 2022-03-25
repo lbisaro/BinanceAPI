@@ -59,9 +59,7 @@
         readData();
     });
 
-    //CtrlAjax.sendCtrl("app","cripto","grabarTicker");
-
-
+    
     var colors = [
       '#000000',//0 //Fecha
       '#888888',//1 //Precio
@@ -88,6 +86,7 @@
         $.getJSON( url, function( info ) {
             if (info)
             {
+                console.log(info);
                 var labels = info.labels;
                 
                 am4core.ready(function() 
@@ -105,11 +104,13 @@
                     var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
                         dateAxis.dataFields.category = "date";
                         dateAxis.title.fontWeight = "bold";
+
                     var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
                         valueAxis.dataFields.category = "price";
                         valueAxis.title.text = "Precio USDT";
                         valueAxis.title.fontWeight = "bold";
                         valueAxis.renderer.grid.template.disabled = true;
+
                     var valueAxis2 = chart.yAxes.push(new am4charts.ValueAxis());
                         valueAxis2.dataFields.category = "ref_perc";
                         valueAxis2.renderer.grid.template.disabled = true;
@@ -120,22 +121,29 @@
                     chart.cursor.xAxis = dateAxis;
 
                     series = createSeriesCandlestick();
+                    
+                    // Add scrollbar
+                    var scrollbarX = new am4charts.XYChartScrollbar();
+                    scrollbarX.series.push(series);
+                    chart.scrollbarX = scrollbarX;
+
                     series = createSeriesPerc();
-                    series = createSeriesBBands('bb_h','BB','#00008888');
-                    series = createSeriesBBands('bb_m','BB','#88000088');
-                    series = createSeriesBBands('bb_l','BB','#00008888');
+                    //series = createSeriesBBands('bb_h','BB','#00008888');
+                    //series = createSeriesBBands('bb_m','BB','#88000088');
+                    //series = createSeriesBBands('bb_l','BB','#00008888');
                     series = createSeriesHistorico('hst_min','Minimo','#BF3C0F');
                     series = createSeriesHistorico('hst_mid','Medio','#888888');
                     series = createSeriesHistorico('hst_max','Maximo','#58A029');
                     series = createSeriesHistorico('hst_ter_t','Tercio Up','#55AA55');
                     series = createSeriesHistorico('hst_ter_d','Tercio Down','#AA5555');
+                    series = createSeriesPalancas('pal1','P#1','#ff0000');
+                    series = createSeriesPalancas('pal2','P#2','#ff0000');
+                    series = createSeriesPalancas('pal3','P#3','#ff0000');
+                    series = createSeriesPalancas('pal4','P#4','#ff0000');
+                    series = createSeriesPalancas('pal5','P#5','#ff0000');
 
                     
-                    
-                    // Add scrollbar
-                    //var scrollbarX = new am4charts.XYChartScrollbar();
-                    //scrollbarX.series.push(series);
-                    //chart.scrollbarX = scrollbarX;
+
 
                     series.smoothing = "monotoneY";
 
@@ -205,6 +213,28 @@
                             srs.stroke = am4core.color(color);
                             srs.strokeWidth = 0.75; // px
                             //srs.strokeDasharray = 10;
+                            
+                            srs.name = label;
+
+                            srs.data = info.data;
+
+                            srs.hiddenInLegend = true;
+
+                        return srs;
+                        
+                    }
+
+                    function createSeriesPalancas(value,label,color)
+                    {
+                        var srs = chart.series.push(new am4charts.LineSeries());
+                            srs.dataFields.dateX = "date";
+                            srs.dataFields.valueY = value;
+                            
+                            srs.stroke = am4core.color(color);
+                            srs.strokeWidth = 0.75; // px
+                            //srs.strokeDasharray = 10;
+
+                            srs.tooltipText = label;
                             
                             srs.name = label;
 
