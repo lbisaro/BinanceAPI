@@ -652,9 +652,10 @@ class Ticker extends ModelDB
 
     function calcularPalancas($precioActual)
     {
-        $coefPalanca3 = 0.17;
-        $coefPalanca4 = 0.35;
-        $coefPalanca5 = 0.85;
+        $coefPalanca2 = 0.08;
+        $coefPalanca3 = 0.16;
+        $coefPalanca4 = 0.32;
+        $coefPalanca5 = 0.64;
 
         $min = $this->data['hst_min'];
         $max = $this->data['hst_max'];
@@ -666,9 +667,9 @@ class Ticker extends ModelDB
         if ($porcToMin>$this->data['max_drawdown'])
             $porcToMin = $this->data['max_drawdown'];
 
-        $palancas['porc'][1] = 2.00;
-        if ($porcToMin <= 10) //El precio esta igualando o por debajo del minimo historico
+        if ($porcToMin <= 8) //El precio esta igualando o por debajo del minimo historico
         {
+            $palancas['porc'][1] = 2.00;
             $palancas['porc'][2] = 4.00;
             $palancas['porc'][3] = 6.00;
             $palancas['porc'][4] = 8.00;
@@ -676,7 +677,8 @@ class Ticker extends ModelDB
         }
         else
         {
-            $palancas['porc'][2] = 6.00;
+            $palancas['porc'][1] = 2.00;
+            $palancas['porc'][2] = toDec($palancas['porc'][1]+(($porcToMin-$palancas['porc'][1])*$coefPalanca2));
             $palancas['porc'][3] = toDec($palancas['porc'][2]+(($porcToMin-$palancas['porc'][2])*$coefPalanca3));
             $palancas['porc'][4] = toDec($palancas['porc'][3]+(($porcToMin-$palancas['porc'][3])*$coefPalanca4));
             $palancas['porc'][5] = toDec($palancas['porc'][4]+(($porcToMin-$palancas['porc'][4])*$coefPalanca5));

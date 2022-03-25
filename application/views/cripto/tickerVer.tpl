@@ -123,9 +123,9 @@
                     series = createSeriesCandlestick();
                     
                     // Add scrollbar
-                    var scrollbarX = new am4charts.XYChartScrollbar();
-                    scrollbarX.series.push(series);
-                    chart.scrollbarX = scrollbarX;
+                    //var scrollbarX = new am4charts.XYChartScrollbar();
+                    //scrollbarX.series.push(series);
+                    //chart.scrollbarX = scrollbarX;
 
                     series = createSeriesPerc();
                     //series = createSeriesBBands('bb_h','BB','#00008888');
@@ -143,6 +143,32 @@
                     series = createSeriesPalancas('pal5','P#5','#ff0000');
 
                     
+                    //Botones para zoom vertical
+                    var buttonContainer = chart.plotContainer.createChild(am4core.Container);
+                    buttonContainer.shouldClone = false;
+                    buttonContainer.align = "left";
+                    buttonContainer.valign = "top";
+                    buttonContainer.zIndex = Number.MAX_SAFE_INTEGER;
+                    buttonContainer.marginTop = 5;
+                    buttonContainer.marginRight = 5;
+                    buttonContainer.layout = "vertical";
+
+                    var zoomInButton = buttonContainer.createChild(am4core.Button);
+                    zoomInButton.label.text = "+";
+                    zoomInButton.events.on("hit", function(ev) {
+                      var diff = valueAxis.maxZoomed - valueAxis.minZoomed;
+                      var delta = diff * 0.2;
+                      valueAxis.zoomToValues(valueAxis.minZoomed, valueAxis.maxZoomed - delta);
+                    console.log(valueAxis);
+                    });
+
+                    var zoomOutButton = buttonContainer.createChild(am4core.Button);
+                    zoomOutButton.label.text = "-";
+                    zoomOutButton.events.on("hit", function(ev) {
+                      var diff = valueAxis.maxZoomed - valueAxis.minZoomed;
+                      var delta = diff * 0.2;
+                      valueAxis.zoomToValues(valueAxis.minZoomed, valueAxis.maxZoomed + delta);
+                    });
 
 
                     series.smoothing = "monotoneY";
