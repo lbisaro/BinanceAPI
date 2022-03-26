@@ -107,6 +107,7 @@
         $('.nav-tabs a').click(function(event) {
           event.preventDefault();
         });
+        readData();
     });
 
     function activarTab(id)
@@ -115,9 +116,7 @@
         $('.tabs').hide();
         $('#'+id).show();
         $('#tab_'+id+' a').addClass('active');
-
-        if (id == 'chartdiv')
-            readData();
+            
     }
 
     function obtenerParametros()
