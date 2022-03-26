@@ -103,11 +103,11 @@
 <script language="javascript" >
 
     $(document).ready( function () {
+        readData();
         activarTab('parametrosActuales');
         $('.nav-tabs a').click(function(event) {
           event.preventDefault();
         });
-        readData();
     });
 
     function activarTab(id)
