@@ -125,14 +125,14 @@ class Operacion extends ModelDB
 
         if (!$this->data['symbol'])
             $err[] = 'Se debe especificar un Symbol';
-        if ($this->data['inicio_usd']<=11)
+        if ($this->data['inicio_usd']<11)
             $err[] = 'Se debe especificar un importe de compra inicial mayor o igual a 11.00 USD';
         if ($this->data['capital_usd'] < $this->data['inicio_usd'])
             $err[] = 'El capital destinado a la operacion debe ser mayor o igual a la compra inicial';
         if ($this->data['multiplicador_compra']<1 || $this->data['multiplicador_compra']>2.5 )
             $err[] = 'Se debe especificar un multiplicador de compra entre 1 y 2.5';
-        if ($this->data['multiplicador_porc']<1 || $this->data['multiplicador_porc']>10 )
-            $err[] = 'Se debe especificar un multiplicador de porcentaje entre 1 y 10';
+        if ($this->data['multiplicador_porc']<0.5 || $this->data['multiplicador_porc']>10 )
+            $err[] = 'Se debe especificar un multiplicador de porcentaje entre 0.5 y 10';
         if ($this->data['porc_venta_up']<1 || $this->data['porc_venta_up']>10 )
             $err[] = 'Se debe especificar un porcentaje de venta inicial entre 1 y 10';
         if ($this->data['porc_venta_down']<1 || $this->data['porc_venta_down']>10 )
@@ -635,12 +635,14 @@ class Operacion extends ModelDB
             foreach ($data['operaciones'] as $k => $rw)
             {
                 $data['operaciones'][$k]['days'] = diferenciaFechas($rw['start'],$rw['end']);
-                $data['operaciones'][$k]['avg_usd_day'] = toDec($rw['ganancia_usd']/$data['operaciones'][$k]['days'],2);
+                if ($data['operaciones'][$k]['days']!=0)
+                    $data['operaciones'][$k]['avg_usd_day'] = toDec($rw['ganancia_usd']/$data['operaciones'][$k]['days'],2);
             }
         }
 
         $data['totales']['days'] = diferenciaFechas($data['totales']['start'],$data['totales']['end']);
-        $data['totales']['avg_usd_day'] = toDec($data['totales']['ganancia_usd']/$data['totales']['days'],2);
+        if ($data['totales']['days']!=0)
+            $data['totales']['avg_usd_day'] = toDec($data['totales']['ganancia_usd']/$data['totales']['days'],2);
 
 
 
@@ -914,5 +916,139 @@ class Operacion extends ModelDB
             $acciones[] = $rw;
         }
         return $acciones;
+    }
+
+    static public function readLockFile()
+    {
+        $lockFileText = file_get_contents(LOCK_FILE);
+        return $lockFileText;
+    }
+
+    static public function isLockedProcess()
+    {
+        $lockFileText = file_get_contents(LOCK_FILE);
+        return ($lockFileText?true:false);
+    }
+
+    static public function lockProcess()
+    {
+        $lockFileText = file_get_contents(LOCK_FILE);
+        if (!empty($lockFileText))
+            return false;
+        file_put_contents(LOCK_FILE, date('Y-m-d H:i:s'));
+        chmod(LOCK_FILE, 666);
+        return true;
+    }
+
+    static public function unlockProcess()
+    {
+        $lockFileText = file_get_contents(LOCK_FILE);
+        file_put_contents(LOCK_FILE, '');
+        chmod(LOCK_FILE, 666);
+    }
+
+    function liquidarOrden($idoperacionorden)
+    {
+        if (!$this->data['idoperacion'] || !$idoperacionorden)
+            return false;
+
+        $qry = 'SELECT * FROM operacion_orden 
+                 WHERE idoperacion = '.$this->data['idoperacion'].
+                  ' AND idoperacionorden = '.$idoperacionorden;
+        $stmt = $this->db->query($qry);
+        $rw = $stmt->fetch();
+        if (!empty($rw) && $rw['idoperacionorden'] == $idoperacionorden)
+        {
+
+            $usr = new UsrUsuario($this->data['idusuario']);
+            $ak = $usr->getConfig('bncak');
+            $as = $usr->getConfig('bncas');
+            $api = new BinanceAPI($ak,$as); 
+
+            $ordenALiquidar = $rw;
+            $ret['orderIdBuy'] = $rw['orderId'];
+            $symbol = $this->get('symbol');
+            $qty = $rw['origQty'];
+            $idusuario = $this->data['idusuario'];
+            try {
+                $order = $api->marketSell($symbol, $qty);
+                $op['idoperacion']  = $this->data['idoperacion'];
+                $op['side']         = self::SIDE_SELL;
+                $op['origQty']      = $qty;
+                $op['price']        = 0;
+                $op['orderId']      = $order['orderId'];
+                $ret['orderIdSell'] = $order['orderId'];
+                $this->insertOrden($op);
+                $msg = ' START ORDER Sell -> Qty:'.$qty.' Price: MARKET - Liquidar Orden';
+                self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+
+            } catch (Throwable $e) {
+                $msg = $e->getMessage();
+                $this->errLog->add($e->getMessage());
+                return false;
+            }
+
+            sleep(2);
+            $orderStatus = $api->orderStatus($symbol,$order['orderId']);
+            while ($orderStatus['status'] != 'FILLED')
+            {
+                sleep(2);
+                $orderStatus = $api->orderStatus($symbol,$order['orderId']);
+            }
+
+            //Actualizando estado de la orden de venta
+            $tradeInfo = $api->orderTradeInfo($symbol,$order['orderId']);
+            $tradeQty = 0;
+            $tradeUsd = 0;
+            if (!empty($tradeInfo))
+            {
+                foreach($tradeInfo as $tii)
+                {
+                    $tradeQty += $tii['qty'];
+                    $tradeUsd += $tii['quoteQty'];
+                }
+                $tradePrice = toDec($tradeUsd/$tradeQty,8);
+                $this->updateOrder($order['orderId'],$tradePrice,$tradeQty);
+                $msg = 'Liquidar Operacion Update Venta';
+                self::logBot('u:'.$this->data['idusuario'].' o:'.$this->data['idoperacion'].' s:'.$this->data['symbol'].' '.$msg,$echo=false);
+            }
+
+            //Actualizando pnlDate y completed
+            $pnlDate = date('Y-m-d H:i:s');
+            $orderIdWhereIn = "('".$ret['orderIdSell']."','".$ret['orderIdBuy']."')";
+            $upd = "UPDATE operacion_orden SET completed = 1 , pnlDate = '".$pnlDate."'
+                    WHERE idoperacion = ".$this->data['idoperacion']." AND orderId IN ".$orderIdWhereIn." ";
+            $this->db->query($upd);      
+            $msg = ' COMPLETE ORDER - Liquidar Orden';
+            self::logBot('u:'.$this->data['idusuario'].' o:'.$this->data['idoperacion'].' s:'.$this->data['symbol'].' '.$msg,$echo=false);
+
+            //Creando una nueva orden de compra en el valor de la orden liquidada, solo si ha ordenes de compra pendientes de venta
+            /*
+            $ordenesActivas = $this->getOrdenes();
+            if (!empty($ordenesActivas))
+            {
+                $newQty = $ordenALiquidar['origQty'];
+                $newPrice = $ordenALiquidar['price'];
+                $newUsd = toDec($newQty*$newPrice);
+                $msg = ' Buy -> Qty:'.$newQty.' Price:'.$newPrice.' USD:'.toDec($newUsd).' - Recompra por liquidacion';
+                Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg,$echo=false);
+
+                try {
+                    $limitOrder = $api->buy($symbol, $newQty, $newPrice);
+                    $aOpr['idoperacion']  = $this->data['idoperacion'];
+                    $aOpr['side']         = Operacion::SIDE_BUY;
+                    $aOpr['origQty']      = $newQty;
+                    $aOpr['price']        = $newPrice;
+                    $aOpr['orderId']      = $limitOrder['orderId'];
+                    $this->insertOrden($aOpr);               
+                } catch (Throwable $e) {
+                    $msg = "Error: " . $e->getMessage().' - Recompra por liquidacion';
+                    Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg,$echo=false);
+                }
+            }
+            */
+            return true;
+        }
+        return false;
     }
 }
