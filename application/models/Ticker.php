@@ -690,4 +690,73 @@ class Ticker extends ModelDB
         }
         return $palancas;
     }
+
+    function calcularMultiplicadorDePorcentaje($qtyPalancas,$palancaMax)
+    {
+        $qtyCompras = $qtyPalancas+1;
+        
+        $multPorc = 10; 
+        $porcTotal = $this->__cmp($multPorc,$qtyCompras);
+        while($porcTotal>$palancaMax)
+        {
+            $multPorc = toDec($multPorc-0.1);
+//echo "<br>mu: ".$multPorc;
+            $porcTotal = $this->__cmp($multPorc,$qtyCompras);
+        }
+//$porcTotal = $this->__cmp($multPorc,$qtyCompras,$echo=true);
+        return toDec($multPorc);
+    }
+
+        private function __cmp($mp,$qc,$echo=false)
+        {
+            $prb = 100;
+            $pru = $prb;
+//if ($echo) echo "<br>mp: ".$mp;
+            $tp = 0;
+            for ($i=1;$i<$qc;$i++)
+            {
+                $pru = $pru - (($pru * $mp*$i) /100);
+                $tp = $tp + $mp*$i;
+//if ($echo) echo "<br>tp: ".$tp." pru: ".$pru;
+            }
+            $pf = (($pru/$prb)-1)*100;
+//echo "<br>pf: ".$pf;
+            return toDec($pf*-1);
+        }
+
+    function calcularMultiplicadorDeCompras($qtyPalancas,$capital,$compraInicial)
+    {
+        $qtyCompras = $qtyPalancas+1;
+        
+        $multCompras = 2; //multiplicador de compras
+        $compraTotal = $this->__cmu($compraInicial,$qtyCompras,$multCompras);
+        while($compraTotal>$capital)
+        {
+            $multCompras = $multCompras-0.1;
+            $compraTotal = $this->__cmu($compraInicial,$qtyCompras,$multCompras);
+        }
+        $compraTotal = $compraTotal*2;
+        $multCompras = $multCompras+0.1;
+        while($compraTotal>$capital)
+        {
+            $multCompras = $multCompras-0.01;
+            $compraTotal = $this->__cmu($compraInicial,$qtyCompras,$multCompras);
+        }
+        
+        return $multCompras;
+    }
+
+        private function __cmu($ci,$qc,$mu)
+        {
+            $tc = $ci;
+            $uc = $ci;
+            for ($i=1;$i<$qc;$i++)
+            {
+                $uc = $uc*$mu;
+                $tc = $tc + $uc;
+            }
+            return $tc;
+        }
+
+
 }

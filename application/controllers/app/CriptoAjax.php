@@ -119,7 +119,7 @@ class CriptoAjax extends ControllerAjax
                 $info['data'][$i]['hst_ter_t'] = $info['data'][$i]['hst_max'] - (($info['data'][$i]['hst_max']-$info['data'][$i]['hst_min'])/3);
                 $info['data'][$i]['hst_ter_d'] = $info['data'][$i]['hst_min'] + (($info['data'][$i]['hst_max']-$info['data'][$i]['hst_min'])/3);
 
-                $ref_perc = (($candel['close']/$info['data'][$i]['hst_mid'])-1)*100;
+                $ref_perc = (($candel['close']/$info['data'][$i]['hst_min'])-1)*100;
                 $info['data'][$i]['ref_perc'] = (float)toDec($ref_perc);
 
                 //Calculo de palancas
@@ -148,5 +148,43 @@ class CriptoAjax extends ControllerAjax
 
 
         echo json_encode($info);
+    }
+
+    function obtenerParametrosActuales()
+    {
+        $tickerid = $_REQUEST['tickerid'];
+        $capital_usd = $_REQUEST['capital_usd'];
+        $inicio_usd = $_REQUEST['inicio_usd'];
+        $tck = new Ticker($tickerid);
+
+        $auth = UsrUsuario::getAuthInstance();
+        $idusuario = $auth->get('idusuario');
+        $ak = $auth->getConfig('bncak');
+        $as = $auth->getConfig('bncas');
+        $api = new BinanceAPI($ak,$as); 
+        $symbolData = $api->getSymbolData($tickerid);
+        $palancas = $tck->calcularPalancas($symbolData['price']);
+        $qtyPalancas = count($palancas['porc']);
+        $ret['palancas'] = $palancas; 
+        $ret['multCompras'] = $tck->calcularMultiplicadorDeCompras($qtyPalancas,$capital_usd,$inicio_usd);
+        $ret['multPorc'] = $tck->calcularMultiplicadorDePorcentaje($qtyPalancas,$palancas['porc'][5]);
+        $ret['symbolData'] = $symbolData;
+
+        $html = '<div class="container">';
+        $html .= '<h4>Palancas</h4>';
+        foreach ($palancas['porc'] as $k => $porc)
+            $html .= '<span>P#'.$k.': <b>'.$porc.'%</b></span>&nbsp;&nbsp;&nbsp;';
+        
+        $html .= '<h4>Multiplicador de compras</h4>';
+        $html .= '<p><b>'.$ret['multCompras'].'</b></p>';
+        
+        $html .= '<h4>Multiplicador de porcentaje</h4>';
+        $html .= '<p><b>'.$ret['multPorc'].'</b></p>';
+        
+        $html .= '</div>';
+
+        $this->ajxRsp->assign('oprTable','innerHTML',$html);
+        //$this->ajxRsp->script("console.log('multCompras: ".$ret['multCompras']."');");
+
     }
 }

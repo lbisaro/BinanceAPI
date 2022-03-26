@@ -7,12 +7,6 @@
 </style>
 
 
-
-<div style="float: right;">
-  
-</div>
-
-
 <div class="container">
   <table class="table table-borderless">
     <tr>

@@ -6,7 +6,7 @@
     }
 
     #chartdiv {
-      width: 100%;
+      width: 95%;
       height: 500px;
 }
 </style>
@@ -33,8 +33,55 @@
             </tr>
         </table>
     </div>
+
+    <div class="container">
+      <ul class="nav nav-tabs">
+        <li class="nav-item" id="tab_parametrosActuales">
+          <a class="nav-link" href="#" onclick="activarTab('parametrosActuales')">Parametros</a>
+        </li>
+        <li class="nav-item" id="tab_chartdiv">
+          <a class="nav-link" href="#" onclick="activarTab('chartdiv')">Grafica</a>
+        </li>
+      </ul>
+    </div>
+
+    <div id="parametrosActuales" class="container tabs" >
+        <div class="row">
+            <div class="col4">
+              <h5>Configuracion</h5>
+              <div class="form-group">
+                <label for="inicio_usd">Capital</label>
+                <div class="input-group mb-2">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">USD</div>
+                    </div>
+                    <input type="text" class="form-control" id="capital_usd" value="{{capital_usd}}" placeholder="0.000">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="inicio_usd">Compra inicial</label>
+                <div class="input-group mb-2">
+                    <div class="input-group-prepend">
+                        <div class="input-group-text">USD</div>
+                    </div>
+                    <input type="text" class="form-control" id="inicio_usd" value="{{inicio_usd}}" placeholder="0.000">
+                </div>
+              </div>
+
+              <div class="form-group" >
+                <button onclick="obtenerParametros()" class="btn btn-success" >Obtener parametros</button>
+              </div>
+
+            </div>
+        <div class="col">
+          <h5>Referencia sobre la operacion</h5>
+          <div class="container" id="oprTable"></div>
+        </div>
+    </div>
+
     
-    <div id="chartdiv"></div>
+    <div id="chartdiv" class="container tabs" ></div>
 
     </div>
 
@@ -56,9 +103,27 @@
 <script language="javascript" >
 
     $(document).ready( function () {
-        readData();
+        activarTab('parametrosActuales');
+        $('.nav-tabs a').click(function(event) {
+          event.preventDefault();
+        });
     });
 
+    function activarTab(id)
+    {
+        $('.nav-tabs a').removeClass('active');
+        $('.tabs').hide();
+        $('#'+id).show();
+        $('#tab_'+id+' a').addClass('active');
+
+        if (id == 'chartdiv')
+            readData();
+    }
+
+    function obtenerParametros()
+    {
+        CtrlAjax.sendCtrl("app","cripto","obtenerParametrosActuales");
+    }
     
     var colors = [
       '#000000',//0 //Fecha
@@ -115,7 +180,8 @@
                         valueAxis2.dataFields.category = "ref_perc";
                         valueAxis2.renderer.grid.template.disabled = true;
                         valueAxis2.renderer.labels.template.disabled = true;
-                        valueAxis2.renderer.opposite = true;   //Muestra la escala del lado opuesto           
+                        valueAxis2.renderer.opposite = true;   //Muestra la escala del lado opuesto  
+                        valueAxis2.cursorTooltipEnabled = false;
 
                     chart.cursor = new am4charts.XYCursor();
                     chart.cursor.xAxis = dateAxis;
@@ -154,7 +220,7 @@
                     buttonContainer.layout = "vertical";
 
                     var zoomInButton = buttonContainer.createChild(am4core.Button);
-                    zoomInButton.label.text = "+";
+                    zoomInButton.label.text = "Zoom +";
                     zoomInButton.events.on("hit", function(ev) {
                       var diff = valueAxis.maxZoomed - valueAxis.minZoomed;
                       var delta = diff * 0.2;
@@ -163,7 +229,7 @@
                     });
 
                     var zoomOutButton = buttonContainer.createChild(am4core.Button);
-                    zoomOutButton.label.text = "-";
+                    zoomOutButton.label.text = "Zoom -";
                     zoomOutButton.events.on("hit", function(ev) {
                       var diff = valueAxis.maxZoomed - valueAxis.minZoomed;
                       var delta = diff * 0.2;
@@ -175,7 +241,7 @@
 
                     chart.legend = new am4charts.Legend();
 
-                    //chart.legend.position = "top";
+                    chart.legend.position = "bottom";
                     chart.legend.scrollable = false;
 
                     function createSeriesCandlestick()
@@ -186,7 +252,7 @@
                         srs.dataFields.openValueY = "open";
                         srs.dataFields.lowValueY = "low";
                         srs.dataFields.highValueY = "high";
-                        srs.simplifiedProcessing = false;
+                        srs.simplifiedProcessing = true;
 
                         srs.dropFromOpenState.properties.fill = am4core.color("#880000AA");
                         srs.dropFromOpenState.properties.stroke = am4core.color("#880000AA");
@@ -195,6 +261,7 @@
                         srs.riseFromOpenState.properties.stroke = am4core.color("#008800AA");
                         
                         srs.name = info.tickerid+' ('+info.interval+')';
+
                         //srs.tooltipText = "Open:${openValueY.value}\nLow:${lowValueY.value}\nHigh:${highValueY.value}\nClose:${valueY.value}";
 
                         srs.data = info.data;
@@ -257,10 +324,15 @@
                             srs.dataFields.valueY = value;
                             
                             srs.stroke = am4core.color(color);
-                            srs.strokeWidth = 0.75; // px
-                            //srs.strokeDasharray = 10;
-
+                            srs.strokeWidth = 0.5; // px
+                            
                             srs.tooltipText = label;
+                            srs.tooltip.getFillFromObject = false;
+                            srs.tooltip.pointerOrientation = 'left';
+                            srs.tooltip.label.fontSize = 8;
+                            
+                            srs.tooltip.background.fill = am4core.color('#b44');
+                            srs.tooltip.label.fill = am4core.color('#ddd');
                             
                             srs.name = label;
 
@@ -282,14 +354,16 @@
                             srs.strokeWidth = 0.25; // px
                             
                             srs.tooltip.getFillFromObject = false;
-                            srs.tooltip.background.fill = am4core.color('#888');
-                            srs.tooltip.label.fill = am4core.color('#fff');
+                            srs.tooltip.background.fill = am4core.color('#44b');
+                            srs.tooltip.label.fill = am4core.color('#ddd');
+                            srs.tooltip.pointerOrientation = 'rigth';
+                            srs.tooltip.label.fontSize = 9;
 
                             srs.tooltipText = "{valueY.value}%";
 
                             srs.hiddenInLegend = true;
                             
-                            srs.name = '% en referencia a la media';
+                            srs.name = '% en referencia al minimo historico';
                             srs.data = info.data;
                             srs.yAxis = valueAxis2;
 
