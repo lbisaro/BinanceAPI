@@ -670,7 +670,7 @@ class BotController extends Controller
         {
             $arr['idusuario_options'] = '';
             foreach ($ds as $rw)
-                $arr['idusuario_options'] .= '<option value="'.$rw['idusuario'].'">'. $rw['ayn'].'</option>';
+                $arr['idusuario_options'] .= '<option value="'.$rw['idusuario'].'">'. $rw['ayn'].' (#'.$rw['idusuario'].')'.'</option>';
         }                 
             
         
