@@ -278,7 +278,7 @@ class Operacion extends ModelDB
         $arr['0100'] = self::OP_STATUS_ERROR;
         $arr['0101'] = self::OP_STATUS_COMPLETED;
         $arr['0110'] = self::OP_STATUS_APALANCAOFF;
-        $arr['0111'] = self::OP_STATUS_ERROR;
+        $arr['0111'] = self::OP_STATUS_READY;
         $arr['1000'] = self::OP_STATUS_OPEN;
         $arr['1001'] = self::OP_STATUS_ERROR;
         $arr['1010'] = self::OP_STATUS_ERROR;
