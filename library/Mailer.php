@@ -29,8 +29,8 @@ class Mailer extends PHPMailer
         $this->SMTPAuth   = true;
         $this->Username   = MAILER_Username;
         $this->Password   = MAILER_Password;
-        $this->SMTPSecure = 'tls'; //Opcional SSL / TLS
-        $this->Port       = '587'; // Para SSL 465 / TLS 587
+        $this->SMTPSecure = 'ssl'; //Opcional SSL / TLS
+        $this->Port       = '465'; // Para SSL 465 / TLS 587
 
 
         $this->FromName   = MAILER_FromName;
