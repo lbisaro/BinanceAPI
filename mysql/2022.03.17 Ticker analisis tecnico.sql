@@ -5,3 +5,7 @@ ALTER TABLE `tickers`
         ADD `qty_decs_price` INT(3) NOT NULL AFTER `qty_decs_units`,
         ADD `quote_asset` VARCHAR(8) NOT NULL AFTER `qty_decs_price`,
         ADD `base_asset` VARCHAR(8) NOT NULL AFTER `quote_asset`;
+
+ALTER TABLE `tickers` 
+    CHANGE `qty_decs_units` `qty_decs_units` INT NOT NULL DEFAULT '0', 
+    CHANGE `qty_decs_price` `qty_decs_price` INT NOT NULL DEFAULT '0';
