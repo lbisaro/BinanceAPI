@@ -25,12 +25,15 @@ use Psr\Http\Message\ResponseInterface;
 session_start();
 
 //If this automatic URL doesn't work, set it yourself manually
-$redirectUri = isset($_SERVER['HTTPS']) ? 'https://' : 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF'];
+//$redirectUri = isset($_SERVER['HTTPS']) ? 'https://' : 'http://' . $_SERVER['HTTP_HOST'] . $_SERVER['PHP_SELF'];
 //$redirectUri = 'http://localhost/phpmailer/get_oauth_token.php';
 
 //These details obtained are by setting up app in Google developer console.
-$clientId = 'RANDOMCHARS-----duv1n2.apps.googleusercontent.com';
-$clientSecret = 'RANDOMCHARS-----lGyjPcRtvP';
+//$clientId = 'RANDOMCHARS-----duv1n2.apps.googleusercontent.com';
+//$clientSecret = 'RANDOMCHARS-----lGyjPcRtvP';
+$redirectUri = 'http://bisaro.ar/library/PHPMailer/get_oauth_token.php';
+$clientId = '840728873329-k3edk7jc7u7itl3cas9dmgtmc0crv0k8.apps.googleusercontent.com';
+$clientSecret = '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';
 
 class Google extends AbstractProvider
 {
