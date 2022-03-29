@@ -26,6 +26,7 @@ else
     $controller->addLinkCss('bootstrap.add');
 
 $controller->addLinkCss('cripto');
+$controller->addLinkCss('bootstrap4-toggle.min');
 
 $controller->addLinkJs('functions');
 $controller->addLinkJs('cripto');
@@ -35,6 +36,7 @@ $controller->addLinkJs('jquery.min');
 $controller->addLinkJs('push.min');
 $controller->addLinkJs('popper.min');
 $controller->addLinkJs('bootstrap.min');
+$controller->addLinkJs('bootstrap4-toggle.min');
 
 $controller->addLinkCss('jquery.tablesorter');
 $controller->addLinkJs('jquery-tablesorter/jquery.tablesorter.min');

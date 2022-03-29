@@ -95,11 +95,7 @@ class Ticker extends ModelDB
         }
 
         //Verificando el ticker en Binance
-        $auth = UsrUsuario::getAuthInstance();
-        $idusuario = $auth->get('idusuario');
-        $ak = $auth->getConfig('bncak');
-        $as = $auth->getConfig('bncas');
-        $api = new BinanceAPI($ak,$as); 
+        $api = new BinanceAPI(); 
         $symbolData = $api->getSymbolData($this->data['tickerid']);
         $this->data['qty_decs_units'] = $symbolData['qtyDecs'];
         $this->data['qty_decs_price'] = $symbolData['qtyDecsPrice'];
@@ -252,11 +248,7 @@ class Ticker extends ModelDB
         if ($endTime)
             $endTime = date('U',strtotime($endTime)).'000';
 
-        $auth = UsrUsuario::getAuthInstance();
-        $idusuario = $auth->get('idusuario');
-        $ak = $auth->getConfig('bncak');
-        $as = $auth->getConfig('bncas');
-        $api = new BinanceAPI($ak,$as);        
+        $api = new BinanceAPI();        
 
         $ids = explode(',',$tickerid);
         $tickerid='';
@@ -571,11 +563,7 @@ class Ticker extends ModelDB
     {
         $data = array();
 
-        $auth = UsrUsuario::getAuthInstance();
-        $idusuario = $auth->get('idusuario');
-        $ak = $auth->getConfig('bncak');
-        $as = $auth->getConfig('bncas');
-        $api = new BinanceAPI($ak,$as); 
+        $api = new BinanceAPI(); 
 
         $symbolData = $api->getSymbolData($symbol);
 

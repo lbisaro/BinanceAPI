@@ -39,8 +39,8 @@
         <li class="nav-item" id="tab_parametrosActuales">
           <a class="nav-link" href="#" onclick="activarTab('parametrosActuales')">Parametros</a>
         </li>
-        <li class="nav-item" id="tab_chartdiv">
-          <a class="nav-link" href="#" onclick="activarTab('chartdiv')">Grafica</a>
+        <li class="nav-item" id="tab_grafica">
+          <a class="nav-link" href="#" onclick="activarTab('grafica')">Grafica</a>
         </li>
       </ul>
     </div>
@@ -74,15 +74,15 @@
               </div>
 
             </div>
-        <div class="col">
-          <h5>Referencia sobre la operacion</h5>
-          <div class="container" id="oprTable"></div>
+            <div class="col">
+              <h5>Referencia sobre la operacion</h5>
+              <div class="container" id="oprTable"></div>
+            </div>
         </div>
     </div>
 
-    
-    <div id="chartdiv" class="container tabs" ></div>
-
+    <div id="grafica" class="container tabs" >
+        <div id="chartdiv" ></div>
     </div>
 
 
@@ -103,7 +103,6 @@
 <script language="javascript" >
 
     $(document).ready( function () {
-        readData();
         activarTab('parametrosActuales');
         $('.nav-tabs a').click(function(event) {
           event.preventDefault();
@@ -116,6 +115,9 @@
         $('.tabs').hide();
         $('#'+id).show();
         $('#tab_'+id+' a').addClass('active');
+
+        if (id=='grafica')
+            readData();
             
     }
 

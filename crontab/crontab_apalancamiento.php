@@ -2,6 +2,15 @@
 include_once MDL_PATH."binance/BinanceAPI.php";
 include_once MDL_PATH."bot/Operacion.php";
 
+
+if (!Operacion::lockProcess())
+{
+    $lockFileText = Operacion::readLockFile();
+    $msg = 'Error - Bot Apalancamiento Bloqueado desde '.$lockFileText;
+    Operacion::logBot($msg);
+    return null;
+}
+
 $procStart = date('Y-m-d H:i:s');
 $procStartU = microtime(true);
 file_put_contents(STATUS_FILE, $procStart);
@@ -233,7 +242,7 @@ foreach ($usuarios as $idusuario => $usuarioData)
                 $newPrice = toDec(($newUsd / $totUnitsBuyed),$symbolData['qtyDecsPrice']);
                 $newQty = toDecDown($totUnitsBuyed,$symbolData['qtyDecs']);
 
-                $msg = ' Sell -> Qty:'.$newQty.' Price:'.$newPrice.' USD:'.toDec($newPrice).' +'.$porcentaje.'%';
+                $msg = ' Sell -> Qty:'.$newQty.' Price:'.$newPrice.' USD:'.toDec($newPrice*$newQty).' +'.$porcentaje.'%';
                 Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
 
                 $errorEnOrden = false;
@@ -359,3 +368,19 @@ foreach ($usuarios as $idusuario => $usuarioData)
 $procEndU = microtime(true);
 
 file_put_contents(STATUS_FILE, "\n".'Proceso: '.toDec($procEndU-$procStartU,4).' seg.',FILE_APPEND);
+
+/*
+crontab_apalancamiento_post.php es para ejecutar cuestiones almacenadas 
+en la tabla operacion_post gestionada desde Operacion.php
+Operacion::tipoAccionesPost($key)
+Operacion::getAccionesPost()
+Operacion::addAccionesPost($idoperacion,$accion,$params)
+*/
+//include "crontab/crontab_apalancamiento_post.php";
+
+Operacion::unlockProcess();
+
+//Elimina los archivos viejos del log 
+Operacion::cleanLog();
+
+

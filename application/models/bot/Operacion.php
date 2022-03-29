@@ -1,6 +1,7 @@
 <?php
 include_once LIB_PATH."ModelDB.php";
 include_once MDL_PATH."binance/BinanceAPI.php";
+include_once MDL_PATH."Ticker.php";
 
 class Operacion extends ModelDB
 {
@@ -384,6 +385,7 @@ class Operacion extends ModelDB
         $usd = $this->data['inicio_usd'];
         $qty = toDec($usd/$data['price'],$data['qtyDecs']);
         try {
+            
             $order = $api->marketBuy($symbol, $qty);
             $opr[1]['idoperacion']  = $this->data['idoperacion'];
             $opr[1]['side']         = self::SIDE_BUY;
@@ -403,6 +405,25 @@ class Operacion extends ModelDB
             $this->db->query($ins);
             $msg = ' START ORDER Buy -> Qty:'.$qty.' Price: MARKET';
             self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+            
+
+            //Actualizar el multiplicador de porcentaje si esta seteado en AUTO, y si la moneda esta seteada en Ticker
+            if ($this->data['multiplicador_porc_auto'])
+            {
+                $tck = new Ticker($symbol);
+                $allData['symbol'] = $tck->get('tickerid');
+                if ($tck->get('tickerid') == $symbol)
+                {
+                    $symbolData = $api->getSymbolData($symbol);
+                    $palancas = $tck->calcularPalancas($symbolData['price']);
+                    $qtyPalancas = count($palancas['porc']);
+                    $multPorc = $tck->calcularMultiplicadorDePorcentaje($qtyPalancas,end($palancas['porc']));
+                    $this->data['multiplicador_porc'] = toDec($multPorc);
+                    $this->save();
+                    $msg = ' Update Mult.Porc = '.$multPorc;
+                    self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+                }
+            }
 
             return true;
         } catch (Throwable $e) {
@@ -1023,7 +1044,7 @@ class Operacion extends ModelDB
             self::logBot('u:'.$this->data['idusuario'].' o:'.$this->data['idoperacion'].' s:'.$this->data['symbol'].' '.$msg,$echo=false);
 
             //Creando una nueva orden de compra en el valor de la orden liquidada, solo si ha ordenes de compra pendientes de venta
-            /*
+            
             $ordenesActivas = $this->getOrdenes();
             if (!empty($ordenesActivas))
             {
@@ -1046,7 +1067,7 @@ class Operacion extends ModelDB
                     Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg,$echo=false);
                 }
             }
-            */
+            
             return true;
         }
         return false;

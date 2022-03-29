@@ -8,50 +8,35 @@ require("PHPMailer/class.smtp.php");
  * @see http://phpmailer.worxware.com/
  * @see http://phpmailer.worxware.com/index.php?pg=examples
  */
-class Mailer extends phpmailer
+class Mailer extends PHPMailer
 {
 
 
     public $Mailer = 'smtp';
-    /*
     public $SMTPDebug  = 1;                // enables SMTP debug information (for testing)
+    /*
                                            // 1 = errors and messages
                                            // 2 = messages only
     */
 
-    public $FromName   = 'Bisaro Cripto';
-  
-/**
-    public $From       = 'lbisaro@outlook.com.ar';
-    public $SMTPSecure = "STARTTLS";                 
-    public $Port       = "587";              
-    public $SMTPAuth   = true; 
-    public $Host       = "smtp.office365.com";
-    public $Username   = "lbisaro@outlook.com.ar"; 
-    public $Password   = "Fmn#361612@";         
-
-    public $From       = 'criptalknode@gmail.com';
-    public $SMTPAuth   = true;
-    public $SMTPSecure = "tls";                 // sets the prefix to the server
-    public $Host       = "smtp.gmail.com";      // sets GMAIL as the SMTP server
-    public $Port       = 587;                   // set the SMTP port for the GMAIL server
-    public $Username   = "criptalknode@gmail.com";  // GMAIL username
-    public $Password   = "Criptalk#2021";
-    */
-
-
-    public $From       = 'leonardo.bisaro@gmail.com';
-    public $SMTPAuth   = true;
-    public $SMTPSecure = "tls";                 // sets the prefix to the server
-    public $Host       = "smtp.gmail.com";      // sets GMAIL as the SMTP server
-    public $Port       = 587;                   // set the SMTP port for the GMAIL server
-    public $Username   = "leonardo.bisaro@gmail.com";  // GMAIL username
-    public $Password   = "Fmn#361612";
-   
 
     function __Contruct()
     {
         parent::__Contruct();
+
+        $this->Host       = MAILER_Host;
+        $this->isSMTP();
+        $this->SMTPAuth   = true;
+        $this->Username   = MAILER_Username;
+        $this->Password   = MAILER_Password;
+        $this->SMTPSecure = 'tls'; //Opcional SSL / TLS
+        $this->Port       = '587'; // Para SSL 465 / TLS 587
+
+
+        $this->FromName   = MAILER_FromName;
+        $this->From       = MAILER_From;
+
+
     }
 
     function Send()

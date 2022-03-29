@@ -5,6 +5,7 @@ include_once(LIB_PATH."functions.php");
 include_once(LIB_PATH."Sql.php");
 //include_once(LIB_PATH."Mailer.php");
 include_once(MDL_PATH."usr/UsrUsuario.php");
+
 Sql::Connect(DB_HOST,DB_USER,DB_PASSWORD,DB_NAME);
 
 $hostname = shell_exec('hostname');
@@ -34,34 +35,8 @@ switch ($parametro) {
         
     case 'apalancamiento':
     
-        include_once MDL_PATH."bot/Operacion.php";
-
-        $lockFile = file_get_contents(LOCK_FILE);
-        if (!empty($lockFile))
-        {
-            $msg = 'Error - Bot Apalancamiento Bloqueado desde '.$lockFile;
-            Operacion::logBot($msg);
-        }
-        else
-        {
-            file_put_contents(LOCK_FILE, $procStart);
-            include "crontab/crontab_apalancamiento.php";
+        include "crontab/crontab_apalancamiento.php";
             
-            /*
-            crontab_apalancamiento_post.php es para ejecutar cuestiones almacenadas 
-            en la tabla operacion_post gestionada desde Operacion.php
-            Operacion::tipoAccionesPost($key)
-            Operacion::getAccionesPost()
-            Operacion::addAccionesPost($idoperacion,$accion,$params)
-            */
-            //include "crontab/crontab_apalancamiento_post.php";
-            
-            file_put_contents(LOCK_FILE, '');
-        }
-
-        //Elimina los archivos viejos del log 
-        Operacion::cleanLog();
-        
         break;
 
 
@@ -77,9 +52,9 @@ switch ($parametro) {
     //    include "crontab/crontab_getprices_binance.php";
     //    break;
     
-    //case 'mailer':
-    //    include "crontab/crontab_mailer.php";
-    //    break;
+    case 'mailer':
+        include "crontab/crontab_mailer.php";
+        break;
     
     default:
         break;

@@ -27,4 +27,13 @@
     // Base Url
     define('BASE_URL', 'http://localhost/cripto');
 
+/** Mailer */
+    define('MAILER_From'       , 'username@gmail.com');
+    define('MAILER_SMTPAuth'   , true);
+    define('MAILER_SMTPSecure' , "tls");                        // sets the prefix to the server
+    define('MAILER_Host'       , "smtp.gmail.com");             // sets GMAIL as the SMTP server
+    define('MAILER_Port'       , 587);                          // set the SMTP port for the GMAIL server
+    define('MAILER_Username'   , "username@gmail.com");  // GMAIL username
+    define('MAILER_Password'   , "password");
+
 ?>

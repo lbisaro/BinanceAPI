@@ -167,7 +167,7 @@ class CriptoAjax extends ControllerAjax
         $qtyPalancas = count($palancas['porc']);
         $ret['palancas'] = $palancas; 
         $ret['multCompras'] = $tck->calcularMultiplicadorDeCompras($qtyPalancas,$capital_usd,$inicio_usd);
-        $ret['multPorc'] = $tck->calcularMultiplicadorDePorcentaje($qtyPalancas,$palancas['porc'][5]);
+        $ret['multPorc'] = $tck->calcularMultiplicadorDePorcentaje($qtyPalancas,end($palancas['porc']));
         $ret['symbolData'] = $symbolData;
 
         $html = '<div class="container">';

@@ -48,7 +48,8 @@ class BotController extends Controller
                               $opr->get('inicio_usd'),
                               'x'.$opr->get('multiplicador_compra').' / '.
                               $opr->get('multiplicador_porc').'% '.
-                                         ($opr->get('multiplicador_porc_inc')?' Inc':''),
+                                         ($opr->get('multiplicador_porc_inc')?' Inc':'').
+                                         ($opr->get('multiplicador_porc_auto')?' Auto':''),
                               $opr->get('strPorcVenta'),
                               $opr->get('strEstado').$strCompras,
                               $autoRestart
@@ -102,9 +103,10 @@ class BotController extends Controller
         $arr['multiplicador_compra'] = $opr->get('multiplicador_compra');
         $arr['multiplicador_porc'] = $opr->get('multiplicador_porc');
         if ($opr->get('multiplicador_porc_inc'))
-            $arr['mpi_selected_1'] = 'SELECTED';
-        else
-            $arr['mpi_selected_0'] = 'SELECTED';
+            $arr['mpi_checked'] = 'CHECKED';
+        if ($opr->get('multiplicador_porc_auto'))
+            $arr['mpa_checked'] = 'CHECKED';
+
         $arr['idoperacion'] = $opr->get('idoperacion');
 
         $arr['porc_venta_up']    = toDec($opr->get('real_porc_venta_up'));
@@ -112,6 +114,11 @@ class BotController extends Controller
 
         $arr['PORCENTAJE_VENTA_UP'] = toDec(Operacion::PORCENTAJE_VENTA_UP);
         $arr['PORCENTAJE_VENTA_DOWN'] = toDec(Operacion::PORCENTAJE_VENTA_DOWN);
+
+        $tck = new Ticker($opr->get('symbol'));
+        $arr['show_check_MPAuto'] = 'false';
+        if ($tck->get('tickerid') == $opr->get('symbol'))
+            $arr['show_check_MPAuto'] = 'true';
 
         $this->addView('bot/editarOperacion',$arr);
     }    
@@ -144,7 +151,8 @@ class BotController extends Controller
         $arr['inicio_usd'] = 'USD '.$opr->get('inicio_usd');
         $arr['multiplicador_compra'] = $opr->get('multiplicador_compra');
         $arr['multiplicador_porc'] = $opr->get('multiplicador_porc').'%'.
-                                     ($opr->get('multiplicador_porc_inc')?' Incremental':'');
+                                     ($opr->get('multiplicador_porc_inc')?' Incremental':'').
+                                     ($opr->get('multiplicador_porc_auto')?' Automatico':'');
         $arr['porc_venta_up'] = toDec($opr->get('real_porc_venta_up'));
         $arr['porc_venta_down'] = toDec($opr->get('real_porc_venta_down'));
         $arr['estado'] = $opr->get('strEstado');
@@ -1293,6 +1301,12 @@ class BotController extends Controller
     function ordenesActivas($auth)
     {
         $this->addTitle('Ordenes Activas');
+
+        if (!$auth->isAdmin())
+        {
+            $this->addError('No esta autorizado a visualizar esta pagina.');
+            return null;
+        }
     
         $ak = $auth->getConfig('bncak');
         $as = $auth->getConfig('bncas');
@@ -1341,8 +1355,8 @@ class BotController extends Controller
             $rowClass = ($porc<=0?'porcDown':'');
 
             $btnLiquidar = '&nbsp;';
-            if ($porc>1)
-                $btnLiquidar = '<a href="'.Controller::getLink('app','bot','liquidarOrden','id='.$rw['idoperacionorden'].'&idoo='.$rw['idoperacionorden']).'" class="badge badge-danger">Liquidar Orden</a>';
+            if ($porc>=2)
+                $btnLiquidar = '<a href="'.Controller::getLink('app','bot','liquidarOrden','id='.$rw['idoperacion'].'&idoo='.$rw['idoperacionorden']).'" class="badge badge-danger">Liquidar Orden</a>';
             $row = array($rw['symbol'],
                          $rw['orderId'].$status,
                          $rw['updatedStr'],
@@ -1378,7 +1392,114 @@ class BotController extends Controller
 
     }
     
-    
+    function liquidarOrden($auth)
+    {
+        $idoperacion = $_REQUEST['id'];
+        $idoperacionorden = $_REQUEST['idoo'];
+        $this->addTitle('Liquidar Orden - Operacion #'.$idoperacion);
+
+        $opr = new Operacion($idoperacion);
+
+        if ($opr->get('idusuario') != $auth->get('idusuario'))
+        {
+            $this->addError('No esta autorizado a visualizar esta pagina.');
+            return false;
+        }
+        $link = '<a href="https://www.binance.com/es/trade/'.$opr->get('symbol').'" target="_blank">'.$opr->get('symbol').'</a>';
+        $arr['idoperacion'] = $idoperacion;
+        $arr['symbol'] = $link;
+        $arr['inicio_usd'] = 'USD '.$opr->get('inicio_usd');
+        $arr['multiplicador_compra'] = $opr->get('multiplicador_compra');
+        $arr['multiplicador_porc'] = $opr->get('multiplicador_porc').'%'.
+                                     ($opr->get('multiplicador_porc_inc')?' Incremental':'');
+        $arr['porc_venta_up'] = toDec($opr->get('real_porc_venta_up'));
+        $arr['porc_venta_down'] = toDec($opr->get('real_porc_venta_down'));
+        $arr['estado'] = $opr->get('strEstado');
+
+        if ($opr->autoRestart())
+            $autoRestart = '<span class="glyphicon glyphicon-ok"></span>';
+        else
+            $autoRestart = '<span class="glyphicon glyphicon-ban-circle"></span>';
+
+        $arr['auto-restart'] = $autoRestart;
+        $arr['hidden'] = Html::getTagInput('idoperacion',$opr->get('idoperacion'),'hidden');
+        $arr['hidden'] .= Html::getTagInput('idoperacionorden',$idoperacionorden,'hidden');
+
+        $ordenes = $opr->getOrdenes($enCurso=true);
+
+        $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
+        $dg->addHeader('ID');
+        $dg->addHeader('Tipo');
+        $dg->addHeader('Unidades',null,null,'right');
+        $dg->addHeader('Precio',null,null,'right');
+        $dg->addHeader('USD',null,null,'right');
+        $dg->addHeader('Estado');
+        $dg->addHeader('Fecha Hora');
+
+        $totVentas = 0;
+        $gananciaUsd = 0;
+        $maxCompraNum = 0;
+        foreach ($ordenes as $rw)
+        {
+            $usd = toDec($rw['origQty']*$rw['price']);
+
+            if (!$rw['completed'] && $rw['side']==Operacion::SIDE_BUY)
+                $rw['sideStr'] .= ' #'.$rw['compraNum'];
+
+            $link = '<a href="app.bot.verOrden+symbol='.$opr->get('symbol').'&orderId='.$rw['orderId'].'" target="_blank">'.$rw['orderId'].'</a>';
+            $row = array($link,
+                         $rw['sideStr'],
+                         ($rw['origQty']*1),
+                         ($rw['price']*1),
+                         ($rw['side']==Operacion::SIDE_BUY?'-':'').$usd,
+                         $rw['statusStr'],
+                         $rw['updatedStr']
+                        );
+
+            $classRow = '';
+            if ($rw['idoperacionorden'] == $idoperacionorden)
+            {
+                $arr['warningMsg'] = 'Se va a proceder a liquidar la orden correspondiente al OrderID <b>'.$rw['orderId'].'</b>, ejecutando una venta precio de MARKET.<br>'.
+                                     'A continuacion se replantearan las ordenes de compra y venta existentes.';
+                $classRow = ' table-warning';
+            }
+            $dg->addRow($row,$rw['sideClass'].$classRow,null,null,$id='ord_'.$rw['orderId']);
+
+            //Calculo de parametros propuestos
+            if ($rw['side']==Operacion::SIDE_BUY && $rw['status']==Operacion::OR_STATUS_FILLED && $rw['completed']<1)
+            {
+                $lastBuyPrice = $rw['price'];
+                
+                $lastUsdBuyed = ($rw['origQty']*$rw['price']);
+                
+                $totUnitsBuyed += $rw['origQty'];
+                $totUsdBuyed += ($rw['origQty']*$rw['price']);
+
+                if ($rw['compraNum']>$maxCompraNum)
+                    $maxCompraNum = $rw['compraNum'];
+        
+             }
+
+
+        }
+
+        $ak = $auth->getConfig('bncak');
+        $as = $auth->getConfig('bncas');
+
+        $api = new BinanceAPI($ak,$as);    
+
+        $symbol = $opr->get('symbol');
+
+        $arr['ordenesActivas'] = $dg->get();
+        $arr['idoperacion'] = $opr->get('idoperacion');
+
+        if ($arr['warningMsg'])
+            $arr['addButtons'] = '<button id="btnLiquidarOrden" class="btn btn-warning btn-block" onclick="liquidarOrden();">Liquidar Orden</button>';
+        else
+            $arr['warningMsg'] = 'No es posible liquidar la orden';
+
+        $this->addView('bot/liquidarOrden',$arr);
+    }        
     
     
 }

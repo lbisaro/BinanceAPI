@@ -135,7 +135,13 @@ class BotAjax extends ControllerAjax
         
         $api = new BinanceAPI($ak,$as);
         $data = $api->getSymbolData($symbol);
-        
+
+        $tck = new ticker($symbol);
+        if ($tck->get('tickerid') == $symbol)
+            $data['show_check_MPAuto'] = true;
+        else
+            $data['show_check_MPAuto'] = false;
+
         echo json_encode($data);
     }
 
@@ -151,6 +157,7 @@ class BotAjax extends ControllerAjax
         $arrToSet['capital_usd'] = $_REQUEST['capital_usd'];
         $arrToSet['multiplicador_porc'] = $_REQUEST['multiplicador_porc'];
         $arrToSet['multiplicador_porc_inc'] = ($_REQUEST['multiplicador_porc_inc']?1:0);
+        $arrToSet['multiplicador_porc_auto'] = ($_REQUEST['multiplicador_porc_auto']?1:0);
         $arrToSet['multiplicador_compra'] = $_REQUEST['multiplicador_compra'];
         $arrToSet['porc_venta_up'] = $_REQUEST['porc_venta_up'];
         $arrToSet['porc_venta_down'] = $_REQUEST['porc_venta_down'];
@@ -194,6 +201,7 @@ class BotAjax extends ControllerAjax
         $arrToSet['multiplicador_porc'] = $_REQUEST['multiplicador_porc'];
         $arrToSet['multiplicador_compra'] = $_REQUEST['multiplicador_compra'];
         $arrToSet['multiplicador_porc_inc'] = ($_REQUEST['multiplicador_porc_inc']?1:0);
+        $arrToSet['multiplicador_porc_auto'] = ($_REQUEST['multiplicador_porc_auto']?1:0);
         $arrToSet['porc_venta_up'] = $_REQUEST['porc_venta_up'];
         $arrToSet['porc_venta_down'] = $_REQUEST['porc_venta_down'];
        
@@ -515,5 +523,119 @@ class BotAjax extends ControllerAjax
             $msg = "Error: " . $e->getMessage();
             $this->ajxRsp->addError('No es posible registrar la orden<br/>REPORTE BINANCE<br/>'.$msg);
         }
+    }
+
+    function liquidarOrden()
+    {
+        $idoperacion = $_REQUEST['idoperacion'];
+        $idoperacionorden = $_REQUEST['idoperacionorden'];
+        /** Proceso
+            - Bloquear el proceso del Robot (O esperar que sea posible)
+            - Binance - Eliminar la ordenes de compra abiertas
+            - DDBB - Eliminar Compras y ventas abiertas 
+            - Verificar los orderId eliminados en Binance
+            - Vender la orden de compra#1 a precio MARKET
+            - Verificar que se haya vendido y Pasar a completadas la orden compra#1 y la venta Market, 
+              actualizando el pnlDate de ambas a fecha y hora actual
+            - Crear nueva compra apalancada replicando la orden de compra#1
+            - Desbloquear el proceso del Robot 
+        */
+        
+        // - Bloquear el proceso del Robot (O esperar que sea posible)
+        $lockFileText = file_get_contents(LOCK_FILE);
+        if (Operacion::lockProcess())
+        {
+            $auth = UsrUsuario::getAuthInstance();
+            $ak = $auth->getConfig('bncak');
+            $as = $auth->getConfig('bncas');
+            $api = new BinanceAPI($ak,$as); 
+
+            $opr = new Operacion($idoperacion);
+            $ordenesActivas = $opr->getOrdenes();
+            if (!empty($ordenesActivas))
+            {
+                foreach ($ordenesActivas as $k=>$orden)
+                {
+                    if ($idoperacionorden == $orden['idoperacionorden'])
+                        $orderToLiquidar = $orden;
+                    elseif ($orden['status']==Operacion::OR_STATUS_NEW)
+                        $orderToDelete[] = $orden['orderId'];
+                }
+            }
+            
+            // - Binance - Eliminar la ordenes de compra abiertas
+            // - DDBB - Eliminar Compras y ventas abiertas 
+            foreach ($orderToDelete as $orderId)
+            {
+                $opr->deleteOrder($orderId);
+                $api->cancel($opr->get('symbol'), $orderId);
+            }
+            
+            // - Verificar los orderId eliminados en Binance
+            while (!empty($orderToDelete))
+            {
+                sleep(2);                   
+                foreach ($orderToDelete as $k => $orderId)
+                {
+                    $orderStatus = $api->orderStatus($opr->get('symbol'),$orderId);
+                    if ($orderStatus['status'] == 'CANCELED')
+                        unset($orderToDelete[$k]);
+                }            
+            }
+
+            // - Vender la orden de compra#1 a precio MARKET
+            // - Verificar que se haya vendido y Pasar a completadas la orden compra#1 y la venta Market, 
+            //   actualizando el pnlDate de ambas a fecha y hora actual
+            // - Crear nueva compra apalancada replicando la orden de compra#1, si aun hay compras pendientes
+            if (!$opr->liquidarOrden($idoperacionorden)) 
+            {
+                $msg = 'No fue posible liquidar la orden.';
+                $errLog = $opr->getErrLog();
+                if (!empty($errLog))
+                    foreach ($errLog as $err)
+                        $msg .= ' - '.$err;
+                $msgClass = 'danger';
+                $this->ajxRsp->script("statusMessage('".$msg."','".$msgClass."');"); 
+                $opr->status();
+                $opr->trySolveError();              
+            }
+            else
+            {
+                $msg = 'Orden Liquidada con exito';
+                $msgClass = 'success';
+                $this->ajxRsp->script("statusMessage('".$msg."','".$msgClass."');");
+                $this->ajxRsp->redirect(Controller::getLink('app','bot','verOperacion','id='.$opr->get('idoperacion')));
+                
+            }
+        }
+        else
+        {
+            $msg = 'Se debe esperar a que el BOT realice las operaciones de rutina para proceder con la liquidacion de la orden.';
+            $msgClass = 'warning';
+            $this->ajxRsp->script("statusMessage('".$msg."','".$msgClass."');");
+            $this->ajxRsp->script("setTimeout(liquidarOrden,3000);");
+        }
+
+        // - Desbloquear el proceso del Robot 
+        Operacion::unlockProcess();
+                        
+    }
+
+    function getMultiplicadorPorcAuto()
+    {
+        $this->ajxRsp->setEchoOut(true);
+        $tickerid = $_REQUEST['symbol'];
+        
+        $tck = new Ticker($tickerid);
+        $auth = UsrUsuario::getAuthInstance();
+        $idusuario = $auth->get('idusuario');
+        $ak = $auth->getConfig('bncak');
+        $as = $auth->getConfig('bncas');
+        $api = new BinanceAPI($ak,$as); 
+        $symbolData = $api->getSymbolData($tickerid);
+        $palancas = $tck->calcularPalancas($symbolData['price']);
+        $qtyPalancas = count($palancas['porc']);
+        $multPorc = $tck->calcularMultiplicadorDePorcentaje($qtyPalancas,end($palancas['porc']));
+        echo toDec($multPorc);
     }
 }

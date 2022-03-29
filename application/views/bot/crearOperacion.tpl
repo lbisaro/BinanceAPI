@@ -6,7 +6,7 @@
 <div class="container">
 
   <div class="row">
-    <div class="col4">
+    <div class="col-4">
       <h5>Configuracion de la operacion</h5>
       <div class="form-group">
         <label for="symbol">Moneda</label>
@@ -45,15 +45,13 @@
             <div class="input-group-text">%</div>
           </div>
         </div>
-      </div>
-
-      <div class="form-group">
-        <label for="multiplicador_porc">Multiplicador Porcentajes Incremental</label>
         <div class="input-group mb-2">
-          <select id="multiplicador_porc_inc" class="form-control" onchange="refreshTable()" >
-              <option value="1">Si</option>
-              <option value="0">No</option>
-          </select>
+          <div class="form-group form-check">
+            <input type="checkbox" data-toggle="toggle" data-on="Incremental" data-off="Lineal" data-size="sm"class="form-check-input" CHECKED id="multiplicador_porc_inc" onchange="refreshTable()" >
+          </div>
+          <div id="check_MPAuto" class="form-group form-check menu-admin">
+            <input type="checkbox" data-toggle="toggle" data-on="Automatico" data-off="Auto OFF" data-size="sm"class="form-check-input" id="multiplicador_porc_auto" onchange="refreshTable();getMPAuto();" >
+          </div>
         </div>
       </div>
 
@@ -108,6 +106,7 @@
         if (SERVER_ENTORNO == 'Test')
             setDefaultValues();
 
+        $('#check_MPAuto').hide();
     });
 
     function validSymbol()
@@ -125,6 +124,17 @@
                     $('#symbol').val(data.symbol);
                     $('#symbol').addClass('text-success');
                     $('#btnAddOperacion').show();
+                    if (data.show_check_MPAuto)
+                    {
+                        $('#check_MPAuto').show();
+                    }
+                    else
+                    {
+                        $('#check_MPAuto').hide();
+                        $('#multiplicador_porc_auto').attr('checked',false);
+                    }
+
+
                     return true;
                 }
             });
@@ -132,6 +142,7 @@
         $('#btnAddOperacion').hide();
         $('#symbol').val('');
         $('#symbol').removeClass('text-success');
+
         refreshTable();
     }
 
@@ -153,8 +164,14 @@
         var inicio_usd = $('#inicio_usd').val();
         var m_compra = $('#multiplicador_compra').val();
         var m_porc = $('#multiplicador_porc').val();
-        var m_porc_inc = $('#multiplicador_porc_inc option:selected ').val();
+        var m_porc_inc = ($('#multiplicador_porc_inc ').is(':checked')?1:0);
+        var m_porc_auto = ($('#multiplicador_porc_auto ').is(':checked')?1:0);
         var table = '';
+
+        if (m_porc_auto)
+            $('#multiplicador_porc').attr('readonly',true);
+        else
+            $('#multiplicador_porc').attr('readonly',false);
         
         if (capital_usd>0 && inicio_usd>0 && m_compra>0 && m_porc>0)
         {
@@ -221,6 +238,29 @@
         $('#oprTable').html(table);        
     }
 
+    function getMPAuto()
+    {
+        if ($('#multiplicador_porc_auto ').is(':checked'))
+        {
+            $('#multiplicador_porc').val('Obteniendo valor...');
+
+            var url = 'app.BotAjax.getMultiplicadorPorcAuto+symbol='+$('#symbol').val();
+            $.get( url, function( data ) {
+                $('#multiplicador_porc').val(data);
+                refreshTable();
+                });
+
+        }
+        else
+        {
+            $('#multiplicador_porc').val('{{multiplicador_porc}}');
+        }
+
+
+    }
+
+
+
 
     function setDefaultValues()
     {
@@ -231,7 +271,6 @@
         $('#porc_venta_up').val(1.75);
         $('#porc_venta_down').val(2.00);
         $('#symbol').val('MATICUSDT');
-
     }
 
     

@@ -8,7 +8,7 @@
 <div class="container">
 
   <div class="row">
-    <div class="col4">
+    <div class="col-4">
       <h5>Configuracion de la operacion</h5>
       <div class="form-group">
         <label for="symbol">Moneda</label>
@@ -40,6 +40,7 @@
         <input type="text" class="form-control" id="multiplicador_compra" value="{{multiplicador_compra}}"  onchange="refreshTable()" placeholder="Recomendado 1.05 a 2.00">
       </div>
       <div class="form-group">
+
         <label for="multiplicador_porc">Multiplicador Porcentajes</label>
         <div class="input-group mb-2">
           <input type="text" class="form-control" id="multiplicador_porc" value="{{multiplicador_porc}}"  onchange="refreshTable()" placeholder="Recomendado 2.70 a 4.50">
@@ -47,15 +48,13 @@
             <div class="input-group-text">%</div>
           </div>
         </div>
-      </div>
-
-      <div class="form-group">
-        <label for="multiplicador_porc">Multiplicador Porcentajes Incremental</label>
         <div class="input-group mb-2">
-          <select id="multiplicador_porc_inc" class="form-control" onchange="refreshTable()" >
-          <option value="1" {{mpi_selected_1}}>Si</option>
-          <option value="0" {{mpi_selected_0}}>No</option>
-          </select>
+          <div class="form-group form-check">
+            <input type="checkbox" data-toggle="toggle" data-on="Incremental" data-off="Lineal" data-size="sm" class="form-check-input" {{mpi_checked}} id="multiplicador_porc_inc" onchange="refreshTable()" >
+          </div>
+          <div id="check_MPAuto" class="form-group form-check menu-admin">
+            <input type="checkbox" data-toggle="toggle" data-on="Automatico" data-off="Auto OFF" data-size="sm" class="form-check-input" {{mpa_checked}} id="multiplicador_porc_auto" onchange="refreshTable();getMPAuto();" >
+          </div>
         </div>
       </div>
 
@@ -97,8 +96,21 @@
 
 <script type="text/javascript">
     
+    var show_check_MPAuto = {{show_check_MPAuto}};
+
     $(document).ready( function () {
         refreshTable();
+
+        if (show_check_MPAuto)
+        {
+            $('#check_MPAuto').show();
+        }
+        else
+        {
+            $('#check_MPAuto').hide();
+            $('#multiplicador_porc_auto').attr('checked',false);
+        }
+
     });
 
     function editarOperacion()
@@ -106,15 +118,20 @@
         CtrlAjax.sendCtrl("app","bot","editarOperacion");
     }
 
-
     function refreshTable()
     {
         var capital_usd = $('#capital_usd').val();
         var inicio_usd = $('#inicio_usd').val();
         var m_compra = $('#multiplicador_compra').val();
         var m_porc = $('#multiplicador_porc').val();
-        var m_porc_inc = $('#multiplicador_porc_inc option:selected ').val();
+        var m_porc_inc = ($('#multiplicador_porc_inc ').is(':checked')?1:0);
+        var m_porc_auto = ($('#multiplicador_porc_auto ').is(':checked')?1:0);
         var table = '';
+
+        if (m_porc_auto)
+            $('#multiplicador_porc').attr('readonly',true);
+        else
+            $('#multiplicador_porc').attr('readonly',false);
         
         if (capital_usd>0 && inicio_usd>0 && m_compra>0 && m_porc>0)
         {
@@ -179,6 +196,27 @@
         }
         
         $('#oprTable').html(table);        
+    }
+
+    function getMPAuto()
+    {
+        if ($('#multiplicador_porc_auto ').is(':checked'))
+        {
+            $('#multiplicador_porc').val('Obteniendo valor...');
+
+            var url = 'app.BotAjax.getMultiplicadorPorcAuto+symbol='+$('#symbol').val();
+            $.get( url, function( data ) {
+                $('#multiplicador_porc').val(data);
+                refreshTable();
+                });
+
+        }
+        else
+        {
+            $('#multiplicador_porc').val('{{multiplicador_porc}}');
+        }
+
+
     }
     
 </script>
