@@ -3,6 +3,11 @@ RewriteEngine on
 #reescribe MOD.CTRL.ACT+prm=NNNNNN-X -> index.php?mod=MOD&ctrl=CTRL&act=ATC&prm=NNNNNN-X
 RewriteRule ^(.+)\.(.+)\.(.+)\+(.+)? index.php?mod=$1&ctrl=$2&act=$3&$4
 
+#reescribe api/act/prm=NNNNNN-X -> api.php?act=ATC&prm=NNNNNN-X
+RewriteRule ^api\/(.+)\/(.+)? api.php?act=$1&$2
+#reescribe api/act -> api.php?act=ATC
+RewriteRule ^api\/(.+)? api.php?act=$1
+
 php_value upload_max_filesize 300M
 php_value max_input_time 800
 

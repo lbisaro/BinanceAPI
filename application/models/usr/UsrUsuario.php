@@ -276,7 +276,7 @@ class UsrUsuario extends Model
         {
             $RSID = trim($RSID);
             if ($RSID)
-                $RSID_vto = date('Y-m-d H:i:s',strToTime('+4 hours'));
+                $RSID_vto = date('Y-m-d H:i:s',strToTime('+7 days'));
             else
                 $RSID_vto = date('Y-m-d H:i:s',strToTime('1901-01-01 01:00:00 AM'));
 
