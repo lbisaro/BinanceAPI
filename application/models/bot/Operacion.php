@@ -797,8 +797,8 @@ class Operacion extends ModelDB
                 $data[$rw['mes']]['total']=0;
             $data[$rw['mes']]['total'] += toDec($rw['USD']);
             
-            if ($rw['mes'] < $data['iniDate'])
-                $data['iniDate'] = $rw['mes'];
+            if ($rw['mes'] < $data['iniMonth'])
+                $data['iniMonth'] = $rw['mes'];
         }
 
         return $data;

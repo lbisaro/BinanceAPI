@@ -581,9 +581,8 @@ class BotController extends Controller
 
         //Revision de estadisticas Diaria y Mensual
 
-        $data = $opr->getEstadisticaDiaria2();
-
         //Diaria 
+        $data = $opr->getEstadisticaDiaria2();
         unset($dg);
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
 
@@ -646,9 +645,9 @@ class BotController extends Controller
         $arr['lista'] .= '<h4 class="text-info">Resultado sobre ventas Diarias</h4>'.$dg->get();
 
 
+        //Mensual 
         $data = $opr->getEstadisticaMensual();
 
-        //Diaria 
         unset($dg);
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
 
@@ -666,21 +665,19 @@ class BotController extends Controller
 
         $curDate = date('Y-m');
         $months=0;
-        $iniDate = $data['iniMonth'];
-        if ($iniDate < date('Y-m'))
-            $iniDate = date('Y-m');
-        while ($curDate>=$iniDate)
+        $iniMonth = $data['iniMonth'];
+        while ($curDate>=$iniMonth)
         {
             $months++;
             $row=array();
-            $row[] = dateToStr($curDate);
+            $row[] = $curDate;
             foreach ($data['symbols'] as $symbol)
             {
                 $row[] = $data[$curDate][$symbol];
             }
             $row[] = toDec($data[$curDate]['total']);
             $dg->addRow($row);
-            $curDate = date('Y-m',strtotime($curDate.' - 1 month'));
+            $curDate = date('Y-m',strtotime($curDate.'-01'.' -1 months'));
         }
 
         $row=array();
