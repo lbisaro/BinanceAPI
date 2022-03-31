@@ -712,7 +712,7 @@ class BotController extends Controller
 
         //Historico de operaciones
 
-        $data = $opr->getEstadisticaGeneral2();
+        $data = $opr->getEstadisticaGeneral();
 
         unset($dg);
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
