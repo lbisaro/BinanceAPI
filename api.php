@@ -66,7 +66,7 @@ if (isset($rsp))
 Sql::close();
 exit();
 
-function add($error)
+function addError($error)
 {
     GLOBAL $rsp;
     if(!empty($error))
