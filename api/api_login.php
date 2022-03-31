@@ -29,7 +29,7 @@ if ($auth = UsrUsuario::getAuthInstance())
     if ($auth->get('idperfil') < UsrUsuario::PERFIL_CNS)
         addError('La cuenta de usuario se encuentra inhabilitada.');
 }
-if (empty($rsp['ERROR']))
+if ($auth && empty($rsp['ERRORES']))
 {
     $RSID = getRndAlpha(20);
     $auth->setRSID($RSID);
