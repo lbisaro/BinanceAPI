@@ -568,6 +568,203 @@ class BotController extends Controller
     
         $this->addView('bot/estadisticas',$arr);
     }
+
+
+    function estadisticas2($auth)
+    {
+        $this->addTitle('Estadisticas');
+    
+        $arr['data'] = '';
+        $arr['hidden'] = '';
+
+        $opr = new Operacion();
+
+        //Revision de estadisticas Diaria y Mensual
+
+        $data = $opr->getEstadisticaDiaria2();
+
+        //Diaria 
+        unset($dg);
+        $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
+
+        $dg->addHeader('Fecha');
+        if (!empty($data['symbols']))
+        {
+            foreach ($data['symbols'] as $symbol)
+            {
+                if (substr($symbol,-4) == 'USDT' || substr($symbol,-4) == 'USDC' || substr($symbol,-4) == 'BUSD')
+                    $strSymbol = substr($symbol,0,-4).'<br>'.substr($symbol,-4);
+                $dg->addHeader($strSymbol,null,null,'right');
+            }
+        }
+        $dg->addHeader('Total<br>USD',null,null,'right');
+
+        $curDate = date('Y-m-d');
+        $days=0;
+        $iniDate = $data['iniDate'];
+        if ($iniDate < date('Y-m-').'01')
+            $iniDate = date('Y-m-').'01';
+        while ($curDate>=$iniDate)
+        {
+            $days++;
+            $row=array();
+            $row[] = dateToStr($curDate);
+            foreach ($data['symbols'] as $symbol)
+            {
+                $row[] = $data[$curDate][$symbol];
+            }
+            $row[] = toDec($data[$curDate]['total']);
+            $dg->addRow($row);
+            $curDate = date('Y-m-d',strtotime($curDate.' - 1 day'));
+        }
+
+        $row=array();
+        $row[] = 'Total';
+        if (!empty($data['symbols']))
+        {
+            foreach ($data['symbols'] as $symbol)
+            {
+                $row[] = toDec($data['total'][$symbol]);
+            }
+        }
+        $row[] = 'USD '.toDec($data['total']['total']);
+        $dg->addFooter($row,'font-weight-bold');
+
+        $row=array();
+        $row[] = 'Promedio diario sobre '.$days.' dia'.($days>1?'s':'');
+        if (!empty($data['symbols']))
+        {
+            foreach ($data['symbols'] as $symbol)
+            {
+                $row[] = toDec($data['total'][$symbol]/$days);
+            }
+        }
+        if ($days>0)
+            $row[] = 'USD '.toDec($data['total']['total']/$days);
+        $dg->addFooter($row,'font-weight-bold');
+
+        $arr['lista'] .= '<h4 class="text-info">Resultado sobre ventas Diarias</h4>'.$dg->get();
+
+
+        $data = $opr->getEstadisticaMensual();
+
+        //Diaria 
+        unset($dg);
+        $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
+
+        $dg->addHeader('Mes');
+        if (!empty($data['symbols']))
+        {
+            foreach ($data['symbols'] as $symbol)
+            {
+                if (substr($symbol,-4) == 'USDT' || substr($symbol,-4) == 'USDC' || substr($symbol,-4) == 'BUSD')
+                    $strSymbol = substr($symbol,0,-4).'<br>'.substr($symbol,-4);
+                $dg->addHeader($strSymbol,null,null,'right');
+            }
+        }
+        $dg->addHeader('Total<br>USD',null,null,'right');
+
+        $curDate = date('Y-m');
+        $months=0;
+        $iniDate = $data['iniMonth'];
+        if ($iniDate < date('Y-m'))
+            $iniDate = date('Y-m');
+        while ($curDate>=$iniDate)
+        {
+            $months++;
+            $row=array();
+            $row[] = dateToStr($curDate);
+            foreach ($data['symbols'] as $symbol)
+            {
+                $row[] = $data[$curDate][$symbol];
+            }
+            $row[] = toDec($data[$curDate]['total']);
+            $dg->addRow($row);
+            $curDate = date('Y-m',strtotime($curDate.' - 1 month'));
+        }
+
+        $row=array();
+        $row[] = 'Total';
+        if (!empty($data['symbols']))
+        {
+            foreach ($data['symbols'] as $symbol)
+            {
+                $row[] = toDec($data['total'][$symbol]);
+            }
+        }
+        $row[] = 'USD '.toDec($data['total']['total']);
+        $dg->addFooter($row,'font-weight-bold');
+
+        $row=array();
+        $row[] = 'Promedio mensual sobre '.$months.' mes'.($months>1?'es':'');
+        if (!empty($data['symbols']))
+        {
+            foreach ($data['symbols'] as $symbol)
+            {
+                $row[] = toDec($data['total'][$symbol]/$months);
+            }
+        }
+        if ($days>0)
+            $row[] = 'USD '.toDec($data['total']['total']/$months);
+        $dg->addFooter($row,'font-weight-bold');
+
+        $arr['lista'] .= '<h4 class="text-info">Resultado sobre ventas Mensuales</h4>'.$dg->get();
+
+        //Historico de operaciones
+
+        $data = $opr->getEstadisticaGeneral2();
+
+        unset($dg);
+        $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
+
+        $dg->addHeader('Op#');
+        $dg->addHeader('Moneda');
+        $dg->addHeader('Ventas',null,null,'center');
+        //$dg->addHeader('Compras',null,null,'center');
+        //$dg->addHeader('Apalancamientos',null,null,'center');
+        $dg->addHeader('Ganancia',null,null,'right');
+        $dg->addHeader('Inicio',null,null,'center');
+        //$dg->addHeader('Fin',null,null,'center');
+        $dg->addHeader('Dias Activo',null,null,'center');
+        $dg->addHeader('Promedio Dia',null,null,'right');
+        if (!empty($data['operaciones']))
+        {
+            foreach ($data['operaciones'] as $rw)
+            {
+                $row = array($rw['idoperacion'],
+                             $rw['symbol'],
+                             $rw['ventas'],
+                             //$rw['compras'],
+                             //$rw['apalancamientos'],
+                             'USD '.toDec($rw['ganancia_usd']),
+                             dateToStr($rw['start'],true).' hs.',
+                             //dateToStr($rw['end'],true).' hs.',
+                             $rw['days'],
+                             'USD '.toDec($rw['avg_usd_day'],2)
+                            );
+                $dg->addRow($row);
+            }
+        }
+
+
+        $row = array('',
+             'TOTALES',
+             $data['totales']['ventas'],
+             //$data['totales']['compras'],
+             //$data['totales']['apalancamientos'],
+             'USD '.toDec($data['totales']['ganancia_usd']),
+             dateToStr($data['totales']['start'],true).' hs.',
+             //dateToStr($data['totales']['end'],true).' hs.',
+             $data['totales']['days'],
+             'USD '.toDec($data['totales']['avg_usd_day'],2)
+            );
+        $dg->addFooter($row,'font-weight-bold');
+        $arr['lista'] .= '<h4 class="text-info">Historico de Operaciones</h4>'.$dg->get();
+
+
+    
+        $this->addView('bot/estadisticas',$arr);
+    }
     
     
     function verOrden($auth)

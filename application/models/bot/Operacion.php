@@ -668,6 +668,115 @@ class Operacion extends ModelDB
 
 
         return $data;
+    }    
+
+    function getEstadisticaGeneral2()
+    {
+        $auth = UsrUsuario::getAuthInstance();
+        $idusuario = $auth->get('idusuario');
+        $qry ="SELECT operacion.*, operacion_orden.side, count(operacion_orden.idoperacionorden) qty, sum(operacion_orden.origQty*operacion_orden.price*-1) usd
+                   FROM operacion_orden
+                   LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion
+                   WHERE idusuario = ".$idusuario." AND operacion_orden.completed >0 AND operacion_orden.side = 0 
+                   GROUP BY idoperacion
+               UNION ALL
+               SELECT operacion.*, operacion_orden.side, count(operacion_orden.idoperacionorden) qty, sum(operacion_orden.origQty*operacion_orden.price) usd
+                   FROM operacion_orden
+                   LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion
+                   WHERE idusuario = ".$idusuario." AND operacion_orden.completed >0 AND operacion_orden.side = 1
+                   GROUP BY idoperacion";
+        $stmt = $this->db->query($qry);
+        $data=array();
+        while ($rw = $stmt->fetch())
+        {
+            if (!isset($data['operaciones'][$rw['idoperacion']]))
+            {
+                $data['operaciones'][$rw['idoperacion']]['idoperacion'] = $rw['idoperacion'];
+                $data['operaciones'][$rw['idoperacion']]['symbol'] = $rw['symbol'];
+                $data['operaciones'][$rw['idoperacion']]['inicio_usd'] = $rw['inicio_usd'];
+                $data['operaciones'][$rw['idoperacion']]['multiplicador_compra'] = $rw['multiplicador_compra'];
+                $data['operaciones'][$rw['idoperacion']]['multiplicador_porc'] = $rw['multiplicador_porc'];
+                $data['operaciones'][$rw['idoperacion']]['ventas'] = 0;
+                $data['operaciones'][$rw['idoperacion']]['compras'] = 0;
+                $data['operaciones'][$rw['idoperacion']]['apalancamientos'] = 0;
+                //$data['operaciones'][$rw['idoperacion']]['apalancamientos_promedio'] = 0;
+                $data['operaciones'][$rw['idoperacion']]['ganancia_usd'] = 0;
+            }
+
+            if (!isset($data['totales']))
+            {
+                $data['totales']['ventas'] = 0;
+                $data['totales']['compras'] = 0;
+                $data['totales']['apalancamientos'] = 0;
+                //$data['totales']['apalancamientos_promedio'] = 0;
+                $data['totales']['ganancia_usd'] = 0;
+            }
+
+            $data['operaciones'][$rw['idoperacion']]['ganancia_usd'] += $rw['usd'];
+            $data['totales']['ganancia_usd'] += $rw['usd'];
+
+            if ($rw['side']==self::SIDE_SELL)
+            {
+                $data['operaciones'][$rw['idoperacion']]['ventas'] += $rw['qty'];
+                $data['totales']['ventas'] += $rw['qty'];
+            }
+            else
+            {
+                $data['operaciones'][$rw['idoperacion']]['compras'] += $rw['qty'];
+                $data['totales']['compras'] += $rw['qty'];
+            }
+
+        }
+
+        $data['totales']['apalancamientos'] = $data['totales']['compras']-$data['totales']['ventas'];
+        //$data['totales']['apalancamientos_promedio'] = toDec($data['totales']['compras']/$data['totales']['ventas'],2);
+        if (!empty($data['operaciones']))
+        {
+            foreach ($data['operaciones'] as $k => $rw)
+            {
+                $data['operaciones'][$k]['apalancamientos'] = $rw['compras']-$rw['ventas'];
+                //$data['operaciones'][$k]['apalancamientos_promedio'] = toDec($rw['compras']/$rw['ventas'],2);
+            }
+        }
+
+        $data['totales']['start'] = date('Y-m-d H:i:s');
+        $data['totales']['end'] = '0000-00-00 00:00:00';
+        $qry = "SELECT operacion_orden.idoperacion, auto_restart, min(updated) as first_update, max(updated) as last_update 
+                FROM operacion_orden 
+                LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion
+                WHERE idusuario = ".$idusuario." AND completed > 0 
+                GROUP BY operacion_orden.idoperacion";
+        $stmt = $this->db->query($qry);
+        while ($rw = $stmt->fetch())
+        {
+            if ($rw['auto_restart']>0)
+                $rw['last_update'] = date('Y-m-d H:i:s');
+            $data['operaciones'][$rw['idoperacion']]['start'] = $rw['first_update'];
+            $data['operaciones'][$rw['idoperacion']]['end'] = $rw['last_update'];
+            $data['operaciones'][$rw['idoperacion']]['days'] = 0;
+
+            if ($rw['first_update']<$data['totales']['start'])
+                $data['totales']['start'] = $rw['first_update'];
+            if ($rw['last_update']>$data['totales']['end'])
+                $data['totales']['end'] = $rw['last_update'];
+        }
+        if (!empty($data['operaciones']))
+        {
+            foreach ($data['operaciones'] as $k => $rw)
+            {
+                $data['operaciones'][$k]['days'] = diferenciaFechas($rw['start'],$rw['end']);
+                if ($data['operaciones'][$k]['days']!=0)
+                    $data['operaciones'][$k]['avg_usd_day'] = toDec($rw['ganancia_usd']/$data['operaciones'][$k]['days'],2);
+            }
+        }
+
+        $data['totales']['days'] = diferenciaFechas($data['totales']['start'],$data['totales']['end']);
+        if ($data['totales']['days']!=0)
+            $data['totales']['avg_usd_day'] = toDec($data['totales']['ganancia_usd']/$data['totales']['days'],2);
+
+
+
+        return $data;
     }
 
     function getEstadisticaDiaria()
@@ -726,6 +835,80 @@ class Operacion extends ModelDB
             ksort($data['data']['d']);
         if (!empty($data['data']['m']))
             ksort($data['data']['m']);
+
+        return $data;
+    }
+
+    function getEstadisticaDiaria2()
+    {
+        $auth = UsrUsuario::getAuthInstance();
+        $idusuario = $auth->get('idusuario');
+        $qry ="SELECT operacion.symbol, 
+                      date_format(pnlDate, '%Y-%m-%d') AS fecha, 
+                      sum((origQty*price* IF(side=0, -1, 1))) as USD
+               FROM operacion_orden
+               LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion
+               WHERE idusuario = ".$idusuario." AND operacion_orden.completed > 0 AND month(pnlDate) = ".date('m')."
+               GROUP BY operacion.symbol,date_format(pnlDate, '%Y-%m-%d')
+               ORDER BY operacion.symbol,date_format(pnlDate, '%Y-%m-%d')";
+        $stmt = $this->db->query($qry);
+        $data=array();
+        $data['symbols'] = array();
+        $data['iniDate'] = date('Y-m-d');
+        while ($rw = $stmt->fetch())
+        {
+            $data['symbols'][$rw['symbol']] = $rw['symbol'];
+            $data[$rw['fecha']][$rw['symbol']] = toDec($rw['USD']);
+            if (!isset($data['total'][$rw['symbol']]))
+                $data['total'][$rw['symbol']]=0;
+            $data['total'][$rw['symbol']] += toDec($rw['USD']);
+            if (!isset($data['total']['total']))
+                $data['total']['total']=0;
+            $data['total']['total'] += toDec($rw['USD']);
+            if (!isset($data[$rw['fecha']]['total']))
+                $data[$rw['fecha']]['total']=0;
+            $data[$rw['fecha']]['total'] += toDec($rw['USD']);
+            
+            if ($rw['fecha'] < $data['iniDate'])
+                $data['iniDate'] = $rw['fecha'];
+        }
+
+        return $data;
+    }
+
+    function getEstadisticaMensual()
+    {
+        $auth = UsrUsuario::getAuthInstance();
+        $idusuario = $auth->get('idusuario');
+        $qry ="SELECT operacion.symbol, 
+                      date_format(pnlDate, '%Y-%m') AS mes, 
+                      sum((origQty*price* IF(side=0, -1, 1))) as USD
+               FROM operacion_orden
+               LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion
+               WHERE idusuario = ".$idusuario." AND operacion_orden.completed > 0 
+               GROUP BY operacion.symbol,date_format(pnlDate, '%Y-%m')
+               ORDER BY operacion.symbol,date_format(pnlDate, '%Y-%m')";
+        $stmt = $this->db->query($qry);
+        $data=array();
+        $data['symbols'] = array();
+        $data['iniMonth'] = date('Y-m');
+        while ($rw = $stmt->fetch())
+        {
+            $data['symbols'][$rw['symbol']] = $rw['symbol'];
+            $data[$rw['mes']][$rw['symbol']] = toDec($rw['USD']);
+            if (!isset($data['total'][$rw['symbol']]))
+                $data['total'][$rw['symbol']]=0;
+            $data['total'][$rw['symbol']] += toDec($rw['USD']);
+            if (!isset($data['total']['total']))
+                $data['total']['total']=0;
+            $data['total']['total'] += toDec($rw['USD']);
+            if (!isset($data[$rw['mes']]['total']))
+                $data[$rw['mes']]['total']=0;
+            $data[$rw['mes']]['total'] += toDec($rw['USD']);
+            
+            if ($rw['mes'] < $data['iniDate'])
+                $data['iniDate'] = $rw['mes'];
+        }
 
         return $data;
     }
