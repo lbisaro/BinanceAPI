@@ -11,9 +11,6 @@ Sql::Connect(DB_HOST,DB_USER,DB_PASSWORD,DB_NAME);
 $act = $_REQUEST['act'];
 $RSID = $_REQUEST['RSID'];
 
-//Iniciando el array de respuesta
-$rsp['STATUS'] = null;
- 
 $auth = new UsrUsuario();
 if ($RSID)
 {
@@ -46,13 +43,13 @@ if (empty($rsp['ERRORES']))
 //------------------------------------------------------------------
 if (!empty($rsp['ERRORES']))
 {
-    $rsp['STATUS'] = 'ERROR';
-    $rsp['ERROR'] = null;
+    $rsp['error'] = null;
     foreach ($rsp['ERRORES'] as $err)
     {
-        $rsp['ERROR'] .= ($rsp['ERROR']?"\n":"").$err;
+        $rsp['error'] .= ($rsp['error']?"\n":"").$err;
     }
     unset($rsp['ERRORES']);
+    header('X-PHP-Response-Code: '.500, true, 500);
 }
 else
 {
