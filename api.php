@@ -8,6 +8,9 @@ include_once(MDL_PATH."usr/UsrUsuario.php");
 
 Sql::Connect(DB_HOST,DB_USER,DB_PASSWORD,DB_NAME);
 
+//Inicializando rsp['STATUS']
+$rsp['STATUS'] = null;
+
 $act = $_REQUEST['act'];
 $RSID = $_REQUEST['RSID'];
 
@@ -49,7 +52,7 @@ if (!empty($rsp['ERRORES']))
         $rsp['error'] .= ($rsp['error']?"\n":"").$err;
     }
     unset($rsp['ERRORES']);
-    header('X-PHP-Response-Code: '.500, true, 500);
+    $rsp['STATUS'] = 'ERROR';
 }
 else
 {
