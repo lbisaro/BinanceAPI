@@ -8,26 +8,26 @@ if (!$user || !$pass)
 {
     if (!$user)
     {
-        $rsp['ERROR'][] = 'Debe especificar el nombre de usuario';
+        addError('Debe especificar el nombre de usuario');
     }
     if (!$pass)
     {
-        $rsp['ERROR'][] = ($error?$error.' y password':'Debe especificar el password');
+        addError('Debe especificar el password');
     }
 }
 elseif (!UsrUsuario::validAuth($user,$pass))
 {
-    $rsp['ERROR'][] = 'No coincide usuario y/o password';
+    addError('No coincide usuario y/o password');
 }
 elseif (!UsrUsuario::setAuthInstance($user,$pass))
 {
-    $rsp['ERROR'][] = 'No se pudo instanciar la sesion de usuario';
+    addError('No se pudo instanciar la sesion de usuario');
 }
 
 if ($auth = UsrUsuario::getAuthInstance())
 {
     if ($auth->get('idperfil') < UsrUsuario::PERFIL_CNS)
-        $rsp['ERROR'][] = 'La cuenta de usuario se encuentra inhabilitada.';
+        addError('La cuenta de usuario se encuentra inhabilitada.');
 }
 if (empty($rsp['ERROR']))
 {

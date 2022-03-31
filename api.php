@@ -20,14 +20,14 @@ if ($RSID)
     $auth->loadByRSID($RSID); 
     if ($auth->get('idusuario') < 1)
     {
-        $rsp['ERRORES'][] = 'RSID no valido';
+        addError('RSID no valido');
     }
 }
 
 if (empty($act))
-    $rsp['ERRORES'][] = 'Se debe especificar ACT';
+    addError('Se debe especificar ACT');
 elseif ($act != 'login' && !$RSID)
-    $rsp['ERRORES'][] = 'Se debe especificar RSID';
+    addError('Se debe especificar RSID');
 
 if (empty($rsp['ERRORES']))
 {
@@ -38,7 +38,7 @@ if (empty($rsp['ERRORES']))
             break;
 
         default:
-            $rsp['ERRORES'][] = 'Se debe especificar ACT valido';
+            addError('Se debe especificar ACT valido');
             break;
     }
 }
@@ -65,4 +65,17 @@ if (isset($rsp))
 //------------------------------------------------------------------
 Sql::close();
 exit();
+
+function add($error)
+{
+    GLOBAL $rsp;
+    if(!empty($error))
+    {
+        if (is_array($error))
+            foreach ($error as $it)
+                $rsp['ERRORES'][] = $it;
+        else
+            $rsp['ERRORES'][] = $error;
+    }
+}
 ?>
