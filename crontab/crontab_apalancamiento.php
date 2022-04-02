@@ -230,8 +230,12 @@ foreach ($usuarios as $idusuario => $usuarioData)
                 //Si la cantidad de unidades compradas segun DB es mayor a la cantidad de unidades en API
                 //Toma la cantidad de unidades en la API
                 if (($totUnitsBuyed*1) > ($unitsFree*1))
+                {
+                    $msg = ' WARNING '.$strControlUnitsBuyed;
+                    Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
                     $totUnitsBuyed = $unitsFree;
-                
+                }       
+
                 //Orden para venta
                 if ($maxCompraNum==1) 
                     $porcentaje = $opr->get('real_porc_venta_up');

@@ -263,6 +263,8 @@ class BotAjax extends ControllerAjax
                 $salto .= "\n";
             if (strstr(strtolower($linea),'error'))
                 $linea = '<span class="text-danger">'.$linea.'</span>';
+            if (strstr(strtolower($linea),'warning'))
+                $linea = '<span class="text-warning">'.$linea.'</span>';
 
             $show = true;
             if ($prms['idusuario'] && !strpos($linea,' u:'.$prms['idusuario'].' ') )

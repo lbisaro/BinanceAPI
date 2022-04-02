@@ -327,7 +327,7 @@ class Operacion extends ModelDB
                          WHERE idoperacion = ".$lastBuy['idoperacion']." 
                            AND idoperacionorden = ".$lastBuy['idoperacionorden'];
                 $this->db->query($qry);
-                $msg = ' trySolveError '.$this->binStatus.' - orderId: '.$lastBuy['orderId'];
+                $msg = ' trySolve '.$this->binStatus.' - orderId: '.$lastBuy['orderId'];
                 self::logBot('u:'.$this->data['idusuario'].' o:'.$lastBuy['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
             }
         }
@@ -1057,28 +1057,106 @@ class Operacion extends ModelDB
             $msg = ' COMPLETE ORDER - Liquidar Orden';
             self::logBot('u:'.$this->data['idusuario'].' o:'.$this->data['idoperacion'].' s:'.$this->data['symbol'].' '.$msg,$echo=false);
 
-            //Creando una nueva orden de compra en el valor de la orden liquidada, solo si ha ordenes de compra pendientes de venta
-            
+            //Creando una nueva orden de compra y venta, solo si ha ordenes de compra pendientes de venta
             $ordenesActivas = $this->getOrdenes();
             if (!empty($ordenesActivas))
             {
+                //Creando una nueva orden de compra en el valor de la orden liquidada
+
                 $newQty = $ordenALiquidar['origQty'];
                 $newPrice = $ordenALiquidar['price'];
                 $newUsd = toDec($newQty*$newPrice);
                 $msg = ' Buy -> Qty:'.$newQty.' Price:'.$newPrice.' USD:'.toDec($newUsd).' - Recompra por liquidacion';
-                Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg,$echo=false);
+                self::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg,$echo=false);
 
                 try {
                     $limitOrder = $api->buy($symbol, $newQty, $newPrice);
                     $aOpr['idoperacion']  = $this->data['idoperacion'];
-                    $aOpr['side']         = Operacion::SIDE_BUY;
+                    $aOpr['side']         = self::SIDE_BUY;
                     $aOpr['origQty']      = $newQty;
                     $aOpr['price']        = $newPrice;
                     $aOpr['orderId']      = $limitOrder['orderId'];
                     $this->insertOrden($aOpr);               
                 } catch (Throwable $e) {
                     $msg = "Error: " . $e->getMessage().' - Recompra por liquidacion';
-                    Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg,$echo=false);
+                    self::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg,$echo=false);
+                }
+
+                //Creando orden de venta
+                
+                //Consulta billetera en Binance para ver si se puede recomprar
+                $symbolData = $api->getSymbolData($symbol);
+                $account = $api->account();
+                $asset = str_replace($symbolData['quoteAsset'],'',$symbol);
+                $unitsFree = '0.00';
+                $unitsLocked = '0.00';
+                foreach ($account['balances'] as $balances)
+                {
+                    if ($balances['asset'] == $asset)
+                    {
+                        $unitsFree = $balances['free'];
+                        $unitsLocked = $balances['locked'];
+                    }
+                    if ($balances['asset'] == $symbolData['quoteAsset'])
+                    {
+                        $usdFreeToBuy = $balances['free'];
+                    }
+                }
+
+                //Obteniendo datos de ordenes anteriores
+                $dbOrders = $this->getOrdenes();
+
+                $totUsdBuyed=0;
+                $totUnitsBuyed=0;
+                $maxCompraNum=1;
+                foreach ($dbOrders as $order)
+                {
+                    if ($order['side']==self::SIDE_BUY && $order['status'] ==self::OR_STATUS_FILLED)
+                    {
+                       
+                        $totUnitsBuyed += $order['origQty'];
+                        $totUsdBuyed += ($order['origQty']*$order['price']);
+                        if ($order['compraNum']>$maxCompraNum)
+                            $maxCompraNum = $order['compraNum'];
+
+                    }
+                }
+
+                $strControlUnitsBuyed = ' - totUnitsBuyed: '.$totUnitsBuyed.' - unitsFree: '.$unitsFree;
+
+                //Si la cantidad de unidades compradas segun DB es mayor a la cantidad de unidades en API
+                //Toma la cantidad de unidades en la API
+                if (($totUnitsBuyed*1) > ($unitsFree*1))
+                {
+                    $msg = ' WARNING '.$strControlUnitsBuyed;
+                    self::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg,$echo=false);
+                    $totUnitsBuyed = $unitsFree;
+                }
+                
+                //Orden para venta
+                if ($maxCompraNum==1) 
+                    $porcentaje = $this->get('real_porc_venta_up');
+                else
+                    $porcentaje = $this->get('real_porc_venta_down');
+
+                $newUsd = $totUsdBuyed * (1+($porcentaje/100));
+                $newPrice = toDec(($newUsd / $totUnitsBuyed),$symbolData['qtyDecsPrice']);
+                $newQty = toDecDown($totUnitsBuyed,$symbolData['qtyDecs']);
+
+                $msg = ' Sell -> Qty:'.$newQty.' Price:'.$newPrice.' USD:'.toDec($newPrice*$newQty).' +'.$porcentaje.'% - Liquidar Orden';
+                self::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg,$echo=false);
+
+                try {
+                    $limitOrder = $api->sell($symbol, $newQty, $newPrice);
+                    $aOpr['idoperacion']  = $idoperacion;
+                    $aOpr['side']         = self::SIDE_SELL;
+                    $aOpr['origQty']      = $newQty;
+                    $aOpr['price']        = $newPrice;
+                    $aOpr['orderId']      = $limitOrder['orderId'];
+                    $this->insertOrden($aOpr); 
+                } catch (Throwable $e) {
+                    $msg = "Error: " . $e->getMessage().$strControlUnitsBuyed;
+                    self::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg,$echo=false);
                 }
             }
             
