@@ -36,6 +36,10 @@ if (empty($rsp['ERRORES']))
 
             include "api/api_login.php";
             break;
+        case 'notificaciones':
+
+            include "api/api_notificaciones.php";
+            break;
 
         default:
             addError('Se debe especificar ACT valido');

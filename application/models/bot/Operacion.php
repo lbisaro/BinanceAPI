@@ -761,6 +761,83 @@ class Operacion extends ModelDB
             echo $msg; 
     }
 
+    static function getLog($prms=array())
+    {
+        $folder = LOG_PATH.'bot/';
+        $logFiles=array();
+        $log=array();
+
+        //Cargando $prmspor Default
+        if (!isset($prms['qtyDays']))
+            $prms['qtyDays'] = 2; //Cantidad de dias
+        if (!isset($prms['qtyHours']))
+            $prms['qtyHours'] = 24; //Cantidad de horas
+        if (!isset($prms['idusuario']))
+            $prms['idusuario'] = null;
+
+
+        $limitDatetime = date('Y-m-d H:is',strtotime('- '.$prms['qtyHours'].' hours'));        
+        //Obteniendo archivos
+        $scandir = scandir($folder,SCANDIR_SORT_DESCENDING);
+        $cnt=0;
+        foreach ($scandir as $file)
+        {
+            if ($file != '.' && $file != '..' && $file != 'status.log' && $file != 'lock.status')
+            {
+                $logFiles[] = $file;
+                $cnt++;
+            }
+            if ($cnt>=$prms['qtyDays'])
+                break;
+        }
+
+        if (!empty($logFiles))
+        {
+            rsort($logFiles);
+            foreach ($logFiles as $file)
+            {
+                $kDate = substr($file,4,4).'-'.substr($file,8,2).'-'.substr($file,10,2);
+                $content = '';
+                $archivo = fopen($folder.$file,'r');
+                $lin=0;
+                while ($linea = fgets($archivo)) 
+                {
+                    $kDateTime = $kDate.' '.substr($linea,0,8);
+                    $text = substr($linea,9);
+                    $text = str_replace("\n", "", $text);
+
+                    $type='log';
+                    if (strstr(strtolower($linea),'error'))
+                        $type='error';
+                    if (strstr(strtolower($linea),'warning'))
+                        $type='warning';
+
+                    /*
+                    $show = true;
+                    if ($prms['idusuario'] && !strpos($linea,' u:'.$prms['idusuario'].' ') )
+                        $show = false;
+                    if ($prms['idoperacion'] && !strpos($linea,' o:'.$prms['idoperacion'].' ') )
+                        $show = false;
+                    if ($prms['symbol'] && !strpos($linea,' s:'.$prms['symbol'].' ') )
+                        $show = false;
+
+                    if ($show)
+                        $content = $linea.$salto.$content; 
+                        */
+                    if ($text && $kDateTime > $limitDatetime)
+                    {
+                        $log[] = array('datetime'=>$kDateTime,
+                                       'type'=>$type,
+                                       'text'=> $text );
+                        
+                    }
+                }
+            }
+        }
+
+        return $log;
+    }
+
     static function cleanLog()
     {
         $folder = LOG_PATH.'bot/';
