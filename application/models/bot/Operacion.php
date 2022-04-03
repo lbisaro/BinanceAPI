@@ -327,7 +327,7 @@ class Operacion extends ModelDB
                          WHERE idoperacion = ".$lastBuy['idoperacion']." 
                            AND idoperacionorden = ".$lastBuy['idoperacionorden'];
                 $this->db->query($qry);
-                $msg = ' trySolve '.$this->binStatus.' - orderId: '.$lastBuy['orderId'];
+                $msg = ' Warning - trySolve '.$this->binStatus.' - orderId: '.$lastBuy['orderId'];
                 self::logBot('u:'.$this->data['idusuario'].' o:'.$lastBuy['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
             }
         }
@@ -907,8 +907,16 @@ class Operacion extends ModelDB
                 $data[$rw['symbol']]['buyedUSD'] = 0;
                 $data[$rw['symbol']]['buyedUnits'] = 0;
             }
-            $data[$rw['symbol']]['buyedUSD'] += ($rw['origQty']*$rw['price']);
-            $data[$rw['symbol']]['buyedUnits'] += $rw['origQty'];
+            if ($rw['side']==Operacion::SIDE_BUY)
+            {
+                $data[$rw['symbol']]['buyedUSD'] += ($rw['origQty']*$rw['price']);
+                $data[$rw['symbol']]['buyedUnits'] += $rw['origQty'];
+            }
+            else
+            {
+                $data[$rw['symbol']]['buyedUSD'] -= ($rw['origQty']*$rw['price']);
+                $data[$rw['symbol']]['buyedUnits'] -= $rw['origQty'];
+            }
         }
         return $data;
     }
@@ -1045,6 +1053,10 @@ class Operacion extends ModelDB
     static public function lockProcess()
     {
         $lockFileText = file_get_contents(LOCK_FILE);
+        
+        if ($lockFileText < date('Y-m-d H:i:s',strtoTime('- 4 minutes')))
+            self::unlockProcess();
+
         if (!empty($lockFileText))
             return false;
         file_put_contents(LOCK_FILE, date('Y-m-d H:i:s'));
