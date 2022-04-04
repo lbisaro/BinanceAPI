@@ -199,10 +199,11 @@ class CriptoController extends Controller
                 }
             }
 
-            $htmlResultado = '<h3>Analisis sobre la gestion del capital</h3>';
-            $htmlResultado .= '<p>Cantidad disponible: USD '.toDec($freeUSD).'</p>';
-            $htmlResultado .= '<p>Remanente para compra de operaciones: USD '.toDec($total['remanente']).'</p>';
-            $htmlResultado .= '<p>Capital libre para compras: USD'.toDec($freeUSD-$total['remanente']).'</p>';
+            $capitalFree = toDec($freeUSD-$total['remanente']);
+            $htmlResultado = '<h4 class="text-info">Analisis sobre la gestion del capital</h4>';
+            $htmlResultado .= '<p>Capital disponible: <b>USD '.toDec($freeUSD).'</b></p>';
+            $htmlResultado .= '<p>Remanente para compra de operaciones: <b>USD '.toDec($total['remanente']).'</b></p>';
+            $htmlResultado .= '<p>Capital libre para compras: <b class="'.($capitalFree<0?'text-danger':'text-success').'">USD '.$capitalFree.'</b></p>';
 
             $arr['tab_capitalDisponible'] = $dg->get();
             $arr['tab_capitalDisponible_analisis'] = $htmlResultado;

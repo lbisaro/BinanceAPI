@@ -1179,7 +1179,7 @@ class Operacion extends ModelDB
         $data = array();
         $auth = UsrUsuario::getAuthInstance();
         $idusuario = $auth->get('idusuario');
-        $oprs = $this->getDataSet('idusuario = '.$idusuario,'symbol,idoperacion');
+        $oprs = $this->getDataSet('idusuario = '.$idusuario,'auto_restart DESC,symbol,idoperacion');
         foreach ($oprs as $op)
         {
             $data[$op['idoperacion']]['idoperacion']  = $op['idoperacion'];
