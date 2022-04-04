@@ -1362,7 +1362,7 @@ class BotController extends Controller
             $rowClass = 'orden';
             if ($porc>=0 && $rw['side']==Operacion::SIDE_BUY && $rw['status']==Operacion::OR_STATUS_FILLED)
             {
-                $rowClass .= ($porc<=0?' para_liquidar':'');
+                $rowClass .= ' para_liquidar';
             }
             $rowClass .= ($rw['side']==Operacion::SIDE_BUY?' side_buy':' side_sell');
             
