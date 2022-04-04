@@ -38,7 +38,7 @@
     $(document).ready( function () {
 
         //CtrlAjax.sendCtrl("app","bot","toogleAutoRestart");
-        filtrar('ventas');
+        filtrar('para_liquidar');
     });
 
     function filtrar(filtro)
