@@ -155,7 +155,7 @@ class CriptoController extends Controller
             $gdc = $opr->gestionDelCapital();
             
             $autoRestartOffIcon = '<span class="badge badge-danger"><span class="glyphicon glyphicon-ban-circle"></span></span>';
-            $autoRestartOnIcon = '<span class="badge badge-success"><span class="glyphicon glyphicon-ok"></span></span>';
+            $autoRestartOnIcon = '';//'<span class="badge badge-success"><span class="glyphicon glyphicon-ok"></span></span>';
             
             $total = array();
             $total['capital'] = 0;
@@ -166,7 +166,7 @@ class CriptoController extends Controller
             {
                 foreach ($gdc as $idoperacion=>$rw)
                 {
-                    $row = array($rw['symbol'].' [#'.$rw['idoperacion'].'] '.(!$rw['auto_restart']?$autoRestartOffIcon:$autoRestartOnIcon),
+                    $row = array((!$rw['auto_restart']?$autoRestartOffIcon:$autoRestartOnIcon).$rw['symbol'].' [#'.$rw['idoperacion'].']',
                                  toDec($rw['capital']),
                                  toDec($rw['comprado']),
                                  toDec($rw['bloqueado']),
