@@ -166,7 +166,8 @@ class CriptoController extends Controller
             {
                 foreach ($gdc as $idoperacion=>$rw)
                 {
-                    $row = array((!$rw['auto_restart']?$autoRestartOffIcon:$autoRestartOnIcon).$rw['symbol'].' [#'.$rw['idoperacion'].']',
+                    $symbolStr = '<span class="text-'.($rw['auto_restart']?'primary':'secondary').'">'.$rw['symbol'].'</span>'.' <small>[#'.$rw['idoperacion'].']</small>';
+                    $row = array($symbolStr,
                                  toDec($rw['capital']),
                                  toDec($rw['comprado']),
                                  toDec($rw['bloqueado']),
@@ -202,8 +203,8 @@ class CriptoController extends Controller
             $capitalFree = toDec($freeUSD-$total['remanente']);
             $htmlResultado = '<h4 class="text-info">Analisis sobre la gestion del capital</h4>';
             $htmlResultado .= '<p>Capital disponible: <b>USD '.toDec($freeUSD).'</b></p>';
-            $htmlResultado .= '<p>Remanente para compra de operaciones: <b>USD '.toDec($total['remanente']).'</b></p>';
-            $htmlResultado .= '<p>Capital libre para compras: <b class="'.($capitalFree<0?'text-danger':'text-success').'">USD '.$capitalFree.'</b></p>';
+            $htmlResultado .= '<p>Remanente para ordenes de compra: <b>USD '.toDec($total['remanente']).'</b></p>';
+            $htmlResultado .= '<p>Capital libre para operaciones: <b class="'.($capitalFree<0?'text-danger':'text-success').'">USD '.$capitalFree.'</b></p>';
 
             $arr['tab_capitalDisponible'] = $dg->get();
             $arr['tab_capitalDisponible_analisis'] = $htmlResultado;
