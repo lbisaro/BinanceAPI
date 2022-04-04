@@ -14,6 +14,6 @@ $checkDatetime = date('Y-m-d H:i:s',strtotime('- 3 minutes'));
 if ($lastUpdate < $checkDatetime)
     $rsp['alert'] = true;
 
-$prms['qtyHours'] = 24;
+$prms['qtyHours'] = 12;
 $log = Operacion::getLog($prms);
 $rsp['log'] = $log;
