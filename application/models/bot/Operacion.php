@@ -1224,7 +1224,7 @@ class Operacion extends ModelDB
             {
                 if ($data[$idoperacion]['capital'] == 0 || $data[$idoperacion]['capital']<($data[$idoperacion]['comprado']+$data[$idoperacion]['bloqueado']))
                     $data[$idoperacion]['capital'] = $data[$idoperacion]['comprado']+$data[$idoperacion]['bloqueado'];
-                $data[$idoperacion]['remanente'] = $data[$idoperacion]['capital']-$data[$idoperacion]['comprado'];
+                $data[$idoperacion]['remanente'] = $data[$idoperacion]['capital']-$data[$idoperacion]['comprado']-$data[$idoperacion]['bloqueado'];
 
                 $data[$idoperacion]['porc_venta'] = '';
                 if ($data[$idoperacion]['en_venta'] != 0 && $data[$idoperacion]['comprado'] != 0)
