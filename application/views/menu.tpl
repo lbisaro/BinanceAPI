@@ -15,8 +15,8 @@
 </script>
 
 <nav class="navbar fixed-top navbar-expand-lg navbar-default ">
-  <a class="navbar-brand mb-2" href="app.Cripto.home+">
-    <img src="public/images/cripto_menu.png" style="width: 36px;" alt="Home">
+  <a class="navbar-brand mb-2" href="app.Cripto.estadoDeCuenta+">
+    <img src="public/images/cripto_menu.png" style="width: 36px;" alt="Estado de cuenta">
   </a>
   <span class="navbar-brand" >{{title}}</span>
   <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
@@ -51,7 +51,7 @@
         </li>        
         -->
         <li class="nav-item">
-          <a class="nav-link rounded" href="app.Cripto.home+"><span class="glyphicon glyphicon-btc"></span> Estado de cuenta</a>
+          <a class="nav-link rounded" href="app.Cripto.estadoDeCuenta+"><span class="glyphicon glyphicon-btc"></span> Estado de cuenta</a>
         </li>        
         <li class="nav-item">
           <a class="nav-link rounded" href="app.Bot.estadisticas+"><span class="glyphicon glyphicon-signal"></span> Estadisticas</a>

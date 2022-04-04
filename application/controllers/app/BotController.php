@@ -1367,7 +1367,7 @@ class BotController extends Controller
             $rowClass = ($porc<=0?'porcDown':'');
 
             $btnLiquidar = '&nbsp;';
-            if ($porc>=2)
+            if ($porc>=2 && $rw['side']==Operacion::SIDE_BUY)
                 $btnLiquidar = '<a href="'.Controller::getLink('app','bot','liquidarOrden','id='.$rw['idoperacion'].'&idoo='.$rw['idoperacionorden']).'" class="badge badge-danger">Liquidar Orden</a>';
             $row = array($rw['symbol'],
                          $rw['orderId'].$status,

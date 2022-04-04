@@ -14,7 +14,7 @@ include_once MDL_PATH."bot/Operacion.php";
 class CriptoController extends Controller
 {
     
-    function home($auth)
+    function estadoDeCuenta($auth)
     {
         $this->addTitle('Estado de Cuenta Binance');
 
@@ -30,6 +30,7 @@ class CriptoController extends Controller
             $api = new BinanceAPI($ak,$as);
             $opr = new Operacion();
 
+            //Compras
             $prices = $api->prices();
 
             $pnlStatus = $opr->getCompradoEnCurso();
@@ -44,7 +45,7 @@ class CriptoController extends Controller
 
                 }
             }
-            $dg = new HtmlTableDg(null,null,'table table-hover table-striped');
+            $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
             $dg->addHeader('Moneda');
             $dg->addHeader('Comprado USD',null,null,'right');
             $dg->addHeader('Actual USD',null,null,'right');
@@ -72,16 +73,17 @@ class CriptoController extends Controller
             
             $dg->addFooter(array('Totales',toDec($pnlTotal['buyedUSD']),toDec($pnlTotal['actualUSD']),$pnlTotal['resultadoUSD'],$pnlTotal['perc']));
 
-            $arr['data'] .= '<h4 class="text-info">Operaciones</h4>'.$dg->get();
+            $arr['tab_compras'] = $dg->get();
             
-
+            
+            //Billetera
             $account = $api->account();
             unset($dg);
 
             $ctrlBnb = 0;
             $ctrlBilletera = 0;
             $porcMinimoUsdEnBnb = 0.25;//%
-            $dg = new HtmlTableDg(null,null,'table table-hover table-striped');
+            $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
             $dg->addHeader('Asset');
             $dg->addHeader('Total',null,null,'center');
             $dg->addHeader('Bloqueado',null,null,'center');
@@ -137,7 +139,76 @@ class CriptoController extends Controller
 
             $dg->addFooter(array('Totales',$totTotal,$totLocked,$totFree));
 
-            $arr['data'] .= '<h4 class="text-info">Billetera</h4>'.$dg->get();
+            $arr['tab_billetera'] = $dg->get();
+
+
+            //Gestion del capital
+            unset($dg);
+            $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
+            $dg->addHeader('Operacion');
+            $dg->addHeader('Capital<br>USD',null,null,'right');
+            $dg->addHeader('Comprado<br>USD',null,null,'right');
+            $dg->addHeader('Bloqueado<br>USD',null,null,'right');
+            $dg->addHeader('Remanente<br>USD',null,null,'right');
+            $dg->addHeader('Venta<br>%',null,null,'right');
+
+            $gdc = $opr->gestionDelCapital();
+            
+            $autoRestartOffIcon = '<span class="badge badge-danger"><span class="glyphicon glyphicon-ban-circle"></span></span>';
+            $autoRestartOnIcon = '<span class="badge badge-success"><span class="glyphicon glyphicon-ok"></span></span>';
+            
+            $total = array();
+            $total['capital'] = 0;
+            $total['comprado'] = 0;
+            $total['bloqueado'] = 0;
+            $total['remanente'] = 0;
+            if (!empty($gdc))
+            {
+                foreach ($gdc as $idoperacion=>$rw)
+                {
+                    $row = array($rw['symbol'].' [#'.$rw['idoperacion'].'] '.(!$rw['auto_restart']?$autoRestartOffIcon:$autoRestartOnIcon),
+                                 toDec($rw['capital']),
+                                 toDec($rw['comprado']),
+                                 toDec($rw['bloqueado']),
+                                 toDec($rw['remanente']),
+                                 toDec($rw['porc_venta'])
+                                 );
+                    $dg->addRow($row);
+                    $total['capital'] += $rw['capital'];
+                    $total['comprado'] += $rw['comprado'];
+                    $total['bloqueado'] += $rw['bloqueado'];
+                    $total['remanente'] += $rw['remanente'];
+                }
+            }
+
+            $row = array('TOTAL',
+                         toDec($total['capital']),
+                         toDec($total['comprado']),
+                         toDec($total['bloqueado']),
+                         toDec($total['remanente']),
+                         '&nbsp;'
+                        );
+            $dg->addFooter($row);
+
+            $freeUSD=0;
+            foreach ($balance as $asset=>$rw)
+            {
+                if ((substr($asset,0,3)=='USD' || substr($asset,-3)=='USD') )
+                {
+                    $freeUSD += $rw['free'];
+                }
+            }
+
+            $htmlResultado = '<h3>Analisis sobre la gestion del capital</h3>';
+            $htmlResultado .= '<p>Cantidad disponible: USD '.toDec($freeUSD).'</p>';
+            $htmlResultado .= '<p>Remanente para compra de operaciones: USD '.toDec($total['remanente']).'</p>';
+            $htmlResultado .= '<p>Capital libre para compras: USD'.toDec($freeUSD-$total['remanente']).'</p>';
+
+            $arr['tab_capitalDisponible'] = $dg->get();
+            $arr['tab_capitalDisponible_analisis'] = $htmlResultado;
+
+
+
         }
 
         if ($ctrlBilletera>0 && (($ctrlBnb*100)/$ctrlBilletera < $porcMinimoUsdEnBnb))
@@ -166,7 +237,7 @@ class CriptoController extends Controller
 
         $arr['hidden'] = '';
     
-        $this->addView('cripto/home',$arr);
+        $this->addView('cripto/estadoDeCuenta',$arr);
     }
     
     function compararPorcentaje($auth)    

@@ -545,7 +545,7 @@ class BotAjax extends ControllerAjax
         
         // - Bloquear el proceso del Robot (O esperar que sea posible)
         $lockFileText = file_get_contents(LOCK_FILE);
-        if (Operacion::lockProcess())
+        if (Operacion::lockProcess('BotAjax::liquidarOrden()'))
         {
             $auth = UsrUsuario::getAuthInstance();
             $ak = $auth->getConfig('bncak');

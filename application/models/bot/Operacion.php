@@ -957,87 +957,6 @@ class Operacion extends ModelDB
         return $ds;
     }
 
-    function tipoAccionesPost($key)
-    {
-        $acc['VENTA_PARCIAL'] = array('idoperacionorden'=>true //orden a vender
-                                    );
-        return $acc[$key];
-    }    
-
-    function addAccionesPost($idoperacion,$accion,$params)
-    {
-        $accion = $this->tipoAccionesPost($accion);
-        if (!empty($accion))
-        {
-            $params_json = json_encode($params);
-            $ins = 'INSERT INTO operacion (idoperacion,accion,params_json,status,updated,done) VALUES ('.
-                   "'".$idoperacion."',".
-                   "'".strToUpper($accion)."',".
-                   "'".$params_json."',".
-                   "'Registrado',".
-                   "'".date('Y-m-d H:i:s')."',".
-                   "'0'".
-                   ")";
-            $this->db->query($ins);
-            return true;
-
-        }
-        return false;
-    }
-
-    function getAccionesPost()
-    {
-        $qry = 'SELECT * FROM operacion_post WHERE done = 0';
-        $stmt = $this->db->query($qry);
-        $acciones = array();
-        while ($rw = $stmt->fetch())
-        {
-            //Cargar parametros serializados en el registro de la DB
-            $prms = $rw['params_json'];
-            if (!empty($prms))
-                foreach ($prms as $k => $v)
-                    $rw[$k] = $v;
-
-            //Buscar informacion adicional de acuerdo a la accion
-            switch ($rw['accion']) {
-                case 'VENTA_PARCIAL':
-                    $idoperacion = $rw['idoperacion'];
-                    $idoperacionorden = $rw['idoperacionorden'];
-                    
-                    $qry = "SELECT operacion.*,
-                                   operacion_orden.* 
-                              FROM operacion_orden
-                              LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion
-                              WHERE operacion.idoperacion = '".$idoperacion."' AND completed = 0
-                              ORDER BY price";
-                    $stmt2 = $this->db->query($qry);
-                    while ($rw2 = $stmt2->fetch())
-                    {
-                        $rw['idusuario'] = $rw2['idusuario'];
-                        $rw['symbol'] = $rw2['symbol'];
-                        $rw['ordenes'][$rw2['idoperacionorden']] = array(
-                                                 'idoperacionorden'=>$rw2['idoperacionorden'],
-                                                 'side'=>$rw2['side'],
-                                                 'status'=>$rw2['status'],
-                                                 'origQty'=>$rw2['origQty'],
-                                                 'price'=>$rw2['price'],
-                                                 'orderId'=>$rw2['orderId'],
-                                                 );
-                    }
-                    break;
-                
-                default:
-                    # code...
-                    break;
-            }
-            //switch por tipo de accion
-            //Buscar info de la operacion, operacion_orden y usuario y agregar datos al $rw
-
-            $acciones[] = $rw;
-        }
-        return $acciones;
-    }
-
     static public function readLockFile()
     {
         $lockFileText = file_get_contents(LOCK_FILE);
@@ -1050,18 +969,19 @@ class Operacion extends ModelDB
         return ($lockFileText?true:false);
     }
 
-    static public function lockProcess()
+    static public function lockProcess($proc='NO_PROC')
     {
         $lockFileText = file_get_contents(LOCK_FILE);
-        
-        if ($lockFileText < date('Y-m-d H:i:s',strtoTime('- 4 minutes')))
-            self::unlockProcess();
+        $lockFileTime = substr($lockFileText,0,19);
+        if (empty($lockFileText) || $lockFileTime < date('Y-m-d H:i:s',strtoTime('- 4 minutes')))
+        {
+            file_put_contents(LOCK_FILE, date('Y-m-d H:i:s').' '.$proc);
+            chmod(LOCK_FILE, 666);
+            return true;
 
-        if (!empty($lockFileText))
-            return false;
-        file_put_contents(LOCK_FILE, date('Y-m-d H:i:s'));
-        chmod(LOCK_FILE, 666);
-        return true;
+        }
+        return false;
+
     }
 
     static public function unlockProcess()
@@ -1252,5 +1172,67 @@ class Operacion extends ModelDB
             return true;
         }
         return false;
+    }
+
+    function gestionDelCapital()
+    {
+        $data = array();
+        $auth = UsrUsuario::getAuthInstance();
+        $idusuario = $auth->get('idusuario');
+        $oprs = $this->getDataSet('idusuario = '.$idusuario,'symbol,idoperacion');
+        foreach ($oprs as $op)
+        {
+            $data[$op['idoperacion']]['idoperacion']  = $op['idoperacion'];
+            $data[$op['idoperacion']]['symbol']       = $op['symbol'];
+            $data[$op['idoperacion']]['capital']      = $op['capital_usd'];
+            $data[$op['idoperacion']]['auto_restart'] = $op['auto_restart'];
+
+        }
+
+        $oact = $this->getOrdenesActivas();
+        foreach ($oact as $orden)
+        {
+            $usd = toDec($orden['price']*$orden['origQty']);
+            if ($orden['side']==self::SIDE_SELL)
+                $usd = $usd*(-1);
+
+            if (!isset($data[$orden['idoperacion']]['comprado']))
+                $data[$orden['idoperacion']]['comprado']=0;
+            if (!isset($data[$orden['idoperacion']]['en_venta']))
+                $data[$orden['idoperacion']]['en_venta']=0;
+            if (!isset($data[$orden['idoperacion']]['bloqueado']))
+                $data[$orden['idoperacion']]['bloqueado']=0;
+
+            if ($orden['status'] == self::OR_STATUS_FILLED)
+                $data[$orden['idoperacion']]['comprado'] += $usd;
+            if ($orden['status'] == self::OR_STATUS_NEW && $orden['side']==self::SIDE_BUY) 
+                $data[$orden['idoperacion']]['bloqueado'] += $usd;
+            if ($orden['status'] == self::OR_STATUS_NEW && $orden['side']==self::SIDE_SELL) 
+                $data[$orden['idoperacion']]['en_venta'] -= $usd;
+
+
+        }
+
+        foreach ($oprs as $op)
+        {
+            $idoperacion = $op['idoperacion'];
+            if ($data[$idoperacion]['comprado']==0 && $data[$idoperacion]['bloueado']==0 && $data[$idoperacion]['en_venta']==0)
+            {
+                unset($data[$idoperacion]);
+            }
+            else
+            {
+                if ($data[$idoperacion]['capital'] == 0 || $data[$idoperacion]['capital']<($data[$idoperacion]['comprado']+$data[$idoperacion]['bloqueado']))
+                    $data[$idoperacion]['capital'] = $data[$idoperacion]['comprado']+$data[$idoperacion]['bloqueado'];
+                $data[$idoperacion]['remanente'] = $data[$idoperacion]['capital']-$data[$idoperacion]['comprado'];
+
+                $data[$idoperacion]['porc_venta'] = '';
+                if ($data[$idoperacion]['en_venta'] != 0 && $data[$idoperacion]['comprado'] != 0)
+                    $data[$idoperacion]['porc_venta'] = toDec(((($data[$idoperacion]['en_venta']/$data[$idoperacion]['comprado'])-1)*100));
+            }
+
+        }
+
+        return $data;
     }
 }

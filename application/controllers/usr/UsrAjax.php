@@ -64,7 +64,7 @@ class UsrAjax extends ControllerAjax
             {
                 $mod  = 'App';
                 $ctrl = 'Cripto';
-                $act  = 'home';
+                $act  = 'estadoDeCuenta';
                 $prm  = 'login=OK';
             }
             $this->ajxRsp->redirect(Controller::getLink($mod,$ctrl,$act,$prm));
