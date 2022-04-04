@@ -1331,6 +1331,7 @@ class BotController extends Controller
         $ordenes = $opr->getOrdenesActivas();
 
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
+        $dg->setCaption('Ordenes activas');
         $dg->addHeader('Moneda');
         $dg->addHeader('ID');
         $dg->addHeader('Fecha Hora');
