@@ -226,7 +226,7 @@ foreach ($usuarios as $idusuario => $usuarioData)
                         }
                     }
 
-                    $strControlUnitsBuyed = ' - totUnitsBuyed: '.$totUnitsBuyed.' - unitsFree: '.$unitsFree;
+                    $strControlUnitsBuyed = ' - totUnitsBuyed: '.($totUnitsBuyed*1).' - unitsFree: '.($unitsFree*1);
                     $strControlUsdFreeToBuy = ' - usdFreeToBuy: '.$usdFreeToBuy;
                     //Si la cantidad de unidades compradas segun DB es mayor a la cantidad de unidades en API
                     //Toma la cantidad de unidades en la API

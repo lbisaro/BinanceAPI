@@ -154,7 +154,7 @@ class CriptoController extends Controller
 
             $gdc = $opr->gestionDelCapital();
             
-            $autoRestartOffIcon = '<span class="badge badge-danger"><span class="glyphicon glyphicon-ban-circle"></span></span>';
+            $autoRestartOffIcon = '<span class="badge badge-danger"><span class="glyphicon glyphicon-ban-circle"></span></span> ';
             $autoRestartOnIcon = '';//'<span class="badge badge-success"><span class="glyphicon glyphicon-ok"></span></span>';
             
             $total = array();

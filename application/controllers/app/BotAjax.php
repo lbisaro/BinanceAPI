@@ -263,9 +263,7 @@ class BotAjax extends ControllerAjax
                 $salto .= "\n";
             if (strstr(strtolower($linea),'error'))
                 $linea = '<span class="text-danger">'.$linea.'</span>';
-            if (strstr(strtolower($linea),'warning'))
-                $linea = '<span class="text-warning">'.$linea.'</span>';
-
+            
             $show = true;
             if ($prms['idusuario'] && !strpos($linea,' u:'.$prms['idusuario'].' ') )
                 $show = false;
@@ -281,6 +279,7 @@ class BotAjax extends ControllerAjax
         $content = str_ireplace('Buy ','<b class="badge badge-success">BUY </b>',$content);
         $content = str_ireplace('Sell ','<b class="badge badge-danger">SELL </b>',$content);
         $content = str_ireplace('Stop ','<b class="badge badge-warning">STOP </b>',$content);
+        $content = str_ireplace('Warning ','<b class="badge badge-warning">WARNING </b>',$content);
         $content = str_ireplace('PENDIENTE DE ELIMINAR ','<b class="badge badge-warning">PENDIENTE DE ELIMINAR </b>',$content);
         $content = str_ireplace('START ORDER ','<b class="badge badge-info">START ORDER </b>',$content);
         if (!empty($content))
