@@ -1343,14 +1343,6 @@ class BotController extends Controller
         $idoperacion = 0;
         foreach ($ordenes as $rw)
         {
-            if ($rw['idoperacion']!=$idoperacion)
-            {
-                $totVentas = 0;
-                $gananciaUsd = 0;
-                $idoperacion = $rw['idoperacion'];
-                $dg->addSeparator($rw['symbol']);
-            }
-            
             $symbolPrice = $prices[$rw['symbol']];
             $usd = toDec($rw['origQty']*$rw['price']);
 
@@ -1364,11 +1356,20 @@ class BotController extends Controller
             if ($rw['side']==Operacion::SIDE_SELL || $rw['status']==Operacion::OR_STATUS_FILLED)
                 $porc = toDec((($symbolPrice/$rw['price'])-1)*100);
 
-            $rowClass = ($porc<=0?'porcDown':'');
-
+            
+            
+            $rowClass = 'orden';
+            if ($porc>=0 && $rw['side']==Operacion::SIDE_BUY && $rw['status']==Operacion::OR_STATUS_FILLED)
+            {
+                $rowClass = ($porc<=0?' para_liquidar':'');
+            }
+            $rowClass .= ($rw['side']==Operacion::SIDE_BUY?' side_buy':' side_sell');
+            
             $btnLiquidar = '&nbsp;';
-            if ($porc>=2 && $rw['side']==Operacion::SIDE_BUY)
+            if ($porc>=2 && $rw['side']==Operacion::SIDE_BUY && $rw['status']==Operacion::OR_STATUS_FILLED)
+            {
                 $btnLiquidar = '<a href="'.Controller::getLink('app','bot','liquidarOrden','id='.$rw['idoperacion'].'&idoo='.$rw['idoperacionorden']).'" class="badge badge-danger">Liquidar Orden</a>';
+            }
             $row = array($rw['symbol'],
                          $rw['orderId'].$status,
                          $rw['updatedStr'],

@@ -12,11 +12,17 @@
 </style>
 
 <div class="container">
-    <ul class="nav justify-content-end ">
-      <li class="nav-item">
-        <button id="toogleVentaBtn" onclick="toogleVenta()" class="btn btn-success " >Ver todas</a>
-      </li>
-    </ul>
+    <div class="dropdown" style="text-align: right;">
+      <button class="btn btn-info dropdown-toggle" type="button" id="dropdownMenuButton" data-toggle="dropdown" aria-expanded="false">
+        Filtrar Ordenes
+      </button>
+      <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+        <span class="dropdown-item" style="cursor:pointer;" onclick="filtrar('all')">Todo</span>
+        <span class="dropdown-item" style="cursor:pointer;" onclick="filtrar('para_liquidar')">Compras para liquidar</span>
+        <span class="dropdown-item" style="cursor:pointer;" onclick="filtrar('compras')">Compras</span>
+        <span class="dropdown-item" style="cursor:pointer;" onclick="filtrar('ventas')">Ventas</span>
+      </div>
+    </div>
    
 </div>
 <div class="container tabs" id="ordenesActivas">
@@ -29,29 +35,33 @@
 
 <script type="text/javascript">
     
-    var soloVenta = false;
     $(document).ready( function () {
 
         //CtrlAjax.sendCtrl("app","bot","toogleAutoRestart");
-        toogleVenta();
+        filtrar('ventas');
     });
 
-    function toogleVenta()
+    function filtrar(filtro)
     {
-        if (soloVenta)
+        $('.orden').hide();
+        if (filtro=='para_liquidar')
         {
-            soloVenta = false;
-            $('#toogleVentaBtn').html('Ver Operaciones para venta');
-            $('.separator').show();
-            $('.porcDown').show();
+            $('.para_liquidar').show();
+        }
+        else if (filtro=='ventas')
+        {
+            $('.side_sell').show();
+        }
+        else if (filtro=='compras')
+        {
+            $('.side_buy').show();
         }
         else
         {
-            soloVenta = true;
-            $('#toogleVentaBtn').html('Ver todas');
-            $('.separator').hide();
-            $('.porcDown').hide();
+            $('.orden').show();
         }
     }
+
+    
 
 </script>
