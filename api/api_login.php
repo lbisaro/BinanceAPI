@@ -32,14 +32,18 @@ if ($auth = UsrUsuario::getAuthInstance())
 if ($auth && empty($rsp['ERRORES']))
 {
     $RSID = getRndAlpha(20);
-    $auth->setRSID($RSID);
-    $auth->registrarAcceso();
+    if ($auth->setRSID($RSID))
+    {
+        $auth->registrarAcceso();
 
-    $rsp['idusuario'] = $auth->get('idusuario');
-    $rsp['username']  = $auth->get('username');
-    $rsp['ayn']       = $auth->get('ayn');
-    $rsp['mail']      = $auth->get('mail');
-    $rsp['RSID']      = $auth->get('RSID');
-    $rsp['admin']     = $auth->isAdmin();
-    
+        $rsp['idusuario'] = $auth->get('idusuario');
+        $rsp['username']  = $auth->get('username');
+        $rsp['ayn']       = $auth->get('ayn');
+        $rsp['mail']      = $auth->get('mail');
+        $rsp['RSID']      = $auth->get('RSID');
+        $rsp['_RSID']      = $RSID;
+        $rsp['admin']     = $auth->isAdmin();
+        
+        
+    }
 }
