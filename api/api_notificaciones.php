@@ -15,6 +15,7 @@ $rsp['alert'] = false;
 if ($lastUpdate < $checkDatetime)
     $rsp['alert'] = true;
 
-$prms['qtyHours'] = 12;
-$log = Operacion::getLog($prms);
-$rsp['log'] = $log;
+
+//$prms['qtyHours'] = 12;
+//$log = Operacion::getLog($prms);
+//$rsp['log'] = $log;
