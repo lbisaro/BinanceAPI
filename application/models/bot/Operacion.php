@@ -826,9 +826,10 @@ class Operacion extends ModelDB
                         */
                     if ($text && $kDateTime > $limitDatetime)
                     {
-                        $log[] = array('datetime'=>$kDateTime,
+                        array_unshift($log, array('datetime'=>$kDateTime,
                                        'type'=>$type,
-                                       'text'=> $text );
+                                       'text'=> $text ));
+                        
                         
                     }
                 }
