@@ -10,32 +10,13 @@ Sql::Connect(DB_HOST,DB_USER,DB_PASSWORD,DB_NAME);
 
 //Inicializando rsp['STATUS']
 $rsp['STATUS'] = null;
-
 $act = $_REQUEST['act'];
-$RSID = $_REQUEST['RSID'];
 
-$auth = new UsrUsuario();
-if ($RSID)
-{
-    $auth->loadByRSID($RSID); 
-    if ($auth->get('idusuario') < 1)
-    {
-        addError('RSID no valido');
-    }
-}
+include "api/api_login.php";
 
-if (empty($act))
-    addError('Se debe especificar ACT');
-elseif ($act != 'login' && !$RSID)
-    addError('Se debe especificar RSID');
-
-if (empty($rsp['ERRORES']))
+if ($act != 'login' && $loginOk)
 {
     switch ($act) {
-        case 'login':
-
-            include "api/api_login.php";
-            break;
         case 'notificaciones':
 
             include "api/api_notificaciones.php";

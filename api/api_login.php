@@ -1,8 +1,7 @@
 <?php
-include_once MDL_PATH."usr/UsrUsuario.php";
-
 $user = $_REQUEST['login_username'];
 $pass = $_REQUEST['login_password'];
+$loginOk = false;
 
 if (!$user || !$pass)
 {
@@ -41,9 +40,8 @@ if ($auth && empty($rsp['ERRORES']))
         $rsp['ayn']       = $auth->get('ayn');
         $rsp['mail']      = $auth->get('mail');
         $rsp['RSID']      = $auth->get('RSID');
-        $rsp['_RSID']      = $RSID;
         $rsp['admin']     = $auth->isAdmin();
-        
+        $loginOk = true;
         
     }
 }
