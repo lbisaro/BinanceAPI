@@ -11,6 +11,7 @@ $rsp['lastUpdate'] = substr($lastUpdate,0,19);
 
 $checkDatetime = date('Y-m-d H:i:s',strtotime('- 3 minutes'));
 
+$rsp['alert'] = false;
 if ($lastUpdate < $checkDatetime)
     $rsp['alert'] = true;
 

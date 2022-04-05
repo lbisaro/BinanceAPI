@@ -812,25 +812,12 @@ class Operacion extends ModelDB
                     if (strstr(strtolower($linea),'warning'))
                         $type='warning';
 
-                    /*
-                    $show = true;
-                    if ($prms['idusuario'] && !strpos($linea,' u:'.$prms['idusuario'].' ') )
-                        $show = false;
-                    if ($prms['idoperacion'] && !strpos($linea,' o:'.$prms['idoperacion'].' ') )
-                        $show = false;
-                    if ($prms['symbol'] && !strpos($linea,' s:'.$prms['symbol'].' ') )
-                        $show = false;
-
-                    if ($show)
-                        $content = $linea.$salto.$content; 
-                        */
+                    
                     if ($text && $kDateTime > $limitDatetime)
                     {
                         array_unshift($log, array('datetime'=>$kDateTime,
                                        'type'=>$type,
                                        'text'=> $text ));
-                        
-                        
                     }
                 }
             }
