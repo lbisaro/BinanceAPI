@@ -328,7 +328,7 @@ class Operacion extends ModelDB
                            AND idoperacionorden = ".$lastBuy['idoperacionorden'];
                 $this->db->query($qry);
                 $msg = ' Warning - trySolve '.$this->binStatus.' - orderId: '.$lastBuy['orderId'];
-                self::logBot('u:'.$this->data['idusuario'].' o:'.$lastBuy['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+                self::logBot('u:'.$this->data['idusuario'].' o:'.$lastBuy['idoperacion'].' s:'.$this->data['symbol'].' '.$msg,$echo=false);
             }
         }
 
