@@ -1062,9 +1062,6 @@ class UsrUsuario extends Model
         if (!$this->data['idusuario'])
             return null;
 
-        if ($set=='FCM_token')
-            $str = base64_encode($str);
-
         if($conf[$set] != $str)
         {
             $conf[$set] = $str;
@@ -1092,12 +1089,7 @@ class UsrUsuario extends Model
         if($get)
         {
             $conf = unserialize($this->data['conf']);
-
-            if ($get=='FCM_token')
-                $str = base64_decode($conf[$get]);
-            else
-                $ret = $conf[$get];
-            return $ret;
+            return $conf[$get];
         }
         else
         {
