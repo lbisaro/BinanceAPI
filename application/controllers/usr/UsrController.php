@@ -48,7 +48,7 @@ class UsrController extends Controller
         else
             $arr['binanceBtn'] = '<button type="button" class="btn btn-primary btn-sm" onclick="showBinanceForm();">Asociar API a la cuenta</button>';
 
-        if ($FCM_token = $auth->getConfig('FCM_token'))
+        if ($FCM_token = $auth->get('FCM_token'))
             $arr['FCM_token'] = $FCM_token;
         else
             $arr['FCM_token'] = 'Sin especificar';
