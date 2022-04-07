@@ -97,6 +97,14 @@
                 </small>
             </div>
         </div>
+
+        <div class="form-group row">
+            <label for="mail" class="col-sm-2 col-form-label">Firebase FCM Token</label>
+            <div class="col-sm-10 my-auto">
+                <strong>{{FCM_token}}</strong>
+            </div>
+        </div>
+
         <input type="hidden" id="idusuario" value="{{idusuario}}">
 
 </div>

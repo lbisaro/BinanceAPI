@@ -47,6 +47,11 @@ class UsrController extends Controller
             $arr['binanceBtn'] = '<button type="button" class="btn btn-danger btn-sm" onclick="cancelarBinance();">Cancelar asociacion con la API</button>';
         else
             $arr['binanceBtn'] = '<button type="button" class="btn btn-primary btn-sm" onclick="showBinanceForm();">Asociar API a la cuenta</button>';
+
+        if ($FCM_token = $auth->getConfig('FCM_token'))
+            $arr['FCM_token'] = $FCM_token;
+        else
+            $arr['FCM_token'] = 'Sin especificar';
     
         $this->addView('usr/perfil',$arr);
     }
