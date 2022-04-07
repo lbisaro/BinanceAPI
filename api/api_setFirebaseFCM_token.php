@@ -1,9 +1,15 @@
 <?php
 include_once MDL_PATH."usr/UsrUsuario.php";
 
-$arrToSet['FCM_token'] = $_REQUEST['FCM_token'];
-$auth->set($arrToSet);
-if ($auth->save())
-    $rsp['result'] = 'Token registrado';
+if (!empty($_REQUEST['FCM_token']))
+{
+    if ($auth->saveFCM_token($_REQUEST['FCM_token']))
+        $rsp['result'] = 'Token registrado';
+    else
+        addError('No fue posible registrar el token');
+    
+}
 else
-    addError('No fue posible registrar el token');
+{
+    addError('Se debe especificar un token');
+}
