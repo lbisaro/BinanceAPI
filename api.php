@@ -22,6 +22,11 @@ if ($act != 'login' && $loginOk)
             include "api/api_notificaciones.php";
             break;
 
+        case 'setFirebaseFCM_token':
+
+            include "api/api_setFirebaseFCM_token.php";
+            break;
+
         default:
             addError('Se debe especificar ACT valido');
             break;
