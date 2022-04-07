@@ -1053,11 +1053,21 @@ class UsrUsuario extends Model
             $this->query($query);
         }
     }
+
     function saveFCM_token($token)
     {
         $upd = "UPDATE usuario SET FCM_token = '".$token."' WHERE idusuario = '".$this->data['idusuario']."'";
         
         return $this->query($upd);
+    }
+
+    function getFCM_token()
+    {
+        $qry = "SELECT FCM_token FROM usuario WHERE idusuario = '".$this->data['idusuario']."'";
+        $this->query($qry);
+        $rw = $this->fetch_array();
+
+        return $rw['FCM_token'];
     }
 
     /**
