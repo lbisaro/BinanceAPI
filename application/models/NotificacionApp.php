@@ -17,7 +17,7 @@ class NotificacionApp {
         $notification['color'] = '#278ed8';
         $notification['icon'] = 'cripto_app_icon.png' ;
         //$notification['sound'] = 'mySound';
-        $notification['click_action'] = 'http://bisaro.ar';
+        //$notification['click_action'] = 'http://bisaro.ar';
 
         $extraNotificationData = array("message" => $notification, "moredata" => 'dd');
         $fcmNotification = array(
