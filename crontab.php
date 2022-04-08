@@ -39,6 +39,12 @@ switch ($parametro) {
             
         break;
 
+    case 'notificacionApp':
+    
+        include "crontab/crontab_notificacionApp.php";
+            
+        break;
+
 
     //case 'arbitrajeTriangular':
     //    include "crontab/crontab_arbitrajeTriangular.php";

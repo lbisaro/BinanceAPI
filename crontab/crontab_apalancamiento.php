@@ -1,12 +1,23 @@
 <?php
 include_once MDL_PATH."binance/BinanceAPI.php";
 include_once MDL_PATH."bot/Operacion.php";
+include_once (MDL_PATH."NotificacionApp.php");
 
 if (!Operacion::lockProcess('Crontab::apalancamiento()'))
 {
     $lockFileText = Operacion::readLockFile();
     $msg = 'Error - Bot Apalancamiento Bloqueado - '.$lockFileText;
     Operacion::logBot($msg);
+
+
+    $usr = new UsrUsuario(NotificacionApp::SUPER_ADMIN_ID);
+    $registration_ids[] = $usr->getFCM_token();
+
+    $title = 'Bisaro.ar ALERTA';
+    $body = $msg;
+    $result = NotificacionApp::send($title,$body,$registration_ids);
+
+
     return null;
 }
 
