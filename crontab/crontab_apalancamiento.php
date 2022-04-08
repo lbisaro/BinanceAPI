@@ -8,15 +8,13 @@ if (!Operacion::lockProcess('Crontab::apalancamiento()'))
     $msg = 'Error - Bot Apalancamiento Bloqueado - '.$lockFileText;
     Operacion::logBot($msg);
 
-    /*
     include_once (MDL_PATH."NotificacionApp.php");
     $usr = new UsrUsuario(NotificacionApp::SUPER_ADMIN_ID);
     $registration_ids[] = $usr->getFCM_token();
 
-    $title = 'Bisaro.ar ALERTA';
-    $body = $msg;
+    $title = 'ALERTA!';
+    $body = 'Bot Apalancamiento Bloqueado'."\n".$lockFileText;
     $result = NotificacionApp::send($title,$body,$registration_ids);
-    */
 
     return null;
 }
