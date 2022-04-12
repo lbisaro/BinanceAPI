@@ -3,6 +3,7 @@
 include_once LIB_PATH."DB.php";
 include_once MDL_PATH."binance/BinanceAPI.php";
 include_once MDL_PATH."Ticker.php";
+include_once MDL_PATH."bot/Exchange.php";
 
 
 class Test 
@@ -17,7 +18,7 @@ class Test
     protected $qtyUsd = 0.0;
     protected $qtyToken = 0.0;
     protected $totalComprado = 0.0;
-
+    protected $pnlInfo = array();
     protected $comisionBinance = 0.075 ;
 
     protected $updateStatus = array();
@@ -946,6 +947,8 @@ class Test
         }
 
 
+
+
         $balance = toDec($this->qtyUsd + $this->qtyToken * $close,2);
         $comisiones = toDec($comisiones,2);
         $balanceFinal = toDec($balance - $comisiones,2);
@@ -968,6 +971,295 @@ class Test
                 
         return $results;
 
+    }
+
+    function testBot2($symbol,$capital,$compraInicial,$prms)
+    {
+        $this->capital = $capital;
+        $this->qtyUsd = $this->capital;
+        $this->compraInicial = $compraInicial;
+        $this->qtyToken = 0.0;
+        $this->totalComprado = 0.0;
+
+        $ventas = 0;
+
+        $porcVentaUp = ($prms['porcVentaUp']/100);
+        $porcVentaDown = ($prms['porcVentaDown']/100);
+   
+        $tck = new Ticker();
+        $api = new Exchange();
+
+        $bot['orders'] = array(); //Ordenes en curso
+        
+        if ($api->start($symbol,$this->qtyUsd,$this->qtyToken))
+        {
+            $fwd = true;
+            while ($fwd)
+            {
+                $apiOrders = $api->openOrders();
+                $completeBuy=0;
+                $completeSell=0;
+                $data=array();
+
+                if (!empty($bot['orders']))
+                {
+                    foreach ($bot['orders'] as $orderId=>$order)
+                    {
+                        //Filtra las ordenes que se encuentran abiertas
+                        if ($order['status']=='NEW')
+                        {
+                            $strSide = $order['side'];
+                            $data[$strSide][$orderId]['orderId']=$orderId;
+                            
+                            //Si no existe la orden abierta en Binance y si en la DB, hay que tomar accion
+                            if (!isset($apiOrders[$orderId]))
+                            {
+                                //Busca info en el Exchange sobre la orden 
+                                $orderStatus = $api->orderStatus($symbol,$orderId);
+                                
+                                //Si la orden se completo
+                                if (!empty($orderStatus) && $orderStatus['status']=='FILLED')
+                                {
+                                    $data['update'] = true;
+                                    $data['actualizar'] = $strSide;
+                                    $data[$strSide][$orderId]=$orderStatus;
+                                }
+                                elseif (!empty($orderStatus) && $orderStatus['status']=='CANCELED')
+                                {
+                                    $data['canceled'][$orderId] = $strSide;
+                                }
+                                else
+                                {
+                                    $data['unknown'][$orderId] = $strSide;  
+                                }
+                            }
+                        }
+                    }
+
+                    //Control sobre ordenes en estado desconocido en Binance
+                    $ordenDesconocidaEnBinance = false;
+                    if (!empty($data['unknown']))
+                    {
+                        foreach ($data['unknown'] as $orderId => $strSide)
+                        {
+                            $ordenDesconocidaEnBinance = true;
+                            $msg = 'Error - ORDEN DE '.strtoupper($strSide).' DESCONOCIDA EN EXCHANGE (orderId = '.$orderId.')';
+                            debug($msg);
+                        }
+                    }
+                    if ($ordenDesconocidaEnBinance)
+                        return false;
+
+                    //Control sobre ordenes eliminadas en Binance
+                    $ordenEliminadaEnBinance = false;
+                    if (!empty($data['canceled']))
+                    {
+                        foreach ($data['canceled'] as $orderId => $strSide)
+                        {
+                            $ordenEliminadaEnBinance = true;
+                            $msg = ' ORDEN DE '.strtoupper($strSide).' CANCELADA EN EXCHANGE (orderId = '.$orderId.')';
+                            debug($msg);
+                        }
+                    }
+                    if ($ordenEliminadaEnBinance)
+                        return false;
+
+                    //Actualizar operacion y ordenes
+                    if ($data['update'])
+                    {
+                        //La operacion ejecuto una compra
+                        if ($data['actualizar'] == 'BUY') 
+                        {
+                            if (!empty($data['SELL']) )
+                            {
+                                foreach ($data['SELL'] as $orderId => $rw)
+                                {
+                                    unset($bot['orders'][$orderId]);
+                                    $api->cancelOrder($symbol, $orderId);
+
+                                    //EN PRODUCCION, ESPERAR A CONFIRMAR LA CANCELACION PARA PODER CREAR LA NUEVA VENTA
+                                }
+                            }
+
+                            //Actualiza el estado de la compra ejecutada
+                            if (!empty($data['BUY']))
+                            {
+                                foreach ($data['BUY'] as $orderId => $rw)
+                                {
+                                    $bot['orders'][$orderId] = $api->orderStatus($symbol,$orderId);                                    
+                                }
+                            }
+
+                            // Crea nueva Venta
+                            $buyedUnits = 0;
+                            $buyedUsd = 0;
+                            foreach ($bot['orders'] as $order)
+                            {
+                                if ($order['status']=='FILLED' && $order['side']=='BUY')
+                                {
+                                    $buyedUnits += $order['origQty'];
+                                    $buyedUsd += ($order['origQty']*$order['price']);
+                                }
+                            }
+                            $qty = toDec($buyedUnits,$qtyDecsUnits);
+                            $usd = toDec($buyedUsd * (1+$porcVentaDown));
+                            $price = toDec($usd/$qty,$qtyDecsPrice);
+                            $newOrder = $api->sell($symbol, $qty, $price);
+                            $bot['orders'][$newOrder['orderId']] = $newOrder;   
+
+                        }
+                        //La operacion se vendio y debe finalizar
+                        elseif ($data['actualizar'] == 'SELL') 
+                        {
+                            //Actualiza el estado de la compra ejecutada
+                            if (!empty($data['SELL']))
+                            {
+                                foreach ($data['SELL'] as $orderId => $rw)
+                                {
+                                    $bot['orders'][$orderId] = $api->orderStatus($symbol,$orderId);
+                                }
+                            }
+                            //Eliminar las ordenes de compra abiertas
+                            if (!empty($data['BUY']))
+                            {
+                                foreach ($data['BUY'] as $orderId => $rw)
+                                {
+                                    $bot['orders'][$orderId] = $api->orderStatus($symbol,$orderId);   
+                                    unset($bot['orders'][$orderId]);
+                                    $api->cancelOrder($symbol, $orderId);
+
+                                    //EN PRODUCCION, ESPERAR A CONFIRMAR LA CANCELACION PARA PODER CREAR LA NUEVA VENTA
+
+                                }
+                            }
+                            
+                            //Calculando PNL y estadisticas
+                            $pnlQtyBuy = 0;
+                            $pnlOprStart = null;
+                            $pnlOprEnd = null;
+                            $pnlGanancia = 0;
+                            $pnlComision = 0;
+                            foreach ($bot['orders'] as $o)
+                            {
+                                if ($o['side']=='BUY')
+                                {
+                                    $pnlQtyBuy++;
+                                    $pnlGanancia -= toDec($o['origQty']*$o['price']);
+                                    $pnlComision += $o['comision'];
+                                }
+
+                                if (!isset($pnlOprStart))
+                                {
+                                    $pnlOprStart = $o['created'];
+                                }
+
+                                if ($o['side']=='SELL')
+                                {
+                                    $pnlOprEnd = $o['updated'];
+                                    $pnlGanancia += toDec($o['origQty']*$o['price']);
+                                    $pnlComision += $o['comision'];
+                                }
+                                
+                            }
+                            $horas = diferenciaFechasEnHoras($pnlOprStart,$pnlOprEnd);
+                            $this->pnlInfo[] = array('start'=>$pnlOprStart,
+                                                     'end'=>$pnlOprEnd,
+                                                     'ganancia'=>$pnlGanancia,
+                                                     'comisiones'=>$pnlComision,
+                                                     'horas'=>$horas,
+                                                     'qtyCompras'=>$pnlQtyBuy
+                                                     );
+                            
+
+                            //Deja la operacion lista para el reinicio
+                            $bot['orders'] = array();
+                            //EN PRODUCCION, COMPLETAR LA OPERACION Y AGREGAR A PNL
+                            $ventas++;
+                        }
+                    }
+                }
+
+                //Reiniciando la operacion si no hay ordenes activas
+                /**
+                    Si hubo una venta, el proceso de restart se ejecuta al minuto siguiente 
+                    para dar tiempo a que se cancelen todas las ordenes 
+                */
+                else
+                {
+
+                     
+                    $precioActual = $api->price($symbol);
+                    $symbolData = $api->getSymbolData($symbol);
+                    $qtyDecsUnits = $symbolData['qty_decs_units'];
+                    $qtyDecsPrice = $symbolData['qty_decs_price'];
+
+                    $opr['palancas'] = $tck->calcularPalancas($precioActual);
+                    $palancaMax = end($opr['palancas']['porc']);
+                    $qtyPalancas = count($opr['palancas']['porc']);
+                    $opr['mutiplicador_compra'] = $tck->calcularMultiplicadorDeCompras($qtyPalancas,$this->capital,$this->compraInicial);
+                    
+                    //Armando ordenes para nueva operacion
+                    if (!empty($opr['palancas']['price']))
+                    {
+                        $qty = toDec($compraInicial/$precioActual,$qtyDecsUnits);
+                        $usd = toDec($qty*$precioActual);
+                        $newOrder = $api->marketBuy($symbol, $qty);
+                        while ($newOrder['status']!='FILLED')
+                        {
+                            sleep(1);
+                            $newOrder = $api->orderStatus($symbol,$newOrder['orderId']);
+                        }
+                        $bot['orders'][$order['orderId']] = $newOrder;
+                        foreach ($opr['palancas']['price'] as $compraNum => $price)
+                        {
+                            $price = toDec($price,$qtyDecsPrice);
+                            $usd = $usd * $opr['mutiplicador_compra'];
+                            $qty = toDec($usd/$price,$qtyDecsUnits);
+                            $newOrder = $api->buy($symbol, $qty, $price);
+                            $bot['orders'][$newOrder['orderId']] = $newOrder;
+                        } 
+                        
+                        //Orden de venta de la compra inicial
+                        $buyedUnits = 0;
+                        $buyedUsd = 0;
+                        foreach ($bot['orders'] as $order)
+                        {
+                            if ($order['status']=='FILLED' && $order['side']=='BUY')
+                            {
+                                $buyedUnits += $order['origQty'];
+                                $buyedUsd += ($order['origQty']*$order['price']);
+                            }
+                        }
+                        $qty = toDec($buyedUnits,$qtyDecsUnits);
+                        $usd = toDec($buyedUsd * (1+$porcVentaUp));
+                        $price = toDec($usd/$qty,$qtyDecsPrice);
+                        $newOrder = $api->sell($symbol, $qty, $price);
+                        $bot['orders'][$newOrder['orderId']] = $newOrder;                        
+
+                    }
+                }
+
+                $ultimoPrecio = $api->price($symbol);
+                $fwd = $api->fwd(); //Avanza al proximo minuto y verifica las ordenes
+                if ($ventas>100)
+                    break;
+            }
+            $account = $api->account();
+            $account['usd']['usd'] = toDec($account['usd']['units']);
+            $account['token']['usd'] = toDec($account['token']['units']*$ultimoPrecio,);
+            $result['pnlInfo'] = $this->pnlInfo;
+            $result['account'] = $account;
+            $result['botOrders'] = $bot['orders'];
+            $result['openOrders'] = $api->openOrders();
+            $result['pnlOrders'] = $api->pnlOrders();
+            return $result;
+
+        }
+        else
+        {
+            debug($api->getErrLog());
+            return false;
+        }
     }
 
     function compra($qty,$price)

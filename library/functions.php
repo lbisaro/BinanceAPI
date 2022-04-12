@@ -1306,4 +1306,15 @@ function diferenciaFechas($fecha_inicial,$fecha_final)
     return $dias;
 }
 
+
+function diferenciaFechasEnHoras($fecha_inicial,$fecha_final)
+{
+    $horas = (strtotime($fecha_inicial)-strtotime($fecha_final))/(86400/24);
+    $horas = abs($horas); 
+    //$dias = floor($dias);
+    $horas = toDec($horas,1);
+    //$dias = strtotime($fecha_final, $fecha_inicial)/86400/3600;
+    return $horas;
+}
+
 ?>

@@ -187,5 +187,29 @@ class TestController extends Controller
     }
     
     
+    function bot2($auth)
+    {
+        $this->addTitle('TITULO para Bot2');
+    
+        $test = new Test();
+        $symbol = 'BTCUSDT';
+        $capital = 1000;
+        $compraInicial = 20;
+        $prms['porcVentaUp'] = 2;
+        $prms['porcVentaDown'] = 2;
+        $result = $test->testBot2($symbol,$capital,$compraInicial,$prms);
+        
+        $arr['data'] .= '<h4>Billetera</h4>'.arrayToTableDg($result['account']);
+        $arr['data'] .= '<h4>PNL INFO</h4>'.arrayToTableDg($result['pnlInfo']);
+        //$arr['data'] .= '<h4>botOrders</h4>'.arrayToTableDg($result['botOrders']);
+        $arr['data'] .= '<h4>openOrders</h4>'.arrayToTableDg($result['openOrders']);
+        //$arr['data'] .= '<h4>pnlOrders</h4>'.arrayToTableDg($result['pnlOrders']);
+
+        $arr['hidden'] = '';
+    
+        $this->addView('ver',$arr);
+    }
+    
+    
     
 }
