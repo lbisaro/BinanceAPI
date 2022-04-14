@@ -142,7 +142,7 @@
       '#537bc4',//12
       '#8549ba',//13
       ];
-
+    var info;
     function readData() 
     {
         $('#chartdiv').html('Cargando grafico...');
@@ -226,7 +226,7 @@
                       var diff = valueAxis.maxZoomed - valueAxis.minZoomed;
                       var delta = diff * 0.2;
                       valueAxis.zoomToValues(valueAxis.minZoomed, valueAxis.maxZoomed - delta);
-                    console.log(valueAxis);
+                    
                     });
 
                     var zoomOutButton = buttonContainer.createChild(am4core.Button);

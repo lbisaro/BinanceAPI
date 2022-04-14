@@ -28,7 +28,8 @@ class Exchange {
     protected $db;
     protected $errLog;
 
-    protected $orders = array();
+    protected $openOrders = array();
+    protected $pnlOrders = array();
     protected $lastOrderId = 0;
     protected $klines;
     protected $kline;
@@ -101,9 +102,9 @@ class Exchange {
             return false; //No hay mas Klines
         }
 
-        if (!empty($this->orders))
+        if (!empty($this->openOrders))
         {
-            foreach ($this->orders as $orderId => $order)
+            foreach ($this->openOrders as $orderId => $order)
             {
                 if ($order['status']=='NEW')
                 {
@@ -114,38 +115,26 @@ class Exchange {
 
                         if ($order['side']=='BUY')
                         {
-                            if ($this->qtyUsd >= $usd)
-                            {
-                                $this->__executeOrder($orderId,$price);
-                            }
+                            $this->__executeOrder($orderId,$price);
                         }
                         elseif ($order['side']=='SELL')
                         {
-                            if ($this->qtyToken >= $order['origQty'])
-                            {
-                                $this->__executeOrder($orderId,$price);
-                            }
+                            $this->__executeOrder($orderId,$price);
                         }
                     }
                     elseif ($order['type']=='LIMIT')
                     {
                         $priceHigh = $klinePost['high'];
-                        $priceLow = $klinePost['low'];
+                        $priceLow = $klinePre['low'];
                         $usd = toDec($order['price'] * $order['origQty']);
                         
                         if ($order['side']=='BUY' && $order['price']>=$priceLow && $order['price']<=$priceHigh)
                         {
-                            if ($this->qtyUsd >= $usd)
-                            {
-                                $this->__executeOrder($orderId,$price);
-                            }
+                            $this->__executeOrder($orderId,$price);
                         }
                         elseif ($order['side']=='SELL' && $order['price']>=$priceLow && $order['price']<=$priceHigh)
                         {
-                            if ($this->qtyToken >= $order['origQty'])
-                            {
-                                $this->__executeOrder($orderId,$price);
-                            }
+                            $this->__executeOrder($orderId,$price);
                         }
                     }
                 }
@@ -158,37 +147,24 @@ class Exchange {
 
     function openOrders()
     {
-        $open = array();
-        foreach ($this->orders as $oi => $o)
-        {
-            if ($o['status']=='NEW')
-            {
-                $open[$oi]=$o;
-            }
-        }
-        return $open;
+        return $this->openOrders;
     }
 
     function pnlOrders()
     {
-        $pnl = array();
-        foreach ($this->orders as $oi => $o)
-            if ($o['status']=='FILLED')
-            {
-                $o['usd'] = toDec(($o['price']*$o['origQty'])*($o['side']=='BUY'?-1:1));
-                $pnl[$oi]=$o;
-            }
-        return $pnl;
+        return $this->pnlOrders;
     }
 
     function orderStatus($symbol,$orderId)
     {
-        return $this->orders[$orderId];
-    }
+        if (isset($this->openOrders[$orderId]))
+            return $this->openOrders[$orderId];
+        
+        if (isset($this->pnlOrders[$orderId]))
+            return $this->pnlOrders[$orderId];
 
-    function orderTradeInfo($symbol,$orderId)
-    {
-        return $this->orderStatus($symbol,$orderId);
+        $order[$orderId]['status']='CANCELLED';
+        return $order;
     }
 
     function getSymbolData($symbol)
@@ -241,26 +217,28 @@ class Exchange {
 
         $this->lastOrderId++;
         $orderId = $this->lastOrderId;
-        $this->orders[$orderId] = array('orderId'=>$orderId,
+        $this->openOrders[$orderId] = array('orderId'=>$orderId,
                                         'side'=>$side,
                                         'symbol'=>$symbol,
                                         'origQty'=>$qty,
                                         'price'=>$price,
                                         'type'=>$type,
                                         'status'=>'NEW',
-                                        'created'=>$datetime
+                                        'datetime'=>$datetime
                                         );
         if ($type == 'MARKET')
+        {
             $this->__executeOrder($orderId,$price);
-
-        return $this->orders[$orderId];
+            return $this->pnlOrders[$orderId];
+        }
+        return $this->openOrders[$orderId];
     }
 
     function cancelOrder($symbol, $orderId)
     {
-        if ($this->orders[$orderId]['status'] == 'NEW')
+        if ($this->openOrders[$orderId]['status'] == 'NEW')
         {
-            $this->orders[$orderId]['status'] = 'CANCELLED';
+            unset($this->openOrders[$orderId]);
             return true;
         }
         return false;
@@ -269,32 +247,35 @@ class Exchange {
 
     protected function __executeOrder($orderId,$price)
     {
-        if ($this->orders[$orderId]['status'] == 'NEW')
+        if ($this->openOrders[$orderId]['status'] == 'NEW')
         {
             $datetime = $this->kline['datetime'];
-            $this->orders[$orderId]['updated'] = $datetime;
+            $this->openOrders[$orderId]['updated'] = $datetime;
             
             $symbolData = $this->getSymbolData($symbol);
-            if ($this->orders[$orderId]['type']=='MARKET')
+            if ($this->openOrders[$orderId]['type']=='MARKET')
             {
                 $price = $this->kline['open'];
-                $this->orders[$orderId]['price'] = $price;
+                $this->openOrders[$orderId]['price'] = $price;
             }
 
-            $this->orders[$orderId]['status'] = 'FILLED';
-            $this->orders[$orderId]['comision'] = toDec(($this->orders[$orderId]['price']*$this->orders[$orderId]['origQty'])*($this->comisionExchange/100),5);
+            $this->openOrders[$orderId]['status'] = 'FILLED';
+            $this->openOrders[$orderId]['comision'] = toDec(($this->openOrders[$orderId]['price']*$this->openOrders[$orderId]['origQty'])*($this->comisionExchange/100),5);
 
-            $usd = toDec($this->orders[$orderId]['origQty']*$this->orders[$orderId]['price']);
-            if ($this->orders[$orderId]['side'] == 'BUY')
+            $usd = toDec($this->openOrders[$orderId]['origQty']*$this->openOrders[$orderId]['price']);
+            if ($this->openOrders[$orderId]['side'] == 'BUY')
             {
                 $this->qtyUsd -= toDec($usd);
-                $this->qtyToken += toDec($this->orders[$orderId]['origQty'],$symbolData['qty_decs_units']);
+                $this->qtyToken += toDec($this->openOrders[$orderId]['origQty'],$symbolData['qty_decs_units']);
             } 
-            elseif ($this->orders[$orderId]['side'] == 'SELL')
+            elseif ($this->openOrders[$orderId]['side'] == 'SELL')
             {
                 $this->qtyUsd += toDec($usd);
-                $this->qtyToken -= toDec($this->orders[$orderId]['origQty'],$symbolData['qty_decs_units']);
+                $this->qtyToken -= toDec($this->openOrders[$orderId]['origQty'],$symbolData['qty_decs_units']);
             } 
+
+            $this->pnlOrders[$orderId] = $this->openOrders[$orderId];
+            unset($this->openOrders[$orderId]);
 
         }
     }
@@ -306,21 +287,24 @@ class Exchange {
      */
     protected function __loadKlines($symbol,$from=null,$to=null)
     {
-        $lote = 200000;
-        $indice = 0;
+        $lote = 100000;
         $continue = true;
         $this->klines = array();
+        $lastDatetime = null;
         while ($continue)
         {
-            $qry = "SELECT datetime,open,high,low 
+            $qry = "SELECT datetime,open,high,low,close 
                     FROM klines_1m 
                     WHERE symbol = '".$symbol."' ";
             if ($from)
                 $qry .= " AND datetime >= '".$from."' "; 
             if ($to)
                 $qry .= " AND datetime <= '".$to."' "; 
+            if ($lastDatetime)
+                $qry .= " AND datetime > '".$lastDatetime."' "; 
+
             $qry .= " ORDER BY datetime ASC "; 
-            $qry .= "LIMIT ".$indice.",".$lote;
+            $qry .= "LIMIT ".$lote;
             
             $stmt = $this->db->query($qry);
             $qtyRecs = 0;
@@ -334,10 +318,16 @@ class Exchange {
                 $this->klines[$datetime]['low'] = floatval($rw['low']);
                 $qtyRecs++;
             }
+            $lastDatetime = $datetime;
             if ($qtyRecs < $lote)
                 $continue = false;
             $indice += $lote;
         }
+    }
+
+    function getKlines()
+    {
+        return $this->klines;
     }
 
     public function getErrLog()

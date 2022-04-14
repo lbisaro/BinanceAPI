@@ -7,8 +7,17 @@
 		font-weight: bolder;
 		color: #555;
 	}
-</style>
 
+    .mapCompras {
+        margin-right: 25px;
+        display: inline-block;
+        border: 1px solid #ccc;
+        border-width: 0 0 1px 0;
+    }
+</style>
+<div class="container" id="data">
+    {{data}}
+</div>
 <div class="container">
   <div class="row">
 		<div class="col">
@@ -16,11 +25,11 @@
           <div class="form-group">
             <div class="form-group">
                 <label for="estrategia">Estrategia</label>
-                <select id="estrategia" class="form-control" >
+                <select id="estrategia" class="form-control" onchange="refreshForm();">
                     <option value="0">Seleccionar</option>
-                    <option value="apalancamiento" SELECTED>Apalancamiento</option>
-                    <option value="grid">Grid</option>
-                    <option value="at">Analisis Tecnico</option>
+                    <option value="apalancamiento">Apalancamiento</option>
+                    <option value="bot_auto" SELECTED>Bot Auto</option>
+                    <!--<option value="at" >Analisis Tecnico</option>-->
                 </select>
             </div>
           </div>
@@ -42,7 +51,7 @@
 
 		  <div class="form-group">
 			<label for="usdInicial">Cantidad de USD Billetera</label>
-			<div class="input-group mb-2">
+			<div class="input-group">
 				<div class="input-group-prepend">
 					<div class="input-group-text">USD</div>
 				</div>
@@ -55,7 +64,7 @@
 
 		  <div class="form-group">
 			<label for="usdInicial">Compra Inicial</label>
-			<div class="input-group mb-2">
+			<div class="input-group">
 				<div class="input-group-prepend">
 					<div class="input-group-text">USD</div>
 				</div>
@@ -78,7 +87,7 @@
 
 		  <div class="form-group">
 			<label for="multiplicadorPorc">Multiplicador Porcentajes</label>
-			<div class="input-group mb-2">
+			<div class="input-group">
 			  <input type="text" class="form-control" id="multiplicadorPorc"  value="" placeholder="Recomendado 2.70 a 4.50">
 			  <div class="input-group-prepend">
 				<div class="input-group-text">%</div>
@@ -90,11 +99,11 @@
 		<div class="col">
 
 		  <div class="form-group">
-			<label for="incremental">Multiplicador Porcentajes Incremental</label>
-			<div class="input-group mb-2">
+			<label for="incremental">Incremental</label>
+			<div class="input-group">
 			  <select id="incremental" class="form-control" >
-				  <option value="0" >No - Incrementa cada apalancamiento al mismo valor</option>
-				  <option value="1" SELECTED>Si - Incrementa cada apalancamiento al doble del anterior</option>
+				  <option value="0" >No</option>
+				  <option value="1" SELECTED>Si</option>
 			  </select>
 			</div>
 		  </div>
@@ -104,7 +113,7 @@
 
 		  <div class="form-group">
 			<label for="porcVentaUp">Porcentaje de venta inicial/palanca</label>
-            <div class="input-group mb-2">
+            <div class="input-group">
               <input type="text" class="form-control" id="porcVentaUp"  value="" placeholder="1.15/5.00">
               <div class="input-group-append">
                 <div class="input-group-text">%</div>
@@ -119,43 +128,20 @@
 		  </div>
 
 		</div>
-	</div>
-    <div class="row">
+
         <div class="col">
           <div class="form-group">
-            <label for="porcVentaUp">Grafico</label>
-            <div class="input-group mb-2">
-              <select id="grafico" class="form-control" >
-                  <option value="SI">SI</option>
-                  <option value="NO" SELECTED>NO</option>
+            <label for="mostrar">Mostrar</label>
+            <div class="input-group mb-1">
+              <select id="mostrar" class="form-control" >
+                  <option value="0" SELECTED>Solo resultados</option>
+                  <option value="grafico">Resultados y Grafico</option>
+                  <option value="ordenes">Resultados y Ordenes</option>
               </select>
             </div>
           </div>
         </div>
-        <div class="col">
-          <div class="form-group">
-            <label for="porcVentaUp">Ordenes</label>
-            <div class="input-group mb-2">
-              <select id="ordenes" class="form-control" >
-                  <option value="SI">SI</option>
-                  <option value="NO" SELECTED>NO</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        <!--
-        <div class="col">
-          <div class="form-group">
-            <label for="porcVentaUp">Analisis Tecnico</label>
-            <div class="input-group mb-2">
-              <select id="at" class="form-control" >
-                  <option value="SI">SI</option>
-                  <option value="NO" SELECTED>NO</option>
-              </select>
-            </div>
-          </div>
-        </div>
-        -->
+        
     </div>
 	<div class="row">
 		<div class="col">
@@ -194,31 +180,54 @@
 <script src="https://cdn.amcharts.com/lib/4/charts.js"></script>
 <script src="https://cdn.amcharts.com/lib/4/lang/es_ES.js"></script>
 <script src="https://cdn.amcharts.com/lib/4/fonts/notosans-sc.js"></script>
-<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>
+<!--<script src="https://cdn.amcharts.com/lib/4/themes/animated.js"></script>-->
 
 <script language="javascript" >
 	
 	var symbols = [{{dataSymbols}}];
+    var symbolsBotAuto = [{{symbolsBotAuto}}];
+    var maxCompraNum = 0;
     
 	$(document).ready( function () {
-		if (symbols.length>0)
-        {
-            for (var i=0; i<symbols.length;i++)
-                $('#symbol').append('<option value="'+symbols[i]+'" >'+symbols[i]+'</option>');
-            
-        }
 
         setDefaultValues();
+        refreshForm();
 	});
+
+    function refreshForm()
+    {
+        var estrategia = $('#estrategia option:selected').val();
+        $('#symbol').html('');
+        if (estrategia == 'bot_auto')
+        {
+            if (symbolsBotAuto.length>0)
+                for (var i=0; i<symbolsBotAuto.length;i++)
+                    $('#symbol').append('<option value="'+symbolsBotAuto[i]+'" >'+symbolsBotAuto[i]+'</option>');
+            $('#multiplicadorCompra').parent().parent().hide();
+            $('#multiplicadorPorc').parent().parent().hide();
+            $('#incremental').parent().parent().hide();
+        }
+        else
+        {
+            if (symbols.length>0)
+                for (var i=0; i<symbols.length;i++)
+                    $('#symbol').append('<option value="'+symbols[i]+'" >'+symbols[i]+'</option>');
+                
+            $('#multiplicadorCompra').parent().parent().show();
+            $('#multiplicadorPorc').parent().parent().show();
+            $('#incremental').parent().parent().show();
+        }
+
+    }
 
     function setDefaultValues()
     {
-        $('#usdInicial').val('1010');
-        $('#compraInicial').val('100');
-        $('#multiplicadorCompra').val('1.75');
-        $('#multiplicadorPorc').val('2.75');
-        $('#porcVentaUp').val('1.75');
-        $('#porcVentaDown').val('2.0');
+        $('#usdInicial').val('1010.00');
+        $('#compraInicial').val('50.00');
+        $('#multiplicadorCompra').val('1.5');
+        $('#multiplicadorPorc').val('3.0');
+        $('#porcVentaUp').val('2.5');
+        $('#porcVentaDown').val('1.15');
         if (SERVER_ENTORNO == 'Test')
             $('#symbol option[value="MATICUSDT"]').attr('selected',true);
 
@@ -233,247 +242,275 @@
 		CtrlAjax.sendCtrl("test","test","testEstrategias");   
 	}
 	
-
-    var colors = [
-      '#000000',//0 //Fecha
-      '#4C0784',//1 //Billetera
-      '#009B0A',//2 //USD
-      '#C47400',//3 //Token
-      '#888888',//4 //Token Price
-      '#58A029',//5 //Compra 
-      '#BF3C0F',//6 //Venta 
-      '#58A029',//7 //AT_COMPRA
-      '#BF3C0F',//8 //AT_VENTA
-      '#000000',//9 //Apal. Insuficiente
-      '#f53794',//10
-      '#f67019',//11
-      '#537bc4',//12
-      '#8549ba',//13
-      ];
-
     var info;
 
     function daysGraph() 
     {
+
         $('#chartdiv').html('Cargando grafico...');
-        
+
+
         if (info)
         {
-            var labels = info[0];
-            //console.log(labels);
+            //console.log(info);
+            var labels = info.labels;
             
             am4core.ready(function() 
             {
 
-                // Themes begin
-                am4core.useTheme(am4themes_animated);
-                // Themes end
-
                 // Create chart instance
                 var chart = am4core.create("chartdiv", am4charts.XYChart);
 
-                var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
-                    dateAxis.dataFields.category = "datetime";
-                var valueAxis = chart.yAxes.push(new am4charts.ValueAxis());
-                    valueAxis.dataFields.category = "usd";
-                    valueAxis.title.text = "USD";                
-                var valueAxis2 = chart.yAxes.push(new am4charts.ValueAxis());
-                    valueAxis2.dataFields.category = "token";
-                    valueAxis2.title.text = "Token Price";  
-                    valueAxis2.renderer.opposite = true;   //Muestra la escala del lado opuesto           
+                chart.dateFormatter.inputDateFormat = "yyyy-MM-dd HH:mm";
 
+                var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
+                    dateAxis.dataFields.category = "date";
+                    dateAxis.title.fontWeight = "bold";
+
+                var valueAxisPrice = chart.yAxes.push(new am4charts.ValueAxis());
+                    valueAxisPrice.dataFields.category = "price";
+                    valueAxisPrice.title.text = "Precio USDT";
+                    valueAxisPrice.title.fontWeight = "bold";
+                    valueAxisPrice.renderer.grid.template.disabled = true;
+
+                var valueAxisUSD = chart.yAxes.push(new am4charts.ValueAxis());
+                    valueAxisUSD.dataFields.category = "usd";
+                    valueAxisUSD.renderer.labels.template.disabled = true;
+                    valueAxisUSD.renderer.opposite = true;   //Muestra la escala del lado opuesto  
+                    valueAxisUSD.cursorTooltipEnabled = false;
 
                 chart.cursor = new am4charts.XYCursor();
                 chart.cursor.xAxis = dateAxis;
 
 
+                //Series de rango de precio
+                var seriesRH = createSeriesRango('kh','High','#AA000088');
+                var seriesRL = createSeriesRango('kl','Low','#00AA0088');
+                seriesRH.hiddenInLegend = false;
+                seriesRL.hiddenInLegend = true;
 
-                //Billetera
-                series = createSeriesUsd(1);
-                series.data = createData(1);
-                series.yAxis = valueAxis;
-                //USD
-                series = createSeriesUsd(2);
-                series.data = createData(2);
-                series.yAxis = valueAxis;
+                seriesRH.events.on("hidden", function() {
+                    seriesRH.hide();
+                    seriesRL.hide();
+                });
 
-                //Token Comprado
-                series = createSeriesUsd(3);
-                series.data = createData(3);
-                series.yAxis = valueAxis;
+                seriesRH.events.on("shown", function() {
+                    seriesRH.show();
+                    seriesRL.show();
+                });
 
-                //Token Price
-                series = createSeriesUsd(4);
-                series.data = createData(4);
-                series.yAxis = valueAxis2;
+                //Series de bullets
+                createSeriesBullet('buy','Compra','#00DD00');
+                createSeriesBullet('sell','Venta','#DD0000');
+                createSeriesBullet('apins','Ap.Ins.','#000000');
 
-                series = createSeriesUsd(7);
-                series.data = createData(7);
-                series.yAxis = valueAxis2;
-                series.connect = false;
+                //Ordenes abiertas
+                var sov = createSeriesOrden('ov','OV','#aa0000');
+                var soc1 = createSeriesOrden('oc1','OC #1','#00aa00');
+                var soc2 = createSeriesOrden('oc2','OC #2','#00aa00');
+                var soc3 = createSeriesOrden('oc3','OC #3','#00aa00');
+                var soc4 = createSeriesOrden('oc4','OC #4','#00aa00');
+                var soc5 = createSeriesOrden('oc5','OC #5','#00aa00');
+                var soc6 = createSeriesOrden('oc6','OC #6','#00aa00');
+                sov.hiddenInLegend = false;
+                soc1.hiddenInLegend = true;
+                soc2.hiddenInLegend = true;
+                soc3.hiddenInLegend = true;
+                soc4.hiddenInLegend = true;
+                soc5.hiddenInLegend = true;
+                soc6.hiddenInLegend = true;
 
-                series = createSeriesUsd(8);
-                series.data = createData(8);
-                series.yAxis = valueAxis2;
-                series.connect = false;
+                sov.events.on("hidden", function() {
+                    sov.hide();
+                    soc1.hide();
+                    soc2.hide();
+                    soc3.hide();
+                    soc4.hide();
+                    soc5.hide();
+                    soc6.hide();
+                });
 
-
-                //Compra
-                series = createSeriesBullet(5,'compra');
-                series.data = createData(5);
-                series.yAxis = valueAxis2;
-
-                //Venta
-                series = createSeriesBullet(6,'venta');
-                series.data = createData(6);
-                series.yAxis = valueAxis2;
-
-                //Apalancamiento Insuficiente
-                series = createSeriesBullet(9,'apins');
-                series.data = createData(9);
-                series.yAxis = valueAxis2;
+                sov.events.on("shown", function() {
+                    sov.show();
+                    soc1.show();
+                    soc2.show();
+                    soc3.show();
+                    soc4.show();
+                    soc5.show();
+                    soc6.show();
+                });
 
                 // Add scrollbar
-                //var scrollbarX = new am4charts.XYChartScrollbar();
-                //scrollbarX.series.push(series);
-                //chart.scrollbarX = scrollbarX;
+                var scrollbarX = new am4charts.XYChartScrollbar();
+                scrollbarX.series.push(seriesRH);
+                chart.scrollbarX = scrollbarX;
+                
+                //Botones para zoom vertical
+                /*
+                var buttonContainer = chart.plotContainer.createChild(am4core.Container);
+                buttonContainer.shouldClone = false;
+                buttonContainer.align = "left";
+                buttonContainer.valign = "top";
+                buttonContainer.zIndex = Number.MAX_SAFE_INTEGER;
+                buttonContainer.marginTop = 5;
+                buttonContainer.marginRight = 5;
+                buttonContainer.layout = "vertical";
 
-                series.smoothing = "monotoneY";
+                var zoomInButton = buttonContainer.createChild(am4core.Button);
+                zoomInButton.label.text = "Zoom +";
+                zoomInButton.events.on("hit", function(ev) {
+                  var diff = valueAxis.maxZoomed - valueAxis.minZoomed;
+                  var delta = diff * 0.2;
+                  valueAxis.zoomToValues(valueAxis.minZoomed, valueAxis.maxZoomed - delta);
+                
+                });
+
+                var zoomOutButton = buttonContainer.createChild(am4core.Button);
+                zoomOutButton.label.text = "Zoom -";
+                zoomOutButton.events.on("hit", function(ev) {
+                  var diff = valueAxis.maxZoomed - valueAxis.minZoomed;
+                  var delta = diff * 0.2;
+                  valueAxis.zoomToValues(valueAxis.minZoomed, valueAxis.maxZoomed + delta);
+                });
+                */
+
+
+                
 
                 chart.legend = new am4charts.Legend();
 
-                chart.legend.position = "top";
+                chart.legend.position = "bottom";
                 chart.legend.scrollable = false;
 
-                function createSeriesUsd(s)
-                {
-                    var srs = chart.series.push(new am4charts.LineSeries());
-                        srs.dataFields.valueY = "value" + s;
-                        srs.dataFields.dateX = "date";
-                        srs.name = labels[s];
-                        srs.tooltipText = "USD {valueY.value}";
-                        
-                        srs.tooltip.getFillFromObject = false;
-                        srs.tooltip.background.fill = am4core.color(colors[s]);
-                        srs.tooltip.label.fill = am4core.color('#fff');
-
-                        if (s==1 )
-                        {
-                            srs.strokeWidth = 1.2; // px
-                        }
-                        else if (s==2 || s==3)
-                        {
-                            srs.strokeWidth = 0.75;
-                        }
-                        else if (s==7 || s==8)
-                        {
-                            srs.strokeWidth = 1;
-                        }
-                        else if (s==4)
-                        {
-                            srs.strokeWidth = 0.75;
-                            srs.strokeDasharray = 5;
-                        }
-                        else
-                        {
-                            srs.strokeDasharray = 4;
-                            srs.strokeWidth = 1; // px
-                        }
-
-                        srs.stroke = am4core.color(colors[s]); 
-                        srs.connect = true; 
-
-
-                    return srs;
-                    
-                }
                 
-                function createSeriesBullet(s,tipo)
+
+                function createSeriesPrice(value,label,color)
                 {
                     var srs = chart.series.push(new am4charts.LineSeries());
-                        srs.dataFields.valueY = "value" + s;
-                        srs.dataFields.dateX = "date";
-                        srs.name = labels[s];
-                        
-                        srs.tooltip.getFillFromObject = false;
-                        srs.tooltip.background.fill = am4core.color(colors[s]);
-                        srs.tooltip.label.fill = am4core.color('#fff');
+                    srs.dataFields.dateX = "date";
+                    srs.dataFields.valueY = value;
+                    
+                    srs.stroke = am4core.color(color);
+                    srs.strokeWidth = 0.5; // px
+                    
+                    srs.tooltipText = label;
+                    srs.tooltip.getFillFromObject = false;
+                    srs.tooltip.pointerOrientation = 'left';
+                    srs.tooltip.label.fontSize = 8;
+                    
+                    srs.tooltip.background.fill = am4core.color('#b44');
+                    srs.tooltip.label.fill = am4core.color('#ddd');
+                    
+                    srs.name = label;
 
-                        srs.strokeWidth = 10;
+                    srs.data = info.data;
 
-                        // Add simple bullet
-                        var bullet = srs.bullets.push(new am4charts.Bullet());
+                    srs.yAxis = valueAxisPrice;
+                    return srs;
+                    
+                }
 
-                        if (tipo=='compra')
-                        {
-                            var circle = bullet.createChild(am4core.Circle);
-                            circle.width = 4;
-                            circle.height = 4;
-                            circle.fill = am4core.color(colors[s]);
-                            circle.fillOpacity = 1;
-                        }
-                        else if (tipo=='venta')
-                        {
-                            var circle = bullet.createChild(am4core.Circle);
-                            circle.width = 8;
-                            circle.height = 8;
-                            circle.fillOpacity = 0.0;
-                        }
-                        else //Ap ins
-                        {
-                            var circle = bullet.createChild(am4core.Circle);
-                            circle.width = 6;
-                            circle.height = 6;
-                            circle.fill = am4core.color(colors[s]);
-                            circle.fillOpacity = 1;
-                        }
-                        circle.horizontalCenter = "middle";
-                        circle.verticalCenter = "middle";
+                function createSeriesOrden(value,label,color)
+                {
+                    var srs = chart.series.push(new am4charts.LineSeries());
+                    srs.dataFields.dateX = "date";
+                    srs.dataFields.valueY = value;
+                    
+                    srs.stroke = am4core.color(color);
+                    srs.strokeWidth = 0.5; // px
+                    
+                    srs.strokeDasharray = 3;                    
+                    
+                    srs.name = 'Ordenes Activas';
+                    srs.data = info.data;
+                    srs.yAxis = valueAxisPrice;
+                    srs.connect = false; 
+                    
+                    return srs;
+                    
+                }
+               
 
-                        //// Add outline to the circle bullet
-                        //circle.stroke = am4core.color(colors[s]);
-                        //circle.strokeWidth = 1;
+                function createSeriesRango(value,label,color)
+                {
+                    var srs = chart.series.push(new am4charts.LineSeries());
+                    srs.dataFields.dateX = "date";
+                    
+                    srs.dataFields.valueY = value;
+                    
+                    srs.stroke = am4core.color(color);
+                    srs.strokeWidth = 0.5; // px
+                    
+                    srs.data = info.data;
+                    srs.name = info.tickerid+ ' (' + info.interval +') ';
+                    //srs.smoothing = "monotoneY";
 
-                        // Make circle drop shadow by adding a DropShadow filter
-                        //var shadow = new am4core.DropShadowFilter();
-                        //shadow.dx = 2;
-                        //shadow.dy = 2;
-                        //circle.filters.push(shadow);
-
-                        // Make chart not mask the bullets
-                        chart.maskBullets = true;                            
-
-
-                        srs.strokeWidth = 0; // px
-                        srs.stroke = am4core.color(colors[s]); 
-                        srs.connect = false; 
-
-
+                    srs.yAxis = valueAxisPrice;
                     return srs;
                     
                 }
 
 
-                function createData(s)
+                function createSeriesBullet(value,label,color)
                 {
-                    var d = [];
-                    for (var i = 1; i < info.length; i++) {
-                        var dataItem = { date: new Date(info[i][0]) };
-                        if (info[i][s] != 0)
-                        {
-                            dataItem["value" + s] = info[i][s];
-                            d.push(dataItem);
-                        }
+                    var srs = chart.series.push(new am4charts.LineSeries());
+                    srs.dataFields.dateX = "date";
+                    
+                    srs.dataFields.valueY = value;
+                    
+                    srs.tooltip.getFillFromObject = false;      
+                    srs.tooltip.background.fill = am4core.color(color);
+                    srs.tooltip.label.fill = am4core.color('#fff');
+
+                    srs.strokeWidth = 10;
+
+                    srs.stroke = am4core.color(color);
+                    srs.strokeWidth = 0.5; // px
+                    
+                    srs.data = info.data;
+                    srs.name = label;
+
+                    // Add simple bullet
+                    var bullet = srs.bullets.push(new am4charts.Bullet());
+                    bullet.horizontalCenter = "middle";
+                    
+                    if (value=='buy')
+                    {
+                        var bullet = bullet.createChild(am4core.Circle);
+                        bullet.width = 3;
+                        bullet.height = 3;
+                        bullet.fillOpacity = 1;
                     }
-                    return d;
+                    else if (value=='sell')
+                    {
+                        var bullet = bullet.createChild(am4core.Circle);
+                        bullet.width = 5;
+                        bullet.height = 5;
+                        bullet.fillOpacity = 0.0;
+                    }
+                    else if (value=='apins')
+                    {
+                        var bullet = bullet.createChild(am4core.Triangle);
+                        bullet.width = 6;
+                        bullet.height = 6;
+                        bullet.fillOpacity = 1;
+                        bullet.verticalCenter = "middle";
+                    }
+
+                    // Make chart not mask the bullets
+                    chart.maskBullets = true;                            
+
+                    srs.strokeWidth = 0; // px
+                    srs.stroke = am4core.color(color); 
+                    srs.connect = false; 
+                    
+                    return srs;
                 }
+
+                
 
             });
-
             
         }
-        
-
     }
-
 </script>

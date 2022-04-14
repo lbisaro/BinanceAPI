@@ -84,13 +84,25 @@ class TestController extends Controller
             $arr['dataSymbols'] = $dataSymbols;
             $arr['fechaInicio'] = dateToStr($test->startKlines,true);
         }
+        $tck = new Ticker();
+        $ds = $tck->getDataSet(null,'tickerid');
+        $symbolsBotAuto = '';
+        foreach ($ds as $rw)
+        {
+            if (in_array($rw['tickerid'], $symbols))
+            {
+                $symbolsBotAuto .= ($symbolsBotAuto?',':'')."'".$rw['tickerid']."'";
+            }
+        }
+        
+        $arr['symbolsBotAuto'] = $symbolsBotAuto;
 
         $arr['resultado'] = 'Completar los campos y hacer clic en el boton Analizar';
         $arr['hidden'] = '';
-    
+
         $this->addView('test/testEstrategias',$arr);
     }
-    
+
     function testAT($auth)
     {
         $this->addTitle('BackTesting Analisis Tecnico');
@@ -185,31 +197,4 @@ class TestController extends Controller
     
         $this->addView('ver',$arr);
     }
-    
-    
-    function bot2($auth)
-    {
-        $this->addTitle('TITULO para Bot2');
-    
-        $test = new Test();
-        $symbol = 'BTCUSDT';
-        $capital = 1000;
-        $compraInicial = 20;
-        $prms['porcVentaUp'] = 2;
-        $prms['porcVentaDown'] = 2;
-        $result = $test->testBot2($symbol,$capital,$compraInicial,$prms);
-        
-        $arr['data'] .= '<h4>Billetera</h4>'.arrayToTableDg($result['account']);
-        $arr['data'] .= '<h4>PNL INFO</h4>'.arrayToTableDg($result['pnlInfo']);
-        //$arr['data'] .= '<h4>botOrders</h4>'.arrayToTableDg($result['botOrders']);
-        $arr['data'] .= '<h4>openOrders</h4>'.arrayToTableDg($result['openOrders']);
-        //$arr['data'] .= '<h4>pnlOrders</h4>'.arrayToTableDg($result['pnlOrders']);
-
-        $arr['hidden'] = '';
-    
-        $this->addView('ver',$arr);
-    }
-    
-    
-    
 }

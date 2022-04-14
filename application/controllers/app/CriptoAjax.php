@@ -173,7 +173,7 @@ class CriptoAjax extends ControllerAjax
         $html = '<div class="container">';
         $html .= '<h4>Palancas</h4>';
         foreach ($palancas['porc'] as $k => $porc)
-            $html .= '<span>P#'.$k.': <b>'.$porc.'%</b></span>&nbsp;&nbsp;&nbsp;';
+            $html .= '<span>P#'.$k.': <b>'.$porc.'%</b> P:'.$palancas['price'][$k].'</span>&nbsp;&nbsp;&nbsp;';
         
         $html .= '<h4>Multiplicador de compras</h4>';
         $html .= '<p><b>'.$ret['multCompras'].'</b></p>';
