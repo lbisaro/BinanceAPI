@@ -560,8 +560,8 @@ class Ticker extends ModelDB
                 $palancas['porc'][1] = 2.00;
                 $palancas['porc'][2] = 4.00;
                 $palancas['porc'][3] = 6.00;
-                $palancas['porc'][4] = 8.00;
-                $palancas['porc'][5] = 10.00;
+                $palancas['porc'][4] = 9.00;
+                $palancas['porc'][5] = 14.00;
             }
             elseif ($qtyPalancas == 4)
             {
