@@ -266,6 +266,7 @@
                 var dateAxis = chart.xAxes.push(new am4charts.DateAxis());
                     dateAxis.dataFields.category = "date";
                     dateAxis.title.fontWeight = "bold";
+                    dateAxis.tooltipDateFormat = "yy-MM-dd HH:mm";
 
                 var valueAxisPrice = chart.yAxes.push(new am4charts.ValueAxis());
                     valueAxisPrice.dataFields.category = "price";
@@ -344,6 +345,8 @@
                 var scrollbarX = new am4charts.XYChartScrollbar();
                 scrollbarX.series.push(seriesRH);
                 chart.scrollbarX = scrollbarX;
+
+
                 
                 //Botones para zoom vertical
                 /*
