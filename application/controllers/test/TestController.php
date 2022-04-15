@@ -96,6 +96,17 @@ class TestController extends Controller
         }
         
         $arr['symbolsBotAuto'] = $symbolsBotAuto;
+        $start='2021-06-01 00:00';
+        $end=date('Y-m-d ',strtotime('-90 days')).' 00:00';
+        while ($start<=$end)
+        {
+            $rangoEnd = date('m-d',strtotime($start.' +90 days'));
+            $strRango = substr($start,0,10).' al '.$rangoEnd;
+
+            $arr['rangoFechas'][] = '<OPTION value="'.$start.'" >'.$strRango.'</OPTION>';
+            $start=date('Y-m-d',strtotime($start.' +1 month')).' 00:00';
+        }
+        $arr['rangoFechas'][] = '<OPTION value="'.date('Y-m-d',strtotime('-90 days')).' 00:00" >Ultimos 90 dias</OPTION>';
 
         $arr['resultado'] = 'Completar los campos y hacer clic en el boton Analizar';
         $arr['hidden'] = '';

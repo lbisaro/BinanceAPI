@@ -41,6 +41,8 @@ class TestAjax extends ControllerAjax
         $prms['grafico']                = ($_REQUEST['mostrar']=='grafico'?true:false);
         $prms['ordenes']                = ($_REQUEST['mostrar']=='ordenes'?true:false);
 
+        $prms['from']                   = $_REQUEST['from'];
+        $prms['to']                     = date('Y-m-d H:i',strtotime($_REQUEST['from'].' + 90 days'));
         $test = new Test();
 
         $symbol = $_REQUEST['symbol'];
@@ -181,8 +183,8 @@ class TestAjax extends ControllerAjax
                         $strOp .= ' -'.toDec($order['porcCompra']*100).'%';
 
                     $order['usd'] = toDec($order['price']*$order['origQty']);
-                    $row = array(dateToStr($order['datetime'],true),
-                                 $strOp,
+                    $row = array(dateToStr($order['datetime'],true).' '.dateToStr($order['updated'],true),
+                                 $strOp.' '.$order['status'].' '.$order['type'],
                                  toDec($qty,$results['tokenDecUnits']),
                                  toDec($order['price'],$results['tokenDecPrice']),
                                  ($order['side']!='SELL'?'-':'').toDec($order['usd'],2),

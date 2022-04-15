@@ -330,6 +330,17 @@ class Test
         $porcVentaUp = $prms['porcVentaUp']/100;
         $porcVentaDown = $prms['porcVentaDown']/100;
 
+
+        if (isset($prms['from']))
+            $from = $prms['from'];
+        else
+            $from = '2021-06-01 00:00:00';
+        if (isset($prms['to']))
+            $to = $prms['to'];
+        else
+            $to = '2021-08-31 23:59:00';
+
+
         //Obtener datos de BinanceAPI
         $auth = UsrUsuario::getAuthInstance();
         $idusuario = $auth->get('idusuario');
@@ -359,8 +370,10 @@ class Test
         $qry = "SELECT datetime,open,close,high,low 
                 FROM klines_1m 
                 WHERE symbol = '".$symbol."' ";
-        //$qry .= " AND datetime > '2021-07-01 00:00:00' ";
-        //$qry .= " AND datetime < '2021-08-01 00:00:00' ";
+        if ($from)
+            $qry .= " AND datetime >= '".$from."' ";
+        if ($to)
+            $qry .= " AND datetime <= '".$to."' ";
         $qry .= " ORDER BY datetime ASC "; //LIMIT 1440
         $stmt = $this->db->query($qry);
 
@@ -617,13 +630,21 @@ class Test
 
         $maxCompraNum=0;
 
+        if (isset($prms['from']))
+            $from = $prms['from'];
+        else
+            $from = '2021-06-01 00:00:00';
+        if (isset($prms['to']))
+            $to = $prms['to'];
+        else
+            $to = '2021-08-31 23:59:00';
    
         $tck = new Ticker($symbol);
         $api = new Exchange();
         
         $bot['orders'] = array(); //Ordenes en curso
         
-        if ($api->start($symbol,$this->qtyUsd,$this->qtyToken))
+        if ($api->start($symbol,$this->qtyUsd,$this->qtyToken,$from,$to))
         {
             $symbolData = $api->getSymbolData($symbol);
             $qtyDecsUnits = $symbolData['qty_decs_units'];

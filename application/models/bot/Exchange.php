@@ -48,7 +48,7 @@ class Exchange {
         $this->errLog = new ErrorLog();
     }
 
-    function start($symbol,$qtyUsd,$qtyToken)
+    function start($symbol,$qtyUsd,$qtyToken,$from,$to)
     {
         $this->symbol   = $symbol;
         $this->qtyUsd   = $qtyUsd;
@@ -70,7 +70,7 @@ class Exchange {
         if ($tck->get('tickerid') == $symbol)
         {
             $this->symbolData = $tck->getAllData();
-            $this->__loadKlines($symbol);
+            $this->__loadKlines($symbol,$from,$to);
             
             if (!empty($this->klines))
             {
@@ -125,7 +125,7 @@ class Exchange {
                     elseif ($order['type']=='LIMIT')
                     {
                         $priceHigh = $klinePost['high'];
-                        $priceLow = $klinePre['low'];
+                        $priceLow = $klinePost['low'];
                         $usd = toDec($order['price'] * $order['origQty']);
                         
                         if ($order['side']=='BUY' && $order['price']>=$priceLow && $order['price']<=$priceHigh)

@@ -73,6 +73,20 @@
 		  </div>
 
 		</div>
+        <div class="col">
+
+          <div class="form-group">
+            <div class="form-group">
+                <label for="from">Rango de fechas</label>
+                <select id="from" class="form-control" >
+                    {FOR#rangoFechas#
+                    ENDFOR}
+                </select>
+            </div>
+          </div>
+
+        </div>
+
 	</div>
 	<div class="row">
 		<div class="col">
@@ -301,18 +315,18 @@
                 });
 
                 //Series de bullets
-                createSeriesBullet('buy','Compra','#00DD00');
-                createSeriesBullet('sell','Venta','#DD0000');
+                createSeriesBullet('buy','Compra','#166a16');
+                createSeriesBullet('sell','Venta','#6a1616');
                 createSeriesBullet('apins','Ap.Ins.','#000000');
 
                 //Ordenes abiertas
-                var sov = createSeriesOrden('ov','OV','#aa0000');
-                var soc1 = createSeriesOrden('oc1','OC #1','#00aa00');
-                var soc2 = createSeriesOrden('oc2','OC #2','#00aa00');
-                var soc3 = createSeriesOrden('oc3','OC #3','#00aa00');
-                var soc4 = createSeriesOrden('oc4','OC #4','#00aa00');
-                var soc5 = createSeriesOrden('oc5','OC #5','#00aa00');
-                var soc6 = createSeriesOrden('oc6','OC #6','#00aa00');
+                var sov = createSeriesOrden('ov','OV','#6a1616');
+                var soc1 = createSeriesOrden('oc1','OC #1','#166a16');
+                var soc2 = createSeriesOrden('oc2','OC #2','#166a16');
+                var soc3 = createSeriesOrden('oc3','OC #3','#166a16');
+                var soc4 = createSeriesOrden('oc4','OC #4','#166a16');
+                var soc5 = createSeriesOrden('oc5','OC #5','#166a16');
+                var soc6 = createSeriesOrden('oc6','OC #6','#166a16');
                 sov.hiddenInLegend = false;
                 soc1.hiddenInLegend = true;
                 soc2.hiddenInLegend = true;
