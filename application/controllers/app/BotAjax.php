@@ -1,6 +1,7 @@
 <?php
 include_once LIB_PATH."Controller.php";
 include_once LIB_PATH."ControllerAjax.php";
+include_once LIB_PATH."HtmlTableDg.php";
 include_once MDL_PATH."binance/BinanceAPI.php";
 include_once MDL_PATH."Ticker.php";
 include_once MDL_PATH."bot/Test.php";
@@ -638,5 +639,51 @@ class BotAjax extends ControllerAjax
         $qtyPalancas = count($palancas['porc']);
         $multPorc = $tck->calcularMultiplicadorDePorcentaje($qtyPalancas,end($palancas['porc']));
         echo toDec($multPorc);
+    }
+
+    function cargarOrdenesCompletas()
+    {
+        $opr = new Operacion($_REQUEST['idoperacion']);
+        $dg = New HtmlTableDg();
+
+        $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
+        $dg->addHeader('Tipo');
+        $dg->addHeader('Fecha Hora');
+        $dg->addHeader('Unidades',null,null,'right');
+        $dg->addHeader('Precio',null,null,'right');
+        $dg->addHeader('USD',null,null,'right');
+
+        $ordenes = $opr->getOrdenes($enCurso=false,'pnlDate, side, price');
+        foreach ($ordenes as $rw)
+        {
+            if ($rw['completed'])
+            {
+                $usd = toDec($rw['origQty']*$rw['price']);
+
+                $link = '<a href="app.bot.verOrden+symbol='.$opr->get('symbol').'&orderId='.$rw['orderId'].'" target="_blank" label="'.$rw['orderId'].'">'.$rw['sideStr'].'</a>';
+                
+                $row = array($link,
+                             $rw['updatedStr'],
+                             ($rw['origQty']*1),
+                             ($rw['price']*1),
+                             ($rw['side']==Operacion::SIDE_BUY?'-':'').$usd
+                            );
+ 
+                $dg->addRow($row,$rw['sideClass'],null,null,$id='ord_'.$rw['orderId']);
+
+                
+                if ($rw['side']==Operacion::SIDE_SELL)
+                {
+                    $totVentas++;
+                    $gananciaUsd += $usd;
+                }
+                else
+                {
+                    $gananciaUsd -= $usd;
+                }
+            }
+
+        }
+        $this->ajxRsp->assign('ordenesCompletas','innerHTML',$dg->get());
     }
 }

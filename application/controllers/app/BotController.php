@@ -182,22 +182,15 @@ class BotController extends Controller
         $arr['auto-restart'] = $autoRestart;
         $arr['hidden'] = Html::getTagInput('idoperacion',$opr->get('idoperacion'),'hidden');
 
-        $ordenes = $opr->getOrdenes($enCurso=false);
+        $ordenes = $opr->getOrdenes($enCurso=true,'price DESC');
 
-        $dgA = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
-        $dgA->addHeader('Tipo');
-        $dgA->addHeader('Fecha Hora');
-        $dgA->addHeader('Unidades',null,null,'right');
-        $dgA->addHeader('Precio',null,null,'right');
-        $dgA->addHeader('USD',null,null,'right');
-        $dgA->addHeader('Ref.',null,null,'right');
-
-        $dgB = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
-        $dgB->addHeader('Tipo');
-        $dgB->addHeader('Fecha Hora');
-        $dgB->addHeader('Unidades',null,null,'right');
-        $dgB->addHeader('Precio',null,null,'right');
-        $dgB->addHeader('USD',null,null,'right');
+        $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
+        $dg->addHeader('Tipo');
+        $dg->addHeader('Fecha Hora');
+        $dg->addHeader('Unidades',null,null,'right');
+        $dg->addHeader('Precio',null,null,'right');
+        $dg->addHeader('USD',null,null,'right');
+        $dg->addHeader('Ref.',null,null,'right');
 
         $totVentas = 0;
         $gananciaUsd = 0;
@@ -205,7 +198,7 @@ class BotController extends Controller
         {
             $usd = toDec($rw['origQty']*$rw['price']);
 
-            if (!$rw['completed'] && $rw['side']==Operacion::SIDE_BUY)
+            if ($rw['side']==Operacion::SIDE_BUY)
                 $rw['sideStr'] .= ' #'.$rw['compraNum'];
 
             $link = '<a href="app.bot.verOrden+symbol='.$opr->get('symbol').'&orderId='.$rw['orderId'].'" target="_blank" label="'.$rw['orderId'].'">'.$rw['sideStr'].'</a>';
@@ -219,27 +212,21 @@ class BotController extends Controller
                          ($rw['price']*1),
                          ($rw['side']==Operacion::SIDE_BUY?'-':'').$usd
                         );
-            if (!$rw['completed'])
+            if ($rw['price']>0 && (
+                ($rw['side']==Operacion::SIDE_BUY && $rw['status']==Operacion::OR_STATUS_FILLED)
+                || 
+                ($rw['side']==Operacion::SIDE_SELL && $rw['status']==Operacion::OR_STATUS_NEW)
+                ))
             {
-                if ($rw['price']>0 && (
-                    ($rw['side']==Operacion::SIDE_BUY && $rw['status']==Operacion::OR_STATUS_FILLED)
-                    || 
-                    ($rw['side']==Operacion::SIDE_SELL && $rw['status']==Operacion::OR_STATUS_NEW)
-                    ))
-                {
-                    $porc = toDec((($symbolPrice/$rw['price'])-1)*100);
-                    $row[] = '<span class="'.($porc<0?'text-danger':'text-success').'">'.$porc.'%</span>';
-                }
-                else
-                {
-                    $row[] = '&nbsp;';
-                }
+                $porc = toDec((($symbolPrice/$rw['price'])-1)*100);
+                $row[] = '<span class="'.($porc<0?'text-danger':'text-success').'">'.$porc.'%</span>';
+            }
+            else
+            {
+                $row[] = '&nbsp;';
             }
 
-            if (!$rw['completed'])
-                $dgA->addRow($row,$rw['sideClass'],null,null,$id='ord_'.$rw['orderId']);
-            else
-                $dgB->addRow($row,$rw['sideClass'],null,null,$id='ord_'.$rw['orderId']);
+            $dg->addRow($row,$rw['sideClass'],null,null,$id='ord_'.$rw['orderId']);
 
             if ($rw['completed'])
             {
@@ -256,14 +243,8 @@ class BotController extends Controller
 
         }
 
-        $arr['ordenesActivas'] = $dgA->get();
-        $arr['ordenesCompletas'] = $dgB->get();
-
-        $arr['est_totVentas'] = $totVentas;
-        $arr['est_gananciaUsd'] = toDec($gananciaUsd,2);
-        //$gananciaPorc = ((($opr->get('inicio_usd')+$gananciaUsd) / $opr->get('inicio_usd')) -1) * 100;
-        //$arr['est_gananciaPorc'] = toDec($gananciaPorc,2).'%';
-
+        $arr['ordenesActivas'] = $dg->get();
+        
         if ($opr->status() == Operacion::OP_STATUS_ERROR)
             $arr['addButtons'] = '<a class="btn btn-danger btn-sm" href="app.bot.detenerOperacion+id={{idoperacion}}">Detener</a>';
 

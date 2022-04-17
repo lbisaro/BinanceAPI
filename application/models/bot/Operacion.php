@@ -457,7 +457,7 @@ class Operacion extends ModelDB
         }
     }
 
-    function getOrdenes($enCurso=true)
+    function getOrdenes($enCurso=true,$order=null)
     {
         if (!$this->data['idoperacion'])
             return false;
@@ -465,9 +465,15 @@ class Operacion extends ModelDB
                 FROM operacion_orden 
                 LEFT JOIN operacion ON operacion.idoperacion =operacion_orden.idoperacion
                 WHERE operacion_orden.idoperacion = ".$this->data['idoperacion'];
+        
         if ($enCurso)
             $qry .= ' AND completed = 0'; 
-        $qry .= ' ORDER BY completed, updated';
+        
+        if ($order)
+            $qry .= ' ORDER BY '.$order;
+        else
+            $qry .= ' ORDER BY completed, updated';
+
         $stmt = $this->db->query($qry);
 
         $ds = array();
