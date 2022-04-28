@@ -16,7 +16,7 @@ date_default_timezone_set('America/Argentina/Buenos_Aires');
 /** Datos referentes al Software */
 
     define('SOFTWARE_NAME',"Cripto");
-    define('SOFTWARE_VER',"0.1");
+    define('SOFTWARE_VER',"1.0");
     
 
 /** Gestino de errores PHP */

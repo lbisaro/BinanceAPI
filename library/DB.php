@@ -177,9 +177,17 @@ class DB
 
                 REQUEST:<ul>';
 
+        $txtError = "\n".date('Y-m-d H:i:s').' '.$message; 
         foreach ($_REQUEST as $k=>$v)
+        {
             if ($k != 'PHPSESSID')
+            {
                 $error .='<li>'.$k.': <b>'.$v.'</b></li>';
+                $txtError .= "\n"." - ".$k.": ".$v;
+            }
+        }
+
+        file_put_contents(LOG_PATH.'mysql_error_'.date('Y.m').'.log', $txtError, FILE_APPEND );
 
         $error .='
                 </ul>

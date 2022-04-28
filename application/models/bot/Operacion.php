@@ -1151,7 +1151,7 @@ class Operacion extends ModelDB
 
                 try {
                     $limitOrder = $api->sell($symbol, $newQty, $newPrice);
-                    $aOpr['idoperacion']  = $idoperacion;
+                    $aOpr['idoperacion']  = $this->data['idoperacion'];
                     $aOpr['side']         = self::SIDE_SELL;
                     $aOpr['origQty']      = $newQty;
                     $aOpr['price']        = $newPrice;
