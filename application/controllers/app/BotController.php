@@ -1352,13 +1352,14 @@ class BotController extends Controller
             {
                 $btnLiquidar = '<a href="'.Controller::getLink('app','bot','liquidarOrden','id='.$rw['idoperacion'].'&idoo='.$rw['idoperacionorden']).'" class="badge badge-danger">Liquidar Orden</a>';
             }
+            $refUSD = toDec(($usd * $porc) / 100);
             $row = array($rw['symbol'].' #'.$rw['idoperacion'],
                          $rw['orderId'].$status,
                          $rw['updatedStr'],
                          ($rw['origQty']*1),
                          ($rw['price']*1),
                          ($rw['side']==Operacion::SIDE_BUY?'-':'').$usd,
-                         ($porc!=0? '<span class="'.($porc<0?'text-danger':'text-success').'">'.$porc.'%</span>' : ''),
+                         ($porc!=0? '<span class="'.($porc<0?'text-danger':'text-success').'" title="'.$refUSD.'">'.$porc.'%</span>' : ''),
                          $btnLiquidar
                         );
 
