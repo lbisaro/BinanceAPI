@@ -1359,7 +1359,7 @@ class BotController extends Controller
                          ($rw['origQty']*1),
                          ($rw['price']*1),
                          ($rw['side']==Operacion::SIDE_BUY?'-':'').$usd,
-                         ($porc!=0? '<span class="'.($porc<0?'text-danger':'text-success').'" title="'.$refUSD.'">'.$porc.'%</span>' : ''),
+                         ($porc!=0? '<span class="'.($porc<0?'text-danger':'text-success').'" title="Ganancia USD '.$refUSD.'">'.$porc.'%</span>' : ''),
                          $btnLiquidar
                         );
 
