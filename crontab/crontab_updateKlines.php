@@ -9,16 +9,19 @@ if (!empty($symbols))
 {
     foreach ($symbols as $symbol)
     {
-        echo "\n".$symbol;
-        while ($test->updateKlines_1m($symbol))
+        if (substr($symbol,0,4) != 'LUNA' && substr($symbol,0,3) != 'UST')
         {
-            $status = $test->getUpdateStatus();
-            echo "\n".$symbol.' -> '.
-                      ' lote: '.$status['lote'].
-                      ' start: '.$status['start'].
-                      ' qtyKlines: '.$status['qtyKlines'].
-                      ' last: '.$status['last'];
-            usleep(100000); //100ms
+            echo "\n".$symbol;
+            while ($test->updateKlines_1m($symbol))
+            {
+                $status = $test->getUpdateStatus();
+                echo "\n".$symbol.' -> '.
+                          ' lote: '.$status['lote'].
+                          ' start: '.$status['start'].
+                          ' qtyKlines: '.$status['qtyKlines'].
+                          ' last: '.$status['last'];
+                usleep(100000); //100ms
+            }
         }
     }
 }
