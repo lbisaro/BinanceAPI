@@ -27,8 +27,8 @@
                 <label for="estrategia">Estrategia</label>
                 <select id="estrategia" class="form-control" onchange="refreshForm();">
                     <option value="0">Seleccionar</option>
-                    <option value="apalancamiento">Apalancamiento</option>
-                    <option value="bot_auto" SELECTED>Bot Auto</option>
+                    <option value="apalancamiento" SELECTED>Apalancamiento</option>
+                    <option value="bot_auto">Bot Auto</option>
                     <!--<option value="at" >Analisis Tecnico</option>-->
                 </select>
             </div>

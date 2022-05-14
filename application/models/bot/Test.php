@@ -19,7 +19,7 @@ class Test
     protected $qtyToken = 0.0;
     protected $totalComprado = 0.0;
     protected $pnlInfo = array();
-    protected $comisionBinance = 0.075 ;
+    protected $comisionBinance = 0.0;//0.075 ;
 
     protected $updateStatus = array();
 

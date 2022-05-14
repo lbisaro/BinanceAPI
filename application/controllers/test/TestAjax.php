@@ -185,7 +185,7 @@ class TestAjax extends ControllerAjax
                     $order['usd'] = toDec($order['price']*$order['origQty']);
                     $row = array(dateToStr($order['datetime'],true).' '.dateToStr($order['updated'],true),
                                  $strOp.' '.$order['status'].' '.$order['type'],
-                                 toDec($qty,$results['tokenDecUnits']),
+                                 toDec($order['origQty'],$results['tokenDecUnits']),
                                  toDec($order['price'],$results['tokenDecPrice']),
                                  ($order['side']!='SELL'?'-':'').toDec($order['usd'],2),
                                  toDec($order['comision'],2)
