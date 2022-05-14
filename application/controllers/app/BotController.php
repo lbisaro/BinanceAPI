@@ -3,6 +3,7 @@
 include_once LIB_PATH."Controller.php";
 include_once LIB_PATH."Html.php";
 include_once LIB_PATH."HtmlTableDg.php";
+include_once LIB_PATH."HtmlTableFc.php";
 include_once MDL_PATH."Ticker.php";
 include_once MDL_PATH."bot/Operacion.php";
 include_once MDL_PATH."binance/BinanceAPI.php";
@@ -1496,6 +1497,167 @@ class BotController extends Controller
 
         $this->addView('bot/liquidarOrden',$arr);
     }        
+    
+
+    function lunabusd($auth)
+    {
+        $this->addTitle('LUNA BUSD - Control de operaciones');
+
+        $symbol = 'LUNABUSD';
+
+        $ak = $auth->getConfig('bncak');
+        $as = $auth->getConfig('bncas');
+
+        $fc = new HtmlTableFc();
+        $fc->setColWidth(array('20%'));
+
+        if (empty($ak) || empty($as))
+        {
+            $arr['data'] = '<div class="alert alert-danger">No se encuentra registro de asociacion de la cuenta con Binance</div>';
+        }
+        else
+        {
+            $api = new BinanceAPI($ak,$as);
+
+            //Informacion de la moneda
+            $symbolData = $api->getSymbolData($symbol);
+            $qtyDecsPrice = $symbolData['qtyDecsPrice'];
+            $qtyDecsUnits = $symbolData['qtyDecs'];
+            $lunaBusdPrice = $symbolData['price'];
+
+            $account = $api->account();
+            $qtyLunaFree = 0;
+            $qtyLunaLocked = 0;
+            $qtyLunaTotal = 0;
+            if (!empty($account))
+            {
+                foreach ($account['balances'] as $asset)
+                {
+                    if ($asset['asset'] == 'LUNA')
+                    {
+                        $qtyLunaFree = $asset['free'];
+                        $qtyLunaLocked = $asset['locked'];
+                        $qtyLunaTotal = $asset['free']+$asset['locked'];
+                    }
+                }
+            }
+
+            if ($lunaBusdPrice > 0)
+            {
+                $data = array('Unidades en Billetera');
+                if ($qtyLunaFree-$qtyLunaTotal == 0)
+                {
+                    $data[] = $qtyLunaTotal;
+                }
+                else
+                {
+                    $data[] = 'Total: <b>'.$qtyLunaTotal.'</b ><br>'.
+                              'Bloqueado: <b>'.($qtyLunaLocked*1).'</b ><br>'.
+                              'Disponible: <b>'.($qtyLunaFree*1).'</b ><br>';
+                }
+                $fc->addRow($data);
+
+                $data = array('USD',toDec($lunaBusdPrice*$qtyLunaTotal));
+                $fc->addRow($data);
+
+            }
+            
+            //Historico de ordenes
+            $ordersHst = $api->orders($symbol); 
+            $show = false; 
+            foreach ($ordersHst as $k => $v)
+            {
+                $v['datetime'] = date('Y-m-d H:i:s',$ordersHst[$k]['time']/1000);
+                
+                if ($v['datetime']<'2022-05-12 00:00:00')
+                    continue;
+
+                //Correccion para ordenes parciales
+                if (!isset($strQtyDecs))
+                {
+                    $strQtyDecs = strlen($v['cummulativeQuoteQty'])-strpos($v['cummulativeQuoteQty'], '.')-1;
+                    
+                }
+                $v['qtyDecs'] = $strQtyDecs;
+                if (($v['price']*1)==0)
+                    $v['price'] = toDec(toDec($v['cummulativeQuoteQty']/$v['executedQty'],$qtyDecsPrice),$strQtyDecs);
+
+                unset($v['clientOrderId']);
+                unset($v['orderListId']);
+                unset($v['origQuoteOrderQty']);
+                unset($v['timeInForce']);
+                unset($v['stopPrice']);
+                unset($v['icebergQty']);
+                unset($v['updateTime']);
+                unset($v['isWorking']);
+                unset($v['time']);
+                if ($v['datetime'] >= $lastComplete && $v['status']!='CANCELED' && $v['status']!='EXPIRED')
+                {
+                    if ($auditBot[$v['orderId']])
+                    {
+                        $v['bot'] = true;
+                    }
+                    else
+                    {
+                        $tradeInfo = $api->orderTradeInfo($symbol,$v['orderId']);
+                        $tradeQty = 0;
+                        $tradeUsd = 0;
+                        if (!empty($tradeInfo))
+                        {
+                            foreach($tradeInfo as $tii)
+                            {
+                                $tradeQty += $tii['qty'];
+                                $tradeUsd += $tii['quoteQty'];
+                            }
+                            $v['price'] = toDec(toDec($tradeUsd/$tradeQty,$qtyDecsPrice),$strQtyDecs);
+                        }
+                        $v['bot'] = false;
+                    }
+                    $audit[$v['orderId']] = $v;
+                }
+
+            } 
+            $dg = new HtmlTableDg();
+            $dg->setCaption('Ordenes ejecutadas');
+            $dg->addHeader('Fecha');
+            $dg->addHeader('Precio');
+            $dg->addHeader('Cantidad');
+            $dg->addHeader('USD');
+            $dg->addHeader('Estado');
+
+            foreach ($audit as $rw)
+            {
+                $row = array();
+                $row[] = '<span title="Order ID '.$rw['orderId'].'">'.dateToStr($rw['datetime'],true).'</span>';
+                $row[] = $rw['price'];
+                $row[] = toDec($rw['origQty'],$qtyDecsUnits);
+                $row[] = toDec($rw['origQty']*$rw['price']);
+                if ($rw['status']=='NEW')
+                    $row[] = 'PENDIENTE';
+                elseif ($rw['status']=='FILLED')
+                    $row[] = 'EJECUTADA';
+                else
+                    $row[] = $rw['status'];
+                
+                $class='';
+                if ($rw['side']=='BUY')
+                    $class='text-success';
+                else
+                    $class='text-danger';
+                $dg->addRow($row,$class);
+            }
+            $fc->addRow(array($dg->get()));
+
+
+
+        }
+    
+        $arr['data'] = $fc->get();
+        $arr['hidden'] = '';
+    
+        $this->addView('ver',$arr);
+    }
+    
     
     
 }

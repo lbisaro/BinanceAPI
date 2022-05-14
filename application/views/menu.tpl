@@ -1,4 +1,3 @@
-
 <script language="javascript" >
 
     {{server_entorno}}
@@ -51,6 +50,9 @@
           </div>
         </li>        
         -->
+        <li class="nav-item">
+          <a class="nav-link rounded" href="app.Bot.lunabusd+"><span class="glyphicon glyphicon-fire"></span> LUNA-BUSD</a>
+        </li>        
         <li class="nav-item">
           <a class="nav-link rounded" href="app.Cripto.estadoDeCuenta+"><span class="glyphicon glyphicon-btc"></span> Estado de cuenta</a>
         </li>        
