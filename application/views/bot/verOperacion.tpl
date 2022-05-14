@@ -16,6 +16,7 @@
         <a class="btn btn-info btn-sm" href="app.bot.auditarOrdenes+id={{idoperacion}}">Auditar Ordenes</a>
         <a class="btn btn-info btn-sm" href="app.bot.editarOperacion+id={{idoperacion}}">Modificar</a>
         <a class="btn btn-info btn-sm" href="app.bot.revisarEstrategia+id={{idoperacion}}">Grafica</a>
+        <button class="btn btn-{{toogleStopClass}} btn-sm" onclick="revertirStop()">{{toogleStopText}}</button>
         </td>
     </tr>
     <tr>
@@ -109,6 +110,11 @@
         {
             CtrlAjax.sendCtrl("app","bot","cargarOrdenesCompletas");
         }
+    }
+
+    function revertirStop()
+    {
+        CtrlAjax.sendCtrl("app","bot","toogleStop");  
     }
 
     function startOperacion()

@@ -727,4 +727,12 @@ class BotAjax extends ControllerAjax
         }            
             
     }
+
+    function toogleStop()
+    {
+        $opr = new Operacion($_REQUEST['idoperacion']);
+        $newAutoRestart = $opr->toogleStop();
+        $this->ajxRsp->redirect('app.bot.verOperacion+id='.$opr->get('idoperacion'));   
+    }
+
 }

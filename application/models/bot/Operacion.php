@@ -561,6 +561,17 @@ class Operacion extends ModelDB
         return $this->data['auto_restart'];
     }
 
+    function toogleStop()
+    {
+        if ($this->data['stop'])
+            $this->data['stop'] = 0;
+        else
+            $this->data['stop'] = 1;
+        $upd = "UPDATE operacion SET stop = '".($this->data['stop']?'1':'0')."' WHERE idoperacion = ".$this->data['idoperacion'];
+        $this->db->query($upd);
+        return $this->data['stop'];
+    }
+
     function autoRestartOff()
     {
         $this->data['auto_restart'] = 0;

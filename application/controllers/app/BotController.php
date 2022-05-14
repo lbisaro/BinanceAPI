@@ -156,12 +156,21 @@ class BotController extends Controller
                                      ($opr->get('multiplicador_porc_auto')?' Automatico':'');
         $arr['porc_venta_up'] = toDec($opr->get('real_porc_venta_up'));
         $arr['porc_venta_down'] = toDec($opr->get('real_porc_venta_down'));
-        $arr['estado'] = $opr->get('strEstado');
-        $status = $opr->status();
-        if ($status==Operacion::OP_STATUS_APALANCAOFF)
-            $arr['estado'] .= '<br/><a class="btn btn-sm btn-warning" href="'.Controller::getLink('app','bot','resolverApalancamiento','id='.$idoperacion).'">Resolver Apalancamiento</a>';
-        elseif ($status==Operacion::OP_STATUS_STOP_CAPITAL)
-            $arr['estado'] .= '<br/><a class="btn btn-sm btn-info" href="'.Controller::getLink('app','bot','resolverApalancamiento','id='.$idoperacion).'&msg=addCompra">Agregar Apalancamiento</a>';
+
+        if (!$opr->get('stop'))
+        {
+            $arr['estado'] = $opr->get('strEstado');
+            $status = $opr->status();
+            if ($status==Operacion::OP_STATUS_APALANCAOFF)
+                $arr['estado'] .= '<br/><a class="btn btn-sm btn-warning" href="'.Controller::getLink('app','bot','resolverApalancamiento','id='.$idoperacion).'">Resolver Apalancamiento</a>';
+            elseif ($status==Operacion::OP_STATUS_STOP_CAPITAL)
+                $arr['estado'] .= '<br/><a class="btn btn-sm btn-info" href="'.Controller::getLink('app','bot','resolverApalancamiento','id='.$idoperacion).'&msg=addCompra">Agregar Apalancamiento</a>';
+            
+        }
+        else
+        {
+            $arr['estado'] = '<b class="text-danger">FUERA DE REVISION DEL BOT</b>';
+        }
         if ($status==Operacion::OP_STATUS_READY)
         {
             $arr['crearOrdenDeCompra_btn'] .= '<br/><a class="btn btn-sm btn-success" href="'.Controller::getLink('app','bot','crearOrdenDeCompra','id='.$idoperacion).'">Crear Nueva Orden de Compra LIMIT</a>';
@@ -182,6 +191,17 @@ class BotController extends Controller
 
         $arr['auto-restart'] = $autoRestart;
         $arr['hidden'] = Html::getTagInput('idoperacion',$opr->get('idoperacion'),'hidden');
+
+        if ($opr->get('stop'))
+        {
+            $arr['toogleStopText'] = 'Reanudar';
+            $arr['toogleStopClass'] = 'success';
+        }
+        else
+        {
+            $arr['toogleStopText'] = 'Quitar de revision';
+            $arr['toogleStopClass'] = 'danger';
+        }
 
         $ordenes = $opr->getOrdenes($enCurso=true,'price DESC');
 
