@@ -1501,7 +1501,7 @@ class BotController extends Controller
 
     function lunabusd($auth)
     {
-        $this->addTitle('LUNA BUSD - Control de operaciones');
+        $this->addTitle('LUNA-BUSD');
 
         $symbol = 'LUNABUSD';
 
@@ -1509,8 +1509,7 @@ class BotController extends Controller
         $as = $auth->getConfig('bncas');
 
         $fc = new HtmlTableFc();
-        $fc->setColWidth(array('20%'));
-
+        
         if (empty($ak) || empty($as))
         {
             $arr['data'] = '<div class="alert alert-danger">No se encuentra registro de asociacion de la cuenta con Binance</div>';
@@ -1565,11 +1564,14 @@ class BotController extends Controller
             //Historico de ordenes
             $ordersHst = $api->orders($symbol); 
             $show = false; 
+            $orders = array();
             foreach ($ordersHst as $k => $v)
             {
                 $v['datetime'] = date('Y-m-d H:i:s',$ordersHst[$k]['time']/1000);
                 
                 if ($v['datetime']<'2022-05-12 00:00:00')
+                    continue;
+                if ($v['status'] == 'CANCELED')
                     continue;
 
                 //Correccion para ordenes parciales
@@ -1593,31 +1595,22 @@ class BotController extends Controller
                 unset($v['time']);
                 if ($v['datetime'] >= $lastComplete && $v['status']!='CANCELED' && $v['status']!='EXPIRED')
                 {
-                    if ($auditBot[$v['orderId']])
+                    $tradeInfo = $api->orderTradeInfo($symbol,$v['orderId']);
+                    $tradeQty = 0;
+                    $tradeUsd = 0;
+                    if (!empty($tradeInfo))
                     {
-                        $v['bot'] = true;
-                    }
-                    else
-                    {
-                        $tradeInfo = $api->orderTradeInfo($symbol,$v['orderId']);
-                        $tradeQty = 0;
-                        $tradeUsd = 0;
-                        if (!empty($tradeInfo))
+                        foreach($tradeInfo as $tii)
                         {
-                            foreach($tradeInfo as $tii)
-                            {
-                                $tradeQty += $tii['qty'];
-                                $tradeUsd += $tii['quoteQty'];
-                            }
-                            $v['price'] = toDec(toDec($tradeUsd/$tradeQty,$qtyDecsPrice),$strQtyDecs);
+                            $tradeQty += $tii['qty'];
+                            $tradeUsd += $tii['quoteQty'];
                         }
-                        $v['bot'] = false;
+                        $v['price'] = toDec(toDec($tradeUsd/$tradeQty,$qtyDecsPrice),$strQtyDecs);
                     }
-                    $audit[$v['orderId']] = $v;
                 }
-
+                array_unshift($orders,$v);
             } 
-            $dg = new HtmlTableDg();
+            $dg = new HtmlTableDg('tbl_orders');
             $dg->setCaption('Ordenes ejecutadas');
             $dg->addHeader('Fecha');
             $dg->addHeader('Precio');
@@ -1625,7 +1618,7 @@ class BotController extends Controller
             $dg->addHeader('USD');
             $dg->addHeader('Estado');
 
-            foreach ($audit as $rw)
+            foreach ($orders as $rw)
             {
                 $row = array();
                 $row[] = '<span title="Order ID '.$rw['orderId'].'">'.dateToStr($rw['datetime'],true).'</span>';
@@ -1644,18 +1637,17 @@ class BotController extends Controller
                     $class='text-success';
                 else
                     $class='text-danger';
-                $dg->addRow($row,$class);
+                $dg->addRow($row,$class,$height='15px');
             }
-            $fc->addRow(array($dg->get()));
-
-
+            $arr['orders'] = $dg->get();
 
         }
     
-        $arr['data'] = $fc->get();
+        $arr['lunabusdPrice'] = $lunaBusdPrice;
+        $arr['info'] = $fc->get();
         $arr['hidden'] = '';
     
-        $this->addView('ver',$arr);
+        $this->addView('bot/lunabusd',$arr);
     }
     
     

@@ -686,4 +686,45 @@ class BotAjax extends ControllerAjax
         }
         $this->ajxRsp->assign('ordenesCompletas','innerHTML',$dg->get());
     }
+
+    function lunabusdOrder()
+    {
+        $auth = UsrUsuario::getAuthInstance();
+        $ak = $auth->getConfig('bncak');
+        $as = $auth->getConfig('bncas');
+        $api = new BinanceAPI($ak,$as);
+
+        $symbol = 'LUNABUSD';
+        $type = $_REQUEST['op_type'];
+        $side = $_REQUEST['op_side'];
+        $qty = $_REQUEST['op_qty'];
+        if (isset($_REQUEST['op_price']))
+            $price = $_REQUEST['op_price'];
+        
+        try {
+
+            if ($type=='limit')
+            {
+                if ($side=='buy')
+                    $order = $api->buy($symbol, $qty, $price);
+                elseif ($side=='sell')
+                    $order = $api->sell($symbol, $qty, $price);
+            }
+            elseif ($type=='market')
+            {
+                if ($side=='buy')
+                    $order = $api->marketBuy($symbol, $qty);
+                elseif ($side=='sell')
+                    $order = $api->marketSell($symbol, $qty);
+            }
+            if ($order['orderId'])
+                $this->ajxRsp->redirect('app.bot.lunabusd+');
+        
+        } catch (Throwable $e) {
+            $msg = $e->getMessage();
+            $this->ajxRsp->addError('Informe de error de Binance'); 
+            $this->ajxRsp->addError($msg); 
+        }            
+            
+    }
 }
