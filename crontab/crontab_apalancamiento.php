@@ -82,7 +82,7 @@ foreach ($usuarios as $idusuario => $usuarioData)
             $opr->reset();
             $opr->load($idoperacion);
 
-            if ($operacion->get('stop'))
+            if ($opr->get('stop'))
                 continue;
 
             if ($opr->status() == Operacion::OP_STATUS_ERROR)
