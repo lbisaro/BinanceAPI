@@ -74,7 +74,7 @@ class CriptoController extends Controller
             }
             $pnlTotal['resultadoUSD'] = '<span class="text-'.($pnlTotal['resultadoUSD']>0?'success':'danger').'">'.toDec($pnlTotal['resultadoUSD']).'</span>';
             
-            $dg->addFooter(array('Totales',toDec($pnlTotal['buyedUSD']),toDec($pnlTotal['actualUSD']),$pnlTotal['resultadoUSD'],$pnlTotal['perc']));
+            $dg->addFooter(array('Totales',toDec($pnlTotal['buyedUSD']),'&nbsp',toDec($pnlTotal['actualUSD']),$pnlTotal['resultadoUSD'],$pnlTotal['perc']));
 
             $arr['tab_compras'] = $dg->get();
             
