@@ -41,6 +41,7 @@ class CriptoController extends Controller
                 {
                     $pnlStatus[$symbol]['actualPrice'] = $prices[$symbol];
                     $pnlStatus[$symbol]['actualUSD'] = $prices[$symbol]*$rw['buyedUnits'];
+                    $pnlStatus[$symbol]['buyedUnits'] = $rw['buyedUnits'];
                     $pnlStatus[$symbol]['perc'] = (($pnlStatus[$symbol]['actualUSD']/$pnlStatus[$symbol]['buyedUSD'])-1)*100;
 
                 }
@@ -48,6 +49,7 @@ class CriptoController extends Controller
             $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
             $dg->addHeader('Moneda');
             $dg->addHeader('Comprado USD',null,null,'right');
+            $dg->addHeader('Comprado Token',null,null,'right');
             $dg->addHeader('Actual USD',null,null,'right');
             $dg->addHeader('Resultado USD',null,null,'right');
             $dg->addHeader('Resultado %',null,null,'right');
@@ -56,6 +58,7 @@ class CriptoController extends Controller
                 $row = array();
                 $row[] = $symbol;
                 $row[] = toDec($rw['buyedUSD']);
+                $row[] = toDec($rw['buyedUnits']);
                 $row[] = toDec($rw['actualUSD']);
                 $row[] = '<span class="text-'.(($rw['actualUSD']-$rw['buyedUSD'])>0?'success':'danger').'">'.toDec($rw['actualUSD']-$rw['buyedUSD']).'</span>';
                 $row[] = '<span class="text-'.($rw['perc']>0?'success':'danger').'">'.toDec($rw['perc']).'%</span>';
