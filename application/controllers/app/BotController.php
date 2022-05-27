@@ -44,10 +44,12 @@ class BotController extends Controller
                     $strCompras = '';
                 else
                     $strCompras = ' <br/>Compras x '.$compras;
+                
+                $strEstado = $opr->get('strEstado').$strCompras;
+                
                 if ($opr->get('stop'))
-                    $strStop = '<span class="text-danger glyphicon glyphicon-eye-close"></span> &nbsp;';
-                else
-                    $strStop = '';
+                    $strEstado = '<span class="text-danger"><span class="glyphicon glyphicon-eye-close"></span>&nbsp;FUERA DE REVISION</span>';
+
                 $data = array($link,
                               $opr->get('capital_usd'),
                               $opr->get('inicio_usd'),
@@ -56,7 +58,7 @@ class BotController extends Controller
                                          ($opr->get('multiplicador_porc_inc')?' Inc':'').
                                          ($opr->get('multiplicador_porc_auto')?' Auto':''),
                               $opr->get('strPorcVenta'),
-                              $strStop.$opr->get('strEstado').$strCompras,
+                              $strEstado,
                               $autoRestart
                               );
                 if ($rw['ordenesActivas']>0)
