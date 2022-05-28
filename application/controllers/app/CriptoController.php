@@ -58,7 +58,7 @@ class CriptoController extends Controller
                 $row = array();
                 $row[] = $symbol;
                 $row[] = toDec($rw['buyedUSD']);
-                $row[] = toDec($rw['buyedUnits']);
+                $row[] = $rw['buyedUnits'];
                 $row[] = toDec($rw['actualUSD']);
                 $row[] = '<span class="text-'.(($rw['actualUSD']-$rw['buyedUSD'])>0?'success':'danger').'">'.toDec($rw['actualUSD']-$rw['buyedUSD']).'</span>';
                 $row[] = '<span class="text-'.($rw['perc']>0?'success':'danger').'">'.toDec($rw['perc']).'%</span>';
