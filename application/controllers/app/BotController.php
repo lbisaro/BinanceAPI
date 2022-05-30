@@ -1525,11 +1525,11 @@ class BotController extends Controller
     }        
     
 
-    function lunabusd($auth)
+    function luncbusd($auth)
     {
-        $this->addTitle('LUNA-BUSD');
+        $this->addTitle('LUNC-BUSD');
 
-        $symbol = 'LUNABUSD';
+        $symbol = 'LUNCBUSD';
 
         $ak = $auth->getConfig('bncak');
         $as = $auth->getConfig('bncas');
@@ -1558,7 +1558,7 @@ class BotController extends Controller
             {
                 foreach ($account['balances'] as $asset)
                 {
-                    if ($asset['asset'] == 'LUNA')
+                    if ($asset['asset'] == 'LUNC')
                     {
                         $qtyLunaFree = $asset['free'];
                         $qtyLunaLocked = $asset['locked'];
@@ -1597,6 +1597,8 @@ class BotController extends Controller
                 
                 if ($v['datetime']<'2022-05-12 00:00:00')
                     continue;
+                if ($v['status'] == 'EXPIRED')
+                    continue;                
                 if ($v['status'] == 'CANCELED')
                     continue;
 
