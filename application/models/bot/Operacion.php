@@ -221,8 +221,8 @@ class Operacion extends ModelDB
 
     function getTipoOperacion($id='ALL')
     {
-        $arr[self::OP_TIPO_APL]              = 'Apalancamiento Standard';
-        $arr[self::OP_TIPO_APLCRZ]           = 'Apalancamiento Cruzado';
+        $arr[self::OP_TIPO_APL]              = 'Apalancamiento';
+        $arr[self::OP_TIPO_APLCRZ]           = 'Martingala Largo';
 
         if ($id=='ALL')
             return $arr;
