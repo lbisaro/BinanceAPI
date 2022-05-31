@@ -17,7 +17,7 @@
         <label for="inicio_usd">Capital</label>
         <div class="input-group mb-2">
             <div class="input-group-prepend">
-                <div class="input-group-text">USD</div>
+                <div class="input-group-text quoteAsset">USD</div>
             </div>
             <input type="text" class="form-control" id="capital_usd" onchange="refreshTable()" placeholder="0.000">
         </div>
@@ -27,7 +27,7 @@
         <label for="inicio_usd">Compra inicial</label>
         <div class="input-group mb-2">
             <div class="input-group-prepend">
-                <div class="input-group-text">USD</div>
+                <div class="input-group-text quoteAsset" >USD</div>
             </div>
             <input type="text" class="form-control" id="inicio_usd" onchange="refreshTable()" placeholder="0.000">
         </div>
@@ -97,6 +97,7 @@
   </div>
 
 </div>
+<input type="hidden" name="tipo" id="tipo" value="{{tipo}}">
 
 <script type="text/javascript">
     
@@ -111,12 +112,15 @@
 
     function validSymbol()
     {
+        var tipo = $('#tipo').val()
         if ($('#symbol').val())
         {
             $.getJSON('app.BotAjax.symbolData+symbol='+$('#symbol').val(), function( data ) {
                 if (data.symbol)
                 {
-                    if (data.baseAsset == 'BNB')
+                    $('.quoteAsset').html(data.quoteAsset);
+
+                    if (tipo != 1 && data.baseAsset == 'BNB')
                     {
                         alert('No es posible operar BNB dado que esa moneda se utiliza para la gestion de comisiones.');
                         return false;                        
@@ -183,7 +187,7 @@
                         <th>Precio Generico</th>
                         <th>% Sobre ultima compra </th>
                         <th>% Sobre compra Inicial</th>
-                        <th>Compra USD</th>
+                        <th>Compra <span class="quoteAsset">USD</span></th>
                         <th>Total Compra</th>
                         <th>Venta</th>
                     </tr>

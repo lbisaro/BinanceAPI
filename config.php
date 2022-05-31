@@ -76,5 +76,5 @@ date_default_timezone_set('America/Argentina/Buenos_Aires');
 
     define('STATUS_FILE_AT',LOG_PATH.'bot/statusAT.log');
 
-    define('STATUS_FILE_SCLPR',ROOT_DIR.'/test_log/statusScalper.log');
+    define('STATUS_FILE_SCLPR',LOG_PATH.'/bot/statusScalper.log');
 ?>

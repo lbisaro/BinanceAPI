@@ -3038,8 +3038,8 @@ class BinanceAPI
             $data['symbol'] = $symbol;
             $data['price'] = $price;
             $exchangeInfo = $this->exchangeInfo($symbol);
-            $data['qtyDecs'] = $this->numberOfDecimals($exchangeInfo['symbols'][$symbol]['filters'][2]['minQty']);
-            $data['qtyDecsPrice'] = $this->numberOfDecimals($exchangeInfo['symbols'][$symbol]['filters'][0]['minPrice']);
+            $data['qtyDecs'] = intval($this->numberOfDecimals($exchangeInfo['symbols'][$symbol]['filters'][2]['minQty']));
+            $data['qtyDecsPrice'] = intval($this->numberOfDecimals($exchangeInfo['symbols'][$symbol]['filters'][0]['minPrice']));
             $data['quoteAsset'] = $exchangeInfo['symbols'][$symbol]['quoteAsset'];
             $data['baseAsset']  = $exchangeInfo['symbols'][$symbol]['baseAsset'];
         }

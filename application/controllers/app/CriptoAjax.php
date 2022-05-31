@@ -1,6 +1,7 @@
 <?php
 include_once LIB_PATH."Controller.php";
 include_once LIB_PATH."ControllerAjax.php";
+include_once LIB_PATH."HtmlTableDg.php";
 include_once MDL_PATH."Ticker.php";
 
 /**
@@ -32,8 +33,32 @@ class CriptoAjax extends ControllerAjax
 
         $tck = new Ticker();
         $data = $tck->depth($symbol);
+        $dg = new HtmlTableDg();
+        $dg->addHeader('Price');
+        $dg->addHeader('Amount',null,null,'right');
+        $dg->addHeader('Ref',null,null,'right');
+        $dg->addHeader('Portion',null,null,'right');
+        foreach ($data['bids'] as $price=>$rw)
+        {
+            $dg->addRow(array($price,toDec($rw['amount'],2,'.',','),$rw['ref'],$rw['portion']),'text-success');
+        }
+        $htmlTables .= '<div class="col">'.$dg->get().'</div>';
 
-        $this->ajxRsp->assign('resultado','innerHTML',arrayToTable($data));
+        unset($dg);
+        $dg = new HtmlTableDg();
+        $dg->addHeader('Price');
+        $dg->addHeader('Amount',null,null,'right');
+        $dg->addHeader('Ref',null,null,'right');
+        $dg->addHeader('Portion',null,null,'right');
+        foreach ($data['asks'] as $price=>$rw)
+        {
+            $dg->addRow(array($price,toDec($rw['amount'],2,'.',','),$rw['ref'],$rw['portion']),'text-danger');
+        }
+        $htmlTables .= '<div class="col">'.$dg->get().'</div>';
+
+        $html = '<div class="container"><div class="row">'.$htmlTables.'</div></div>';
+
+        $this->ajxRsp->assign('resultado','innerHTML',$html);
 
     }
 

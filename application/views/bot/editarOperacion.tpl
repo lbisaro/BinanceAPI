@@ -19,7 +19,7 @@
         <label for="inicio_usd">Capital</label>
         <div class="input-group mb-2">
             <div class="input-group-prepend">
-                <div class="input-group-text">USD</div>
+                <div class="input-group-text">{{quoteAsset}}</div>
             </div>
             <input type="text" class="form-control" id="capital_usd" value="{{capital_usd}}" onchange="refreshTable()" placeholder="0.000">
         </div>
@@ -29,7 +29,7 @@
         <label for="inicio_usd">Compra inicial</label>
         <div class="input-group mb-2">
             <div class="input-group-prepend">
-                <div class="input-group-text">USD</div>
+                <div class="input-group-text">{{quoteAsset}}</div>
             </div>
             <input type="text" class="form-control" id="inicio_usd" value="{{inicio_usd}}" onchange="refreshTable()" placeholder="0.000">
         </div>
@@ -88,7 +88,7 @@
   </div>
 
   <input type="hidden" id="idoperacion" name="idoperacion" value="{{idoperacion}}">
-
+  <input type="hidden" name="tipo" id="tipo" value="{{tipo}}">
 
 
 </div>
@@ -143,7 +143,7 @@
                         <th>Precio Generico</th>
                         <th>% Sobre ultima compra </th>
                         <th>% Sobre compra Inicial</th>
-                        <th>Compra USD</th>
+                        <th>Compra {{quoteAsset}}</th>
                         <th>Total Compra</th>
                         <th>Venta</th>
                     </tr>

@@ -12,6 +12,11 @@
 
 <div class="container">
     <div class="row">
+        <div class="col">
+            <h4 class="text-info">{{symbol}}</h4>
+        </div>
+    </div>
+    <div class="row">
         <div class="col" id="info">
             <h5 class="text-info">Billetera</h5>
             {{info}}

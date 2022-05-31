@@ -2,10 +2,10 @@
 include_once MDL_PATH."binance/BinanceAPI.php";
 include_once MDL_PATH."bot/Operacion.php";
 
-if (!Operacion::lockProcess('Crontab::apalancamiento()'))
+if (!Operacion::lockProcess('Crontab::apalancamientoCruzado()'))
 {
     $lockFileText = Operacion::readLockFile();
-    $msg = 'Error - Bot Apalancamiento Bloqueado - '.$lockFileText;
+    $msg = 'Error - Bot Apalancamiento Cruzado Bloqueado - '.$lockFileText;
     Operacion::logBot($msg);
 
     include_once (MDL_PATH."NotificacionApp.php");
@@ -13,7 +13,7 @@ if (!Operacion::lockProcess('Crontab::apalancamiento()'))
     $registration_ids[] = $usr->getFCM_token();
 
     $title = 'ALERTA!';
-    $body = 'Bot Apalancamiento Bloqueado'."\n".$lockFileText;
+    $body = 'Bot Apalancamiento Cruzado Bloqueado'."\n".$lockFileText;
     $result = NotificacionApp::send($title,$body,$registration_ids);
 
     return null;
@@ -63,7 +63,7 @@ foreach ($usuarios as $idusuario => $usuarioData)
         }
         
         //        Lista las operaciones del Usuario
-        $operaciones = $opr->getOperacionesPorTipo($idusuario,Operacion::OP_TIPO_APL);
+        $operaciones = $opr->getOperacionesPorTipo($idusuario,Operacion::OP_TIPO_APLCRZ);
         foreach ($operaciones as $operacion) 
         {
             $data=array();
@@ -75,9 +75,6 @@ foreach ($usuarios as $idusuario => $usuarioData)
             $data['eliminar']='';
             $data['compra']=array();
             $data['venta']=array();
-
-            if (substr($symbol,0,4) == 'LUNA')
-                continue;
 
             $opr->reset();
             $opr->load($idoperacion);
@@ -165,6 +162,7 @@ foreach ($usuarios as $idusuario => $usuarioData)
             if ($data['update'])
             {
                 $symbolData = $api->getSymbolData($symbol);
+
                 if ($data['actualizar'] == 'compra') //La operacion recompro por apalancamiento o es la primera compra
                 {
                     if (!empty($data['venta']) && $data['eliminar'] == 'venta')
@@ -261,7 +259,7 @@ foreach ($usuarios as $idusuario => $usuarioData)
                     $newPrice = toDec(($newUsd / $totUnitsBuyed),$symbolData['qtyDecsPrice']);
                     $newQty = toDecDown($totUnitsBuyed,$symbolData['qtyDecs']);
 
-                    $msg = ' Sell -> Qty:'.$newQty.' Price:'.$newPrice.' USD:'.toDec($newPrice*$newQty).' +'.$porcentaje.'%';
+                    $msg = ' Sell -> Qty:'.$newQty.' Price:'.$newPrice.' '.$symbolData['quoteAsset'].':'.toDec($newPrice*$newQty,$symbolData['qtyDecs']).' +'.$porcentaje.'%';
                     Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
 
                     $errorEnOrden = false;
@@ -296,19 +294,19 @@ foreach ($usuarios as $idusuario => $usuarioData)
                         */
                         if ($opr->get('capital_usd')>0 && ($totUsdBuyed+$newUsd) > $opr->get('capital_usd'))
                         {
-                            $msg = ' Stop -> LIMITE DE CAPITAL '.$opr->get('capital_usd').' USD -> Qty:'.$newQty.' Price:'.$newPrice.' Total USD:'.($totUsdBuyed+$newUsd);
+                            $msg = ' Stop -> LIMITE DE CAPITAL '.$opr->get('capital_usd').' '.$symbolData['quoteAsset'].' -> Qty:'.$newQty.' Price:'.$newPrice.' Total '.$symbolData['quoteAsset'].':'.($totUsdBuyed+$newUsd);
                             Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.'  '.$msg);
                             //Se omite la compra por superar el limite de capital de la operacion (si esta seteado)
                             //No se agrega al Log para no generar cantidad de registros sin sentido
                         }
                         elseif ($newUsd > $usdFreeToBuy)
                         {
-                            $msg = ' Stop -> APALANCAMIENTO INSUFICIENTE '.$strControlUsdFreeToBuy.' USD -> Qty:'.$newQty.' Price:'.$newPrice;
+                            $msg = ' Stop -> APALANCAMIENTO INSUFICIENTE '.$strControlUsdFreeToBuy.' '.$symbolData['quoteAsset'].' -> Qty:'.$newQty.' Price:'.$newPrice;
                             Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
                         }
                         else
                         {
-                            $msg = ' Buy -> Qty:'.$newQty.' Price:'.$newPrice.' USD:'.toDec($newUsd).' -'.$multiplicador_porc.'%';
+                            $msg = ' Buy -> Qty:'.$newQty.' Price:'.$newPrice.' '.$symbolData['quoteAsset'].':'.toDec($newUsd,$symbolData['qtyDecs']).' -'.$multiplicador_porc.'%';
                             Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
 
                             try {

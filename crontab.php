@@ -10,7 +10,13 @@ Sql::Connect(DB_HOST,DB_USER,DB_PASSWORD,DB_NAME);
 
 $hostname = shell_exec('hostname');
 
-$parametro = (isset($argv[1])?$argv[1]:"");
+$prmScript = (isset($argv[1])?$argv[1]:"");
+
+//Parametros adicionales 
+foreach ($argv as $k=>$prm)
+    if ($k>1)
+        $prmAdd[] = $prm;
+
 
 $htmlStyle =  '<style>';
 $htmlStyle .= 'table {font-family: arial; width: 100%; font-size: 11px; border: 1px solid #555;border-collapse: collapse;} ';
@@ -24,7 +30,7 @@ $htmlStyle .= '</style>';
 
 //--------------------------------------------------------------------------------------------------------------------
 
-switch ($parametro) {
+switch ($prmScript) {
     
     case 'updateKlines':
 
@@ -39,6 +45,12 @@ switch ($parametro) {
             
         break;
 
+    case 'apalancamientoCruzado':
+    
+        include "crontab/crontab_apalancamientoCruzado.php";
+            
+        break;
+
     case 'notificacionApp':
     
         include "crontab/crontab_notificacionApp.php";
@@ -50,9 +62,11 @@ switch ($parametro) {
     //    include "crontab/crontab_arbitrajeTriangular.php";
     //    break;
     
-    //case 'scalper':
-    //    include "crontab/crontab_scalper.php";
-    //    break;
+    case 'scalper_3EMA':
+        $token = $prmAdd[0];
+        $tokenUSD = $prmAdd[1];
+        include "crontab/crontab_scalper_3EMA.php";
+        break;
     
     //case 'getprices_binance':
     //    include "crontab/crontab_getprices_binance.php";

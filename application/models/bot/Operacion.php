@@ -39,6 +39,9 @@ class Operacion extends ModelDB
     const OR_STATUS_NEW = 0;
     const OR_STATUS_FILLED = 10;
 
+    //Tipos de operaciones
+    const OP_TIPO_APL = 0;
+    const OP_TIPO_APLCRZ = 1;
 
     const PORCENTAJE_VENTA_UP = 2;
     const PORCENTAJE_VENTA_DOWN = 1.75;
@@ -126,18 +129,22 @@ class Operacion extends ModelDB
 
         if (!$this->data['symbol'])
             $err[] = 'Se debe especificar un Symbol';
-        if ($this->data['inicio_usd']<11)
-            $err[] = 'Se debe especificar un importe de compra inicial mayor o igual a 11.00 USD';
         if ($this->data['capital_usd'] < $this->data['inicio_usd'])
             $err[] = 'El capital destinado a la operacion debe ser mayor o igual a la compra inicial';
-        if ($this->data['multiplicador_compra']<1 || $this->data['multiplicador_compra']>2.5 )
-            $err[] = 'Se debe especificar un multiplicador de compra entre 1 y 2.5';
-        if ($this->data['multiplicador_porc']<0.5 || $this->data['multiplicador_porc']>10 )
-            $err[] = 'Se debe especificar un multiplicador de porcentaje entre 0.5 y 10';
-        if ($this->data['porc_venta_up']<1 || $this->data['porc_venta_up']>30 )
-            $err[] = 'Se debe especificar un porcentaje de venta inicial entre 1 y 30';
-        if ($this->data['porc_venta_down']<1 || $this->data['porc_venta_down']>100 )
-            $err[] = 'Se debe especificar un porcentaje de venta palanca entre 1 y 100';
+        if ($this->data['tipo'] != self::OP_TIPO_APLCRZ)
+        {
+            if ($this->data['inicio_usd']<11)
+                $err[] = 'Se debe especificar un importe de compra inicial mayor o igual a 11.00 USD';
+            if ($this->data['multiplicador_compra']<1 || $this->data['multiplicador_compra']>2.5 )
+                $err[] = 'Se debe especificar un multiplicador de compra entre 1 y 2.5';
+            if ($this->data['multiplicador_porc']<0.5 || $this->data['multiplicador_porc']>10 )
+                $err[] = 'Se debe especificar un multiplicador de porcentaje entre 0.5 y 10';
+            if ($this->data['porc_venta_up']<1 || $this->data['porc_venta_up']>30 )
+                $err[] = 'Se debe especificar un porcentaje de venta inicial entre 1 y 30';
+            if ($this->data['porc_venta_down']<1 || $this->data['porc_venta_down']>100 )
+                $err[] = 'Se debe especificar un porcentaje de venta palanca entre 1 y 100';
+            
+        }
 
         if (!$this->data['idusuario'])
         {
@@ -201,6 +208,21 @@ class Operacion extends ModelDB
         $arr[self::OP_STATUS_WAITING]        = 'En curso';
         $arr[self::OP_STATUS_VENTAOFF]       = 'En curso - Sin orden de venta';
         $arr[self::OP_STATUS_COMPLETED]      = 'Completa';
+
+        if ($id=='ALL')
+            return $arr;
+        elseif ($id==0)
+            return self::OP_STATUS_ERROR;
+        elseif (isset($arr[$id]))
+            return $arr[$id];
+        return 'Desconocido'.($id?' ['.$id.']':'');
+    }
+
+
+    function getTipoOperacion($id='ALL')
+    {
+        $arr[self::OP_TIPO_APL]              = 'Apalancamiento Standard';
+        $arr[self::OP_TIPO_APLCRZ]           = 'Apalancamiento Cruzado';
 
         if ($id=='ALL')
             return $arr;
@@ -706,16 +728,16 @@ class Operacion extends ModelDB
         while ($rw = $stmt->fetch())
         {
             $data['symbols'][$rw['symbol']] = $rw['symbol'];
-            $data[$rw['fecha']][$rw['symbol']] = toDec($rw['USD']);
+            $data[$rw['fecha']][$rw['symbol']] = toDec($rw['USD'],4);
             if (!isset($data['total'][$rw['symbol']]))
                 $data['total'][$rw['symbol']]=0;
-            $data['total'][$rw['symbol']] += toDec($rw['USD']);
+            $data['total'][$rw['symbol']] += toDec($rw['USD'],4);
             if (!isset($data['total']['total']))
                 $data['total']['total']=0;
-            $data['total']['total'] += toDec($rw['USD']);
+            $data['total']['total'] += toDec($rw['USD'],4);
             if (!isset($data[$rw['fecha']]['total']))
                 $data[$rw['fecha']]['total']=0;
-            $data[$rw['fecha']]['total'] += toDec($rw['USD']);
+            $data[$rw['fecha']]['total'] += toDec($rw['USD'],4);
             
             if ($rw['fecha'] < $data['iniDate'])
                 $data['iniDate'] = $rw['fecha'];
@@ -1239,5 +1261,13 @@ class Operacion extends ModelDB
         }
 
         return $data;
+    }
+
+    function getOperacionesPorTipo($idusuario,$tipo)
+    {
+        if (!$tipo)
+            $tipo = '0';
+        $ds = $this->getDataset("idusuario = ".$idusuario." AND operacion.tipo = '".$tipo."'");
+        return $ds;
     }
 }

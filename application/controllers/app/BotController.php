@@ -86,6 +86,8 @@ class BotController extends Controller
         $arr['data'] = '';
         $arr['hidden'] = '';
 
+        $arr['tipo'] = $_REQUEST['tipo'];
+
         $arr['PORCENTAJE_VENTA_UP'] = toDec(Operacion::PORCENTAJE_VENTA_UP);
         $arr['PORCENTAJE_VENTA_DOWN'] = toDec(Operacion::PORCENTAJE_VENTA_DOWN);
 
@@ -104,6 +106,12 @@ class BotController extends Controller
             return false;
         }
 
+        $ak = $auth->getConfig('bncak');
+        $as = $auth->getConfig('bncas');
+        $api = new BinanceAPI($ak,$as);
+        $symbolData = $api->getSymbolData($opr->get('symbol'));
+        $arr['quoteAsset'] = $symbolData['quoteAsset'];
+        
         $arr['symbol'] = $opr->get('symbol');
         $arr['capital_usd'] = $opr->get('capital_usd');
         $arr['inicio_usd'] = $opr->get('inicio_usd');
@@ -115,6 +123,7 @@ class BotController extends Controller
             $arr['mpa_checked'] = 'CHECKED';
 
         $arr['idoperacion'] = $opr->get('idoperacion');
+        $arr['tipo'] = $opr->get('tipo');
 
         $arr['porc_venta_up']    = toDec($opr->get('real_porc_venta_up'));
         $arr['porc_venta_down'] = toDec($opr->get('real_porc_venta_down'));
@@ -123,6 +132,7 @@ class BotController extends Controller
         $arr['PORCENTAJE_VENTA_DOWN'] = toDec(Operacion::PORCENTAJE_VENTA_DOWN);
 
         $tck = new Ticker($opr->get('symbol'));
+
         $arr['show_check_MPAuto'] = 'false';
         if ($tck->get('tickerid') == $opr->get('symbol'))
             $arr['show_check_MPAuto'] = 'true';
@@ -154,8 +164,8 @@ class BotController extends Controller
         $link = $this->__selectOperacion($idoperacion,'app.bot.verOperacion+id=');
         $arr['idoperacion'] = $idoperacion;
         $arr['symbolSelector'] = $link;
-        $arr['capital_usd'] = 'USD '.$opr->get('capital_usd');
-        $arr['inicio_usd'] = 'USD '.$opr->get('inicio_usd');
+        $arr['capital_usd'] = $symbolData['quoteAsset'].' '.toDec($opr->get('capital_usd'),$symbolData['qtyDecs']);
+        $arr['inicio_usd'] = $symbolData['quoteAsset'].' '.toDec($opr->get('inicio_usd'),$symbolData['qtyDecs']);
         $arr['multiplicador_compra'] = $opr->get('multiplicador_compra');
         $arr['multiplicador_porc'] = $opr->get('multiplicador_porc').'%'.
                                      ($opr->get('multiplicador_porc_inc')?' Incremental':'').
@@ -216,14 +226,14 @@ class BotController extends Controller
         $dg->addHeader('Fecha Hora');
         $dg->addHeader('Unidades',null,null,'right');
         $dg->addHeader('Precio',null,null,'right');
-        $dg->addHeader('USD',null,null,'right');
+        $dg->addHeader($symbolData['quoteAsset'],null,null,'right');
         $dg->addHeader('Ref.',null,null,'right');
 
         $totVentas = 0;
         $gananciaUsd = 0;
         foreach ($ordenes as $rw)
         {
-            $usd = toDec($rw['origQty']*$rw['price']);
+            $usd = toDec($rw['origQty']*$rw['price'],$symbolData['qtyDecs']);
 
             if ($rw['side']==Operacion::SIDE_BUY)
                 $rw['sideStr'] .= ' #'.$rw['compraNum'];
@@ -419,6 +429,8 @@ class BotController extends Controller
             {
                 if (substr($symbol,-4) == 'USDT' || substr($symbol,-4) == 'USDC' || substr($symbol,-4) == 'BUSD')
                     $strSymbol = substr($symbol,0,-4).'<br>'.substr($symbol,-4);
+                if (substr($symbol,-3) == 'BNB' || substr($symbol,-3) == 'BTC' )
+                    $strSymbol = substr($symbol,0,-3).'<br>'.substr($symbol,-3);
                 $dg->addHeader($strSymbol,null,null,'right');
             }
         }
@@ -438,7 +450,7 @@ class BotController extends Controller
             {
                 $row[] = $data[$curDate][$symbol];
             }
-            $row[] = toDec($data[$curDate]['total']);
+            $row[] = toDec($data[$curDate]['total'],4);
             $dg->addRow($row);
             $curDate = date('Y-m-d',strtotime($curDate.' - 1 day'));
         }
@@ -449,10 +461,10 @@ class BotController extends Controller
         {
             foreach ($data['symbols'] as $symbol)
             {
-                $row[] = toDec($data['total'][$symbol]);
+                $row[] = toDec($data['total'][$symbol],4);
             }
         }
-        $row[] = 'USD '.toDec($data['total']['total']);
+        $row[] = 'USD '.toDec($data['total']['total'],4);
         $dg->addFooter($row,'font-weight-bold');
 
         $row=array();
@@ -634,7 +646,7 @@ class BotController extends Controller
         $scandir = scandir($folder,SCANDIR_SORT_DESCENDING);
         foreach ($scandir as $file)
         {
-            if ($file != '.' && $file != '..' && $file != 'status.log' && $file != 'lock.status')
+            if (substr($file,0,4) == 'bot_')
             {
                 $logFiles[] = $file;
             }
@@ -1525,11 +1537,16 @@ class BotController extends Controller
     }        
     
 
-    function luncbusd($auth)
+    function trade($auth)
     {
-        $this->addTitle('LUNC-BUSD');
+        $this->addTitle('Trade');
 
-        $symbol = 'LUNCBUSD';
+        if ($_REQUEST['symbol'])
+            $symbol = $_REQUEST['symbol'];
+        else
+            $symbol = 'LUNCBUSD';
+
+        $arr['symbol'] = $symbol;
 
         $ak = $auth->getConfig('bncak');
         $as = $auth->getConfig('bncas');
@@ -1546,43 +1563,45 @@ class BotController extends Controller
 
             //Informacion de la moneda
             $symbolData = $api->getSymbolData($symbol);
-            $qtyDecsPrice = $symbolData['qtyDecsPrice'];
-            $qtyDecsUnits = $symbolData['qtyDecs'];
-            $lunaBusdPrice = $symbolData['price'];
+            $qtyDecsPrice  = $symbolData['qtyDecsPrice'];
+            $qtyDecsUnits  = $symbolData['qtyDecs'];
+            $tokenPrice = $symbolData['price'];
+            $baseAsset     = $symbolData['baseAsset'];
+            $quoteAsset    = $symbolData['quoteAsset'];
 
             $account = $api->account();
-            $qtyLunaFree = 0;
-            $qtyLunaLocked = 0;
-            $qtyLunaTotal = 0;
+            $qtyTokenFree = 0;
+            $qtyTokenLocked = 0;
+            $qtyTokenTotal = 0;
             if (!empty($account))
             {
                 foreach ($account['balances'] as $asset)
                 {
-                    if ($asset['asset'] == 'LUNC')
+                    if ($asset['asset'] == $baseAsset)
                     {
-                        $qtyLunaFree = $asset['free'];
-                        $qtyLunaLocked = $asset['locked'];
-                        $qtyLunaTotal = $asset['free']+$asset['locked'];
+                        $qtyTokenFree = $asset['free'];
+                        $qtyTokenLocked = $asset['locked'];
+                        $qtyTokenTotal = $asset['free']+$asset['locked'];
                     }
                 }
             }
 
-            if ($lunaBusdPrice > 0)
+            if ($tokenPrice > 0)
             {
                 $data = array('Unidades en Billetera');
-                if ($qtyLunaFree-$qtyLunaTotal == 0)
+                if ($qtyTokenFree-$qtyTokenTotal == 0)
                 {
-                    $data[] = $qtyLunaTotal;
+                    $data[] = $qtyTokenTotal;
                 }
                 else
                 {
-                    $data[] = 'Total: <b>'.$qtyLunaTotal.'</b ><br>'.
-                              'Bloqueado: <b>'.($qtyLunaLocked*1).'</b ><br>'.
-                              'Disponible: <b>'.($qtyLunaFree*1).'</b ><br>';
+                    $data[] = 'Total: <b>'.$qtyTokenTotal.'</b ><br>'.
+                              'Bloqueado: <b>'.($qtyTokenLocked*1).'</b ><br>'.
+                              'Disponible: <b>'.($qtyTokenFree*1).'</b ><br>';
                 }
                 $fc->addRow($data);
 
-                $data = array('USD',toDec($lunaBusdPrice*$qtyLunaTotal));
+                $data = array($quoteAsset,toDec($tokenPrice*$qtyTokenTotal));
                 $fc->addRow($data);
 
             }
@@ -1595,7 +1614,7 @@ class BotController extends Controller
             {
                 $v['datetime'] = date('Y-m-d H:i:s',$ordersHst[$k]['time']/1000);
                 
-                if ($v['datetime']<'2022-05-12 00:00:00')
+                if ($v['datetime']<date('Y-m-d H:i:s',strtotime('-30 days')))
                     continue;
                 if ($v['status'] == 'EXPIRED')
                     continue;                
@@ -1671,11 +1690,11 @@ class BotController extends Controller
 
         }
     
-        $arr['lunabusdPrice'] = $lunaBusdPrice;
+        $arr['lunabusdPrice'] = $tokenPrice;
         $arr['info'] = $fc->get();
         $arr['hidden'] = '';
     
-        $this->addView('bot/lunabusd',$arr);
+        $this->addView('bot/trade',$arr);
     }
     
     
