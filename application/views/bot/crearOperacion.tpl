@@ -100,7 +100,9 @@
 <input type="hidden" name="tipo" id="tipo" value="{{tipo}}">
 
 <script type="text/javascript">
-    
+    var quoteAsset = 'USD';
+    var symbolDecs = 2;
+    var qtyDecsPrice = 2;
     $(document).ready( function () {
         $('#btnAddOperacion').hide();
 
@@ -119,6 +121,9 @@
                 if (data.symbol)
                 {
                     $('.quoteAsset').html(data.quoteAsset);
+                    quoteAsset = data.quoteAsset;
+                    symbolDecs = data.qtyDecs;
+                    qtyDecsPrice = data.qtyDecsPrice;
 
                     if (tipo != 1 && data.baseAsset == 'BNB')
                     {
@@ -187,7 +192,7 @@
                         <th>Precio Generico</th>
                         <th>% Sobre ultima compra </th>
                         <th>% Sobre compra Inicial</th>
-                        <th>Compra <span class="quoteAsset">USD</span></th>
+                        <th>Compra <span class="quoteAsset">`+quoteAsset+`</span></th>
                         <th>Total Compra</th>
                         <th>Venta</th>
                     </tr>
@@ -196,7 +201,7 @@
                 `;
             
             symbolPrice = 100;
-            symbolDecs = 2;
+            
             precio = format_number(symbolPrice,symbolDecs);
             psuc = 0;
             psci = 0;
@@ -212,8 +217,8 @@
                 table = table + '<td>'+toDec(precio)+'</td>';
                 table = table + '<td class="text-danger">'+(psuc!=0?'-':'')+format_number(psuc,2)+'%</td>';
                 table = table + '<td class="text-danger">'+format_number(psci,2)+'%</td>';
-                table = table + '<td>'+format_number(compraUsd,2)+'</td>';
-                table = table + '<td>'+format_number(totalCompra,2)+'</td>';
+                table = table + '<td>'+format_number(compraUsd,qtyDecsPrice)+'</td>';
+                table = table + '<td>'+format_number(totalCompra,qtyDecsPrice)+'</td>';
                 table = table + '<td class="text-success">'+venta+'</td>';
                 table = table + '</tr>';
 
