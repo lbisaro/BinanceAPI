@@ -111,6 +111,8 @@ class BotController extends Controller
         $api = new BinanceAPI($ak,$as);
         $symbolData = $api->getSymbolData($opr->get('symbol'));
         $arr['quoteAsset'] = $symbolData['quoteAsset'];
+        $arr['qtyDecs'] = $symbolData['qtyDecs'];
+        $arr['qtyDecsPrice'] = $symbolData['qtyDecsPrice'];
         
         $arr['symbol'] = $opr->get('symbol');
         $arr['capital_usd'] = $opr->get('capital_usd');
