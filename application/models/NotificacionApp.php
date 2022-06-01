@@ -13,7 +13,7 @@ class NotificacionApp {
         //$registration_ids = array('eMNllRsKTyKLSahgo4CgKI:APA91bG85TMw2rc_Kzak7LXjTqgjzj6EgGs7TPzh6fp9xgwlMDFvvtBdDDbLzb_ixC8RPW4gFkp29mYQyf6-eVHRyGXbS2QWDIM_ZGUp7sOwOijj8TOfx0Bzt1BFF16JXwdTnGvkAdaN');
 
         $apiKey = FIREBASE_FCM_APIKEY;
-        $notification = array('title' => $title, 'body' => $body);
+        $notification = array('title' => SERVER_ENTORNO.'-'.$title, 'body' => $body);
         $notification['color'] = '#278ed8';
         $notification['icon'] = 'cripto_app_icon.png' ;
         //$notification['sound'] = 'mySound';
