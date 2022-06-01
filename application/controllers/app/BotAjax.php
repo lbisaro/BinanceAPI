@@ -646,12 +646,16 @@ class BotAjax extends ControllerAjax
         $opr = new Operacion($_REQUEST['idoperacion']);
         $dg = New HtmlTableDg();
 
+        $api = new BinanceAPI($ak,$as); 
+        $symbolData = $api->getSymbolData($opr->get('symbol'));
+        $quoteAsset = $symbolData['quoteAsset'];
+
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
         $dg->addHeader('Tipo');
         $dg->addHeader('Fecha Hora');
         $dg->addHeader('Unidades',null,null,'right');
         $dg->addHeader('Precio',null,null,'right');
-        $dg->addHeader('USD',null,null,'right');
+        $dg->addHeader($quoteAsset,null,null,'right');
 
         $ordenes = $opr->getOrdenes($enCurso=false,'pnlDate, side, price');
         foreach ($ordenes as $rw)
