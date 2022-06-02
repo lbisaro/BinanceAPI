@@ -438,12 +438,12 @@ class BotController extends Controller
                 {
                     $strSymbol = substr($symbol,0,-3).'<br>'.substr($symbol,-3);
                     if (substr($symbol,-3) == 'BNB')
-                        $qtyDecs[$symbol]=6;
+                        $qtyDecs[$symbol]=4;
                     if (substr($symbol,-3) == 'BTC')
                         $qtyDecs[$symbol]=7;
                     
                 }
-                $strSymbol .= '['.$qtyDecs[$symbol].']';
+
                 if ($qtyDecs[$symbol]>$maxQtyDecs)
                     $maxQtyDecs = $qtyDecs[$symbol];
                 $dg->addHeader($strSymbol,null,null,'right');
