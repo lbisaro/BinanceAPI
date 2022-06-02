@@ -106,8 +106,14 @@ class CriptoController extends Controller
             {
                 if (!isset($balance[$rw['asset']]) && ( $rw['free'] > 0 || $rw['locked'] > 0 ) )
                 {
-                    $rw['free'] = toDec($rw['free']*$prices[$rw['asset'].'USDT']);
-                    $rw['locked'] = toDec($rw['locked']*$prices[$rw['asset'].'USDT']);
+                    $ticker = $rw['asset'].'USDT';
+                    if (!isset($prices[$ticker]))
+                        $ticker = $rw['asset'].'BUSD';
+                    if (!isset($prices[$ticker]))
+                        $ticker = $rw['asset'].'USDC';
+
+                    $rw['free'] = toDec($rw['free']*$prices[$ticker]);
+                    $rw['locked'] = toDec($rw['locked']*$prices[$ticker]);
                     $balance[$rw['asset']] = $rw;
                     if ($rw['asset'] == 'BNB')
                         $ctrlBnb = $rw['free'];
@@ -135,7 +141,6 @@ class CriptoController extends Controller
                     $totLocked += $locked;
                     $totFree += $free;
                 }
-
             }
 
             $ctrlBilletera = $totTotal;
