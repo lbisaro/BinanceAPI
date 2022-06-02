@@ -728,16 +728,16 @@ class Operacion extends ModelDB
         while ($rw = $stmt->fetch())
         {
             $data['symbols'][$rw['symbol']] = $rw['symbol'];
-            $data[$rw['fecha']][$rw['symbol']] = toDec($rw['USD'],4);
+            $data[$rw['fecha']][$rw['symbol']] = $rw['USD'];
             if (!isset($data['total'][$rw['symbol']]))
                 $data['total'][$rw['symbol']]=0;
-            $data['total'][$rw['symbol']] += toDec($rw['USD'],4);
+            $data['total'][$rw['symbol']] += $rw['USD'];
             if (!isset($data['total']['total']))
                 $data['total']['total']=0;
-            $data['total']['total'] += toDec($rw['USD'],4);
+            $data['total']['total'] += $rw['USD'];
             if (!isset($data[$rw['fecha']]['total']))
                 $data[$rw['fecha']]['total']=0;
-            $data[$rw['fecha']]['total'] += toDec($rw['USD'],4);
+            $data[$rw['fecha']]['total'] += $rw['USD'];
             
             if ($rw['fecha'] < $data['iniDate'])
                 $data['iniDate'] = $rw['fecha'];
