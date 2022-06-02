@@ -423,16 +423,29 @@ class BotController extends Controller
         $data = $opr->getEstadisticaDiaria();
         unset($dg);
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
-
+        $maxQtyDecs = 2;
         $dg->addHeader('Fecha');
         if (!empty($data['symbols']))
         {
             foreach ($data['symbols'] as $symbol)
             {
+                $qtyDecs[$symbol]=2;
                 if (substr($symbol,-4) == 'USDT' || substr($symbol,-4) == 'USDC' || substr($symbol,-4) == 'BUSD')
+                {
                     $strSymbol = substr($symbol,0,-4).'<br>'.substr($symbol,-4);
+                }
                 if (substr($symbol,-3) == 'BNB' || substr($symbol,-3) == 'BTC' )
+                {
                     $strSymbol = substr($symbol,0,-3).'<br>'.substr($symbol,-3);
+                    if (substr($symbol,-3) == 'BNB')
+                        $qtyDecs[$symbol]=6;
+                    if (substr($symbol,-3) == 'BTC')
+                        $qtyDecs[$symbol]=7;
+                    
+                }
+                $strSymbol .= '['.$qtyDecs[$symbol].']';
+                if ($qtyDecs[$symbol]>$maxQtyDecs)
+                    $maxQtyDecs = $qtyDecs[$symbol];
                 $dg->addHeader($strSymbol,null,null,'right');
             }
         }
@@ -450,9 +463,9 @@ class BotController extends Controller
             $row[] = dateToStr($curDate);
             foreach ($data['symbols'] as $symbol)
             {
-                $row[] = $data[$curDate][$symbol];
+                $row[] = toDec($data[$curDate][$symbol],$qtyDecs[$symbol]);
             }
-            $row[] = toDec($data[$curDate]['total'],4);
+            $row[] = toDec($data[$curDate]['total'],$maxQtyDecs);
             $dg->addRow($row);
             $curDate = date('Y-m-d',strtotime($curDate.' - 1 day'));
         }
@@ -463,10 +476,10 @@ class BotController extends Controller
         {
             foreach ($data['symbols'] as $symbol)
             {
-                $row[] = toDec($data['total'][$symbol],4);
+                $row[] = toDec($data['total'][$symbol],$qtyDecs[$symbol]);
             }
         }
-        $row[] = 'USD '.toDec($data['total']['total'],4);
+        $row[] = toDec($data['total']['total'],$maxQtyDecs);
         $dg->addFooter($row,'font-weight-bold');
 
         $row=array();
@@ -479,7 +492,7 @@ class BotController extends Controller
             }
         }
         if ($days>0)
-            $row[] = 'USD '.toDec($data['total']['total']/$days);
+            $row[] = toDec($data['total']['total']/$days);
         $dg->addFooter($row,'font-weight-bold');
 
         $arr['lista'] .= '<h4 class="text-info">Resultado sobre ventas Diarias</h4>'.$dg->get();
