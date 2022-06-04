@@ -1674,19 +1674,23 @@ class BotController extends Controller
             } 
             $dg = new HtmlTableDg('tbl_orders');
             $dg->setCaption('Ordenes ejecutadas');
+            $dg->addHeader('Par');
+            $dg->addHeader('Operacion');
             $dg->addHeader('Fecha');
             $dg->addHeader('Precio');
-            $dg->addHeader('Cantidad');
+            $dg->addHeader($baseAsset);
             $dg->addHeader($quoteAsset);
             $dg->addHeader('Estado');
 
             foreach ($orders as $rw)
             {
                 $row = array();
+                $row[] = $symbol;
+                $row[] = ($rw['side']=='BUY'?'Compra':'Venta');
                 $row[] = '<span title="Order ID '.$rw['orderId'].'">'.dateToStr($rw['datetime'],true).'</span>';
                 $row[] = $rw['price'];
-                $row[] = toDec($rw['origQty'],$qtyDecsUnits);
-                $row[] = toDec($rw['origQty']*$rw['price'],$qtyDecsPrice);
+                $row[] = ($rw['side']=='SELL'?'-':'').toDec($rw['origQty'],$qtyDecsUnits);
+                $row[] = ($rw['side']=='BUY'?'-':'').toDec($rw['origQty']*$rw['price'],$qtyDecsPrice);
                 if ($rw['status']=='NEW')
                     $row[] = 'PENDIENTE';
                 elseif ($rw['status']=='FILLED')
