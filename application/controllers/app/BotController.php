@@ -1580,7 +1580,7 @@ class BotController extends Controller
             $symbolData = $api->getSymbolData($symbol);
             $qtyDecsPrice  = $symbolData['qtyDecsPrice'];
             $qtyDecsUnits  = $symbolData['qtyDecs'];
-            $tokenPrice = $symbolData['price'];
+            $tokenPrice    = $symbolData['price'];
             $baseAsset     = $symbolData['baseAsset'];
             $quoteAsset    = $symbolData['quoteAsset'];
 
@@ -1677,7 +1677,7 @@ class BotController extends Controller
             $dg->addHeader('Fecha');
             $dg->addHeader('Precio');
             $dg->addHeader('Cantidad');
-            $dg->addHeader('USD');
+            $dg->addHeader($quoteAsset);
             $dg->addHeader('Estado');
 
             foreach ($orders as $rw)
@@ -1686,7 +1686,7 @@ class BotController extends Controller
                 $row[] = '<span title="Order ID '.$rw['orderId'].'">'.dateToStr($rw['datetime'],true).'</span>';
                 $row[] = $rw['price'];
                 $row[] = toDec($rw['origQty'],$qtyDecsUnits);
-                $row[] = toDec($rw['origQty']*$rw['price']);
+                $row[] = toDec($rw['origQty']*$rw['price'],$qtyDecsPrice);
                 if ($rw['status']=='NEW')
                     $row[] = 'PENDIENTE';
                 elseif ($rw['status']=='FILLED')
