@@ -2,6 +2,8 @@
 include_once MDL_PATH."binance/BinanceAPI.php";
 include_once MDL_PATH."bot/Operacion.php";
 
+echo "\n".date('d/m/Y H:i:s')." Martingala Short";
+
 if (!Operacion::lockProcess('Crontab::apalancamientoCruzadoShort()'))
 {
     $lockFileText = Operacion::readLockFile();

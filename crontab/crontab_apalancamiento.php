@@ -2,6 +2,8 @@
 include_once MDL_PATH."binance/BinanceAPI.php";
 include_once MDL_PATH."bot/Operacion.php";
 
+echo "\n".date('d/m/Y H:i:s')." Apalancamiento";
+
 if (!Operacion::lockProcess('Crontab::apalancamiento()'))
 {
     $lockFileText = Operacion::readLockFile();
@@ -386,6 +388,7 @@ foreach ($usuarios as $idusuario => $usuarioData)
         Operacion::logBot('u:'.$idusuario.' '.$msg);
         continue;
     }
+    sleep(2)
 }
 
 $procEndU = microtime(true);
