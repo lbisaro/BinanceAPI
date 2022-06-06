@@ -10,3 +10,4 @@ vaciar_tabla.php
 log/
 crontab_1m.sh
 
+*.sh
