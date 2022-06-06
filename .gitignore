@@ -8,6 +8,5 @@ BackTesting CLASS.txt
 test_log/statusScalper.log
 vaciar_tabla.php
 log/
-crontab_1m.sh
+crontab/crontab_1m.sh
 
-*.sh
