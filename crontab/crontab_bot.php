@@ -2,10 +2,10 @@
 include_once MDL_PATH."binance/BinanceAPI.php";
 include_once MDL_PATH."bot/Operacion.php";
 
-if (!Operacion::lockProcess('Crontab::apalancamiento()'))
+if (!Operacion::lockProcess('Crontab::BOT()'))
 {
     $lockFileText = Operacion::readLockFile();
-    $msg = 'Error - Bot Apalancamiento Bloqueado - '.$lockFileText;
+    $msg = 'Error - Bot Bloqueado - '.$lockFileText;
     Operacion::logBot($msg);
 
     include_once (MDL_PATH."NotificacionApp.php");
@@ -13,7 +13,7 @@ if (!Operacion::lockProcess('Crontab::apalancamiento()'))
     $registration_ids[] = $usr->getFCM_token();
 
     $title = 'ALERTA!';
-    $body = 'Bot Apalancamiento Bloqueado'."\n".$lockFileText;
+    $body = 'Bot Bloqueado'."\n".$lockFileText;
     $result = NotificacionApp::send($title,$body,$registration_ids);
 
     return null;
@@ -1036,11 +1036,11 @@ echo "\n".date('d/m/Y H:i:s').' '.$usr->get('username')." Martingala SHORT";
 
 
     } catch (Throwable $e) {
-        $msg = "Apalancamiento - Error: " . $e->getMessage();
+        $msg = "BOT - Error: " . $e->getMessage();
         Operacion::logBot('u:'.$idusuario.' '.$msg);
         continue;
     }
-    sleep(2);
+    sleep(2); //Hace una espera entre cada usuario
 }
 
 $procEndU = microtime(true);
