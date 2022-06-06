@@ -45,6 +45,12 @@ switch ($prmScript) {
             
         break;
 
+    case 'bot':
+    
+        include "crontab/crontab_bot.php";
+            
+        break;
+
     case 'apalancamientoCruzado':
     
         include "crontab/crontab_apalancamientoCruzado.php";

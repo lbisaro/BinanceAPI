@@ -78,9 +78,6 @@ foreach ($usuarios as $idusuario => $usuarioData)
             $data['compra']=array();
             $data['venta']=array();
 
-            if (substr($symbol,0,4) == 'LUNA')
-                continue;
-
             $opr->reset();
             $opr->load($idoperacion);
 

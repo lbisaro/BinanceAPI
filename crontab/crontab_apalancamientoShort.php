@@ -400,6 +400,7 @@ foreach ($usuarios as $idusuario => $usuarioData)
         Operacion::logBot('u:'.$idusuario.' '.$msg);
         continue;
     }
+    sleep(2);
 }
 
 $procEndU = microtime(true);

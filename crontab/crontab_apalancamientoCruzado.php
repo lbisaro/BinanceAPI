@@ -385,7 +385,8 @@ foreach ($usuarios as $idusuario => $usuarioData)
         $msg = "Apalancamiento - Error: " . $e->getMessage();
         Operacion::logBot('u:'.$idusuario.' '.$msg);
         continue;
-    }
+    }    
+    sleep(2);
 }
 
 $procEndU = microtime(true);
