@@ -7,6 +7,6 @@ crontab/test.php
 BackTesting CLASS.txt
 test_log/statusScalper.log
 vaciar_tabla.php
-log/
 crontab/crontab_1m.sh
+log/
 
