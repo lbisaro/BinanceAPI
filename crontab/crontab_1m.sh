@@ -1,6 +1,5 @@
-#!/bin/bash
 php crontab.php apalancamiento
-sleep 0.5 #sleeps 0.5 seconds or 500 miliseconds
+sleep 5 #sleeps 5 seconds
 php crontab.php apalancamientoCruzado
-sleep 0.5 #sleeps 0.5 seconds or 500 miliseconds
+sleep 5 #sleeps 5 seconds
 php crontab.php apalancamientoShort

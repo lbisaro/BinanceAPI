@@ -1,4 +1,3 @@
-
 config.local.php
 log.txt
 python/
@@ -10,3 +9,4 @@ vaciar_tabla.php
 crontab/crontab_1m.sh
 log/
 
+crontab/crontab_1m.sh
