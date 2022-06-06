@@ -17,24 +17,24 @@
         <label for="inicio_usd">Capital</label>
         <div class="input-group mb-2">
             <div class="input-group-prepend">
-                <div class="input-group-text quoteAsset">USD</div>
+                <div class="input-group-text baseAsset"></div>
             </div>
             <input type="text" class="form-control" id="capital_usd" onchange="refreshTable()" placeholder="0.000">
         </div>
       </div>
 
       <div class="form-group">
-        <label for="inicio_usd">Compra inicial</label>
+        <label for="inicio_usd">Venta inicial</label>
         <div class="input-group mb-2">
             <div class="input-group-prepend">
-                <div class="input-group-text quoteAsset" >USD</div>
+                <div class="input-group-text baseAsset" ></div>
             </div>
             <input type="text" class="form-control" id="inicio_usd" onchange="refreshTable()" placeholder="0.000">
         </div>
       </div>
 
       <div class="form-group">
-        <label for="multiplicador_compra">Multiplicador Compras</label>
+        <label for="multiplicador_compra">Multiplicador Ventas</label>
         <input type="text" class="form-control" id="multiplicador_compra"  onchange="refreshTable()" placeholder="Recomendado 1.05 a 2.00">
       </div>
       <div class="form-group">
@@ -49,14 +49,16 @@
           <div class="form-group form-check">
             <input type="checkbox" data-toggle="toggle" data-on="Incremental" data-off="Lineal" data-size="sm"class="form-check-input" CHECKED id="multiplicador_porc_inc" onchange="refreshTable()" >
           </div>
+          <!--
           <div id="check_MPAuto" class="form-group form-check menu-admin">
             <input type="checkbox" data-toggle="toggle" data-on="Automatico" data-off="Auto OFF" data-size="sm"class="form-check-input" id="multiplicador_porc_auto" onchange="refreshTable();getMPAuto();" >
           </div>
+            -->
         </div>
       </div>
 
       <div class="form-group">
-        <label for="porc_venta_up">Porcentaje de venta inicial/palanca</label>
+        <label for="porc_venta_up">Porcentaje de compra inicial/palanca</label>
         <div class="input-group mb-2">
           <input type="text" class="form-control" id="porc_venta_up"  onchange="refreshTable()" placeholder="Recomendado 1.15 a 5.00">
           <div class="input-group-append">
@@ -72,7 +74,7 @@
       </div>
 
       <div class="form-group">
-        <label for="auto_restart">Iniciar compra al grabar</label>
+        <label for="auto_restart">Iniciar venta al grabar</label>
         <div class="input-group mb-2">
           <select id="auto_restart" class="form-control" >
               <option value="1">Si</option>
@@ -90,7 +92,7 @@
 
       <div class="col">
         <h5>Referencia sobre la operacion</h5>
-        <h4 class="text-success">{{strTipoOp}}</h4>
+        <h4 class="text-danger">{{strTipoOp}}</h4>
         <div class="container" id="oprTable"></div>
       </div>
 
@@ -101,7 +103,7 @@
 <input type="hidden" name="tipo" id="tipo" value="{{tipo}}">
 
 <script type="text/javascript">
-    var quoteAsset = 'USD';
+    var baseAsset = 'USD';
     var symbolDecs = 2;
     var qtyDecsPrice = 2;
     $(document).ready( function () {
@@ -121,16 +123,11 @@
             $.getJSON('app.BotAjax.symbolData+symbol='+$('#symbol').val(), function( data ) {
                 if (data.symbol)
                 {
-                    $('.quoteAsset').html(data.quoteAsset);
-                    quoteAsset = data.quoteAsset;
+                    $('.baseAsset').html(data.baseAsset);
+                    baseAsset = data.baseAsset;
                     symbolDecs = data.qtyDecs;
                     qtyDecsPrice = data.qtyDecsPrice;
 
-                    if (tipo != 1 && data.baseAsset == 'BNB')
-                    {
-                        alert('No es posible operar BNB dado que esa moneda se utiliza para la gestion de comisiones.');
-                        return false;                        
-                    }
                     $('#symbol').val(data.symbol);
                     $('#symbol').addClass('text-success');
                     $('#btnAddOperacion').show();
@@ -191,36 +188,39 @@
                     <tr>
                         <th>&nbsp;</th>
                         <th>Precio Generico</th>
-                        <th>% Sobre ultima compra </th>
-                        <th>% Sobre compra Inicial</th>
-                        <th>Compra <span class="quoteAsset">`+quoteAsset+`</span></th>
-                        <th>Total Compra</th>
-                        <th>Venta</th>
+                        <th>% Sobre ultima venta </th>
+                        <th>% Sobre venta Inicial</th>
+                        <th>Venta <span class="baseAsset">`+baseAsset+`</span></th>
+                        <th>Total Venta</th>
+                        <th>Compra <span class="baseAsset">`+baseAsset+`</span></th>
                     </tr>
                 </thead>
                 <tbody>
                 `;
             
-            symbolPrice = 100;
+            symbolPrice = 200;
             
             precio = format_number(symbolPrice,symbolDecs);
             psuc = 0;
             psci = 0;
             compraUsd = inicio_usd*1;
             totalCompra = compraUsd;
-            venta = '+'+toDec($('#porc_venta_up').val())+'%';
+            ventaPorc = $('#porc_venta_up').val()/100;
 
             var i=1;
             while (totalCompra<=capital_usd)
             {
+                precioVenta = precio * (1-ventaPorc);
+                strVenta = totalCompra+'*'+precio+' = '+(totalCompra*precio)+' -> '+totalCompra+'*'+precioVenta+' = '+(totalCompra*precioVenta);
+                qtyVenta = (totalCompra*precio)/precioVenta;
                 table = table + '<tr>';
                 table = table + '<td>#'+i+'</td>';
                 table = table + '<td>'+toDec(precio)+'</td>';
-                table = table + '<td class="text-danger">'+(psuc!=0?'-':'')+format_number(psuc,2)+'%</td>';
-                table = table + '<td class="text-danger">'+format_number(psci,2)+'%</td>';
+                table = table + '<td class="text-success">'+format_number(psuc,2)+'%</td>';
+                table = table + '<td class="text-success">'+format_number(psci,2)+'%</td>';
                 table = table + '<td>'+format_number(compraUsd,qtyDecsPrice)+'</td>';
                 table = table + '<td>'+format_number(totalCompra,qtyDecsPrice)+'</td>';
-                table = table + '<td class="text-success">'+venta+'</td>';
+                table = table + '<td class="text-success">'+toDec(qtyVenta,qtyDecsPrice)+'</td>';
                 table = table + '</tr>';
 
                 if (m_porc_inc==1)
@@ -228,7 +228,7 @@
                 else
                     psuc = parseFloat(m_porc);
 
-                precio = (parseFloat(precio)*(parseFloat(1-(psuc/100))));
+                precio = (parseFloat(precio)*(parseFloat(1+(psuc/100))));
                 
                 psci = ((parseFloat(precio)/parseFloat(symbolPrice))-1)*100;
 
@@ -236,7 +236,7 @@
 
                 totalCompra = parseFloat(totalCompra) + parseFloat(compraUsd);
 
-                venta = '+'+toDec($('#porc_venta_down').val())+'%';
+                ventaPorc = $('#porc_venta_down').val()/100;
                 i++;
             }
             
@@ -270,17 +270,16 @@
     }
 
 
-
-
     function setDefaultValues()
     {
-        $('#capital_usd').val(1000);
+        $('#capital_usd').val(800);
         $('#inicio_usd').val(100);
-        $('#multiplicador_compra').val(1.75);
-        $('#multiplicador_porc').val(2.75);
+        $('#multiplicador_compra').val(2.1);
+        $('#multiplicador_porc').val(2.5);
         $('#porc_venta_up').val(1.75);
         $('#porc_venta_down').val(2.00);
-        $('#symbol').val('MATICUSDT');
+        $('#symbol').val('OCEANBTC');
+        validSymbol();
     }
 
     

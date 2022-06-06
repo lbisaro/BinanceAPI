@@ -51,6 +51,12 @@ switch ($prmScript) {
             
         break;
 
+    case 'apalancamientoShort':
+    
+        include "crontab/crontab_apalancamientoShort.php";
+            
+        break;
+
     case 'notificacionApp':
     
         include "crontab/crontab_notificacionApp.php";

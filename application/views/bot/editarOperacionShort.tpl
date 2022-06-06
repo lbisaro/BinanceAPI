@@ -19,24 +19,24 @@
         <label for="inicio_usd">Capital</label>
         <div class="input-group mb-2">
             <div class="input-group-prepend">
-                <div class="input-group-text">{{quoteAsset}}</div>
+                <div class="input-group-text">{{baseAsset}}</div>
             </div>
             <input type="text" class="form-control" id="capital_usd" value="{{capital_usd}}" onchange="refreshTable()" placeholder="0.000">
         </div>
       </div>
 
       <div class="form-group">
-        <label for="inicio_usd">Compra inicial</label>
+        <label for="inicio_usd">Venta inicial</label>
         <div class="input-group mb-2">
             <div class="input-group-prepend">
-                <div class="input-group-text">{{quoteAsset}}</div>
+                <div class="input-group-text">{{baseAsset}}</div>
             </div>
             <input type="text" class="form-control" id="inicio_usd" value="{{inicio_usd}}" onchange="refreshTable()" placeholder="0.000">
         </div>
       </div>
 
       <div class="form-group">
-        <label for="multiplicador_compra">Multiplicador Compras</label>
+        <label for="multiplicador_compra">Multiplicador Ventas</label>
         <input type="text" class="form-control" id="multiplicador_compra" value="{{multiplicador_compra}}"  onchange="refreshTable()" placeholder="Recomendado 1.05 a 2.00">
       </div>
       <div class="form-group">
@@ -52,14 +52,14 @@
           <div class="form-group form-check">
             <input type="checkbox" data-toggle="toggle" data-on="Incremental" data-off="Lineal" data-size="sm" class="form-check-input" {{mpi_checked}} id="multiplicador_porc_inc" onchange="refreshTable()" >
           </div>
-          <div id="check_MPAuto" class="form-group form-check menu-admin">
+          <!--<div id="check_MPAuto" class="form-group form-check menu-admin">
             <input type="checkbox" data-toggle="toggle" data-on="Automatico" data-off="Auto OFF" data-size="sm" class="form-check-input" {{mpa_checked}} id="multiplicador_porc_auto" onchange="refreshTable();getMPAuto();" >
-          </div>
+          </div>-->
         </div>
       </div>
 
       <div class="form-group">
-        <label for="porc_venta_up">Porcentaje de venta inicial/palanca</label>
+        <label for="porc_venta_up">Porcentaje de compra inicial/palanca</label>
         <div class="input-group mb-2">
           <input type="text" class="form-control" id="porc_venta_up" value="{{porc_venta_up}}"  onchange="refreshTable()" placeholder="Recomendado 1.15 a 5.00">
           <div class="input-group-append">
@@ -82,7 +82,7 @@
 
     <div class="col">
       <h5>Referencia sobre la operacion</h5>
-      <h4 class="text-success">{{strTipoOp}}</h4>
+        <h4 class="text-danger">{{strTipoOp}}</h4>
       <div class="container" id="oprTable"></div>
     </div>
 
@@ -99,7 +99,7 @@
     
     var show_check_MPAuto = {{show_check_MPAuto}};
 
-    var quoteAsset = '{{quoteAsset}}';
+    var baseAsset = '{{baseAsset}}';
     var symbolDecs = {{qtyDecs}};
     var qtyDecsPrice = {{qtyDecsPrice}};
 
@@ -146,36 +146,40 @@
                     <tr>
                         <th>&nbsp;</th>
                         <th>Precio Generico</th>
-                        <th>% Sobre ultima compra </th>
-                        <th>% Sobre compra Inicial</th>
-                        <th>Compra {{quoteAsset}}</th>
-                        <th>Total Compra</th>
-                        <th>Venta</th>
+                        <th>% Sobre ultima centa </th>
+                        <th>% Sobre venta Inicial</th>
+                        <th>Venta {{baseAsset}}</th>
+                        <th>Total Venta</th>
+                        <th>Compra {{baseAsset}}</th>
                     </tr>
                 </thead>
                 <tbody>
                 `;
             
-            symbolPrice = 100;
+            symbolPrice = 200;
             symbolDecs = 2;
             precio = format_number(symbolPrice,symbolDecs);
             psuc = 0;
             psci = 0;
             compraUsd = inicio_usd*1;
             totalCompra = compraUsd;
-            venta = '+'+toDec($('#porc_venta_up').val())+'%';
+            ventaPorc = ventaPorc = $('#porc_venta_up').val()/100;
 
             var i=1;
             while (totalCompra<=capital_usd)
             {
+                precioVenta = precio * (1-ventaPorc);
+                strVenta = totalCompra+'*'+precio+' = '+(totalCompra*precio)+' -> '+totalCompra+'*'+precioVenta+' = '+(totalCompra*precioVenta);
+                qtyVenta = (totalCompra*precio)/precioVenta;
+
                 table = table + '<tr>';
                 table = table + '<td>#'+i+'</td>';
                 table = table + '<td>'+toDec(precio)+'</td>';
-                table = table + '<td class="text-danger">'+(psuc!=0?'-':'')+format_number(psuc,2)+'%</td>';
-                table = table + '<td class="text-danger">'+format_number(psci,2)+'%</td>';
+                table = table + '<td class="text-success">'+format_number(psuc,2)+'%</td>';
+                table = table + '<td class="text-success">'+format_number(psci,2)+'%</td>';
                 table = table + '<td>'+format_number(compraUsd,qtyDecsPrice)+'</td>';
                 table = table + '<td>'+format_number(totalCompra,qtyDecsPrice)+'</td>';
-                table = table + '<td class="text-success">'+venta+'</td>';
+                table = table + '<td class="text-success">'+toDec(qtyVenta,qtyDecsPrice)+'</td>';
                 table = table + '</tr>';
 
                 if (m_porc_inc==1)
@@ -183,7 +187,7 @@
                 else
                     psuc = parseFloat(m_porc);
 
-                precio = (parseFloat(precio)*(parseFloat(1-(psuc/100))));
+                precio = (parseFloat(precio)*(parseFloat(1+(psuc/100))));
                 
                 psci = ((parseFloat(precio)/parseFloat(symbolPrice))-1)*100;
 
@@ -191,7 +195,7 @@
 
                 totalCompra = parseFloat(totalCompra) + parseFloat(compraUsd);
 
-                venta = '+'+toDec($('#porc_venta_down').val())+'%';
+                ventaPorc = $('#porc_venta_down').val()/100;
                 i++;
             }
             

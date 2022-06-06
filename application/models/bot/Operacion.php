@@ -33,6 +33,7 @@ class Operacion extends ModelDB
     const OP_STATUS_STOP_CAPITAL = 31;
     const OP_STATUS_WAITING      = 40;
     const OP_STATUS_VENTAOFF     = 50;
+    const OP_STATUS_COMPRAOFF    = 60;
     const OP_STATUS_COMPLETED    = 90;
 
     //Order status
@@ -42,6 +43,7 @@ class Operacion extends ModelDB
     //Tipos de operaciones
     const OP_TIPO_APL = 0;
     const OP_TIPO_APLCRZ = 1;
+    const OP_TIPO_APLSHRT = 2;
 
     const PORCENTAJE_VENTA_UP = 2;
     const PORCENTAJE_VENTA_DOWN = 1.75;
@@ -131,7 +133,7 @@ class Operacion extends ModelDB
             $err[] = 'Se debe especificar un Symbol';
         if ($this->data['capital_usd'] < $this->data['inicio_usd'])
             $err[] = 'El capital destinado a la operacion debe ser mayor o igual a la compra inicial';
-        if ($this->data['tipo'] != self::OP_TIPO_APLCRZ)
+        if ($this->data['tipo'] == self::OP_TIPO_APL)
         {
             if ($this->data['inicio_usd']<11)
                 $err[] = 'Se debe especificar un importe de compra inicial mayor o igual a 11.00 USD';
@@ -200,13 +202,18 @@ class Operacion extends ModelDB
 
     function getTipoStatus($id='ALL')
     {
+        $strEsperandoConfirmar = 'compra';
+        if ($this->data['tipo'] == self::OP_TIPO_APLSHRT)
+            $strEsperandoConfirmar = 'venta';
+
         $arr[self::OP_STATUS_ERROR]          = 'Error';
         $arr[self::OP_STATUS_READY]          = 'Lista para iniciar';
-        $arr[self::OP_STATUS_OPEN]           = 'Abierta - Esperando confirmar compra';
+        $arr[self::OP_STATUS_OPEN]           = 'Abierta - Esperando confirmar '.$strEsperandoConfirmar;
         $arr[self::OP_STATUS_APALANCAOFF]    = 'En curso - Apalancamiento insuficiente';
         $arr[self::OP_STATUS_STOP_CAPITAL]   = 'En curso - Stop por Limite de Capital';
         $arr[self::OP_STATUS_WAITING]        = 'En curso';
         $arr[self::OP_STATUS_VENTAOFF]       = 'En curso - Sin orden de venta';
+        $arr[self::OP_STATUS_COMPRAOFF]      = 'En curso - Sin orden de compra';
         $arr[self::OP_STATUS_COMPLETED]      = 'Completa';
 
         if ($id=='ALL')
@@ -219,17 +226,29 @@ class Operacion extends ModelDB
     }
 
 
-    function getTipoOperacion($id='ALL')
+    function getTipoOperacion($id='ALL',$nombreCorto=false)
     {
-        $arr[self::OP_TIPO_APL]              = 'Apalancamiento';
-        $arr[self::OP_TIPO_APLCRZ]           = 'Martingala Largo';
+        $id=$id*1;
+        if (!$id)
+            $id = self::OP_TIPO_APL;
+        if ($nombreCorto)
+        {
+            $arr[self::OP_TIPO_APL]              = 'APL';
+            $arr[self::OP_TIPO_APLCRZ]           = 'LONG';
+            $arr[self::OP_TIPO_APLSHRT]          = 'SHORT';
+        }
+        else
+        {
+            $arr[self::OP_TIPO_APL]              = 'Apalancamiento';
+            $arr[self::OP_TIPO_APLCRZ]           = 'Martingala LONG';
+            $arr[self::OP_TIPO_APLSHRT]          = 'Martingala SHORT';
+        }
 
-        if ($id=='ALL')
-            return $arr;
-        elseif ($id==0)
-            return self::OP_STATUS_ERROR;
-        elseif (isset($arr[$id]))
+        if (isset($arr[$id]))
             return $arr[$id];
+        elseif ($id=='ALL')
+            return $arr;
+        
         return 'Desconocido'.($id?' ['.$id.']':'');
     }
 
@@ -283,6 +302,8 @@ class Operacion extends ModelDB
             }
             if ($rw['side'] == self::SIDE_SELL && $rw['status'] == self::OR_STATUS_FILLED)
             {
+                $totalSelled += ($rw['origQty']);
+                $lastBaseSelled = ($rw['origQty']);
                 $closedSell++;
             }
         }
@@ -293,32 +314,64 @@ class Operacion extends ModelDB
         $bin .= ($openSell>0?'1':'0');
         $bin .= ($closedSell>0?'1':'0');
 
-        $arr['0000'] = self::OP_STATUS_READY;
-        $arr['0001'] = self::OP_STATUS_ERROR;
-        $arr['0010'] = self::OP_STATUS_ERROR;
-        $arr['0011'] = self::OP_STATUS_ERROR;
-        $arr['0100'] = self::OP_STATUS_ERROR;
-        $arr['0101'] = self::OP_STATUS_COMPLETED;
-        $arr['0110'] = self::OP_STATUS_APALANCAOFF;
-        $arr['0111'] = self::OP_STATUS_APALANCAOFF;
-        $arr['1000'] = self::OP_STATUS_OPEN;
-        $arr['1001'] = self::OP_STATUS_ERROR;
-        $arr['1010'] = self::OP_STATUS_ERROR;
-        $arr['1011'] = self::OP_STATUS_ERROR;
-        $arr['1100'] = self::OP_STATUS_VENTAOFF; 
-        $arr['1101'] = self::OP_STATUS_ERROR;
-        $arr['1110'] = self::OP_STATUS_WAITING;
-        $arr['1111'] = self::OP_STATUS_ERROR;
+        if ($this->data['tipo'] != self::OP_TIPO_APLSHRT)
+        {
+            $arr['0000'] = self::OP_STATUS_READY;
+            $arr['0001'] = self::OP_STATUS_ERROR;
+            $arr['0010'] = self::OP_STATUS_ERROR;
+            $arr['0011'] = self::OP_STATUS_ERROR;
+            $arr['0100'] = self::OP_STATUS_ERROR;
+            $arr['0101'] = self::OP_STATUS_COMPLETED;
+            $arr['0110'] = self::OP_STATUS_APALANCAOFF;
+            $arr['0111'] = self::OP_STATUS_APALANCAOFF;
+            $arr['1000'] = self::OP_STATUS_OPEN;
+            $arr['1001'] = self::OP_STATUS_ERROR;
+            $arr['1010'] = self::OP_STATUS_ERROR;
+            $arr['1011'] = self::OP_STATUS_ERROR;
+            $arr['1100'] = self::OP_STATUS_VENTAOFF; 
+            $arr['1101'] = self::OP_STATUS_ERROR;
+            $arr['1110'] = self::OP_STATUS_WAITING;
+            $arr['1111'] = self::OP_STATUS_ERROR;
+        }
+        else
+        {    //ob cb os cs
+            $arr['0000'] = self::OP_STATUS_READY;
+            $arr['0100'] = self::OP_STATUS_ERROR;
+            $arr['1000'] = self::OP_STATUS_ERROR;
+            $arr['1100'] = self::OP_STATUS_ERROR;
+            $arr['0001'] = self::OP_STATUS_ERROR;
+            $arr['0101'] = self::OP_STATUS_COMPLETED;
+            $arr['1001'] = self::OP_STATUS_APALANCAOFF;
+            $arr['1101'] = self::OP_STATUS_APALANCAOFF;
+            $arr['0010'] = self::OP_STATUS_OPEN;
+            $arr['0110'] = self::OP_STATUS_ERROR;
+            $arr['1010'] = self::OP_STATUS_ERROR;
+            $arr['1110'] = self::OP_STATUS_ERROR;
+            $arr['0011'] = self::OP_STATUS_COMPRAOFF; 
+            $arr['0111'] = self::OP_STATUS_ERROR;
+            $arr['1011'] = self::OP_STATUS_WAITING;
+            $arr['1111'] = self::OP_STATUS_ERROR;
+        }
 
 
         //Control sobre APALANCAMIENTO INSUFICIENTE vs LIMITE DE CAPITAL
         if ($this->data['capital_usd']>0)
         {
-            $totalBuyed = toDec($totalBuyed);
-            $nextBuy = $lastUsdBuyed*$this->data['multiplicador_compra'];
-            if (($totalBuyed+$nextBuy)>$this->data['capital_usd'])
-                 $arr['0110'] = self::OP_STATUS_STOP_CAPITAL;
-            
+            if ($this->data['tipo'] != self::OP_TIPO_APLSHRT)
+            {
+                $totalBuyed = toDec($totalBuyed);
+                $nextBuy = $lastUsdBuyed*$this->data['multiplicador_compra'];
+                if (($totalBuyed+$nextBuy)>$this->data['capital_usd'])
+                     $arr['0110'] = self::OP_STATUS_STOP_CAPITAL;
+            }
+            else
+            {
+                $totalSelled = toDec($totalSelled);
+                $nextBuy = $lastBaseSelled*$this->data['multiplicador_compra'];
+                if (($totalBuyed+$nextBuy)>$this->data['capital_usd'])
+                     $arr['1001'] = self::OP_STATUS_STOP_CAPITAL;
+
+            }
         }
 
 
@@ -335,7 +388,8 @@ class Operacion extends ModelDB
 
     function trySolveError()
     {
-        if ($this->binStatus == '0100') //No fue posible crear la orden de venta luego de confirmar la compra
+        //No fue posible crear la orden de venta luego de confirmar la compra
+        if ($this->data['tipo'] != self::OP_TIPO_APLSHRT && $this->binStatus == '0100') 
         {
             $ordenes = $this->getOrdenes($enCurso=true);
             foreach ($ordenes as $rw)
@@ -348,6 +402,26 @@ class Operacion extends ModelDB
                 $qry = "UPDATE operacion_orden SET status = '".self::OR_STATUS_NEW."' 
                          WHERE idoperacion = ".$lastBuy['idoperacion']." 
                            AND idoperacionorden = ".$lastBuy['idoperacionorden'];
+                $this->db->query($qry);
+                $msg = ' Warning - trySolve '.$this->binStatus.' - orderId: '.$lastBuy['orderId'];
+                self::logBot('u:'.$this->data['idusuario'].' o:'.$lastBuy['idoperacion'].' s:'.$this->data['symbol'].' '.$msg,$echo=false);
+            }
+        }
+
+        //No fue posible crear la orden de compra luego de confirmar la venta
+        if ($this->data['tipo'] == self::OP_TIPO_APLSHRT && $this->binStatus == '0001') 
+        {
+            $ordenes = $this->getOrdenes($enCurso=true);
+            foreach ($ordenes as $rw)
+            {
+                if ($rw['side']==self::SIDE_SELL && $rw['status']==self::OR_STATUS_FILLED)
+                    $lastSell = $rw;
+            }
+            if (!empty($lastSell))
+            {
+                $qry = "UPDATE operacion_orden SET status = '".self::OR_STATUS_NEW."' 
+                         WHERE idoperacion = ".$lastSell['idoperacion']." 
+                           AND idoperacionorden = ".$lastSell['idoperacionorden'];
                 $this->db->query($qry);
                 $msg = ' Warning - trySolve '.$this->binStatus.' - orderId: '.$lastBuy['orderId'];
                 self::logBot('u:'.$this->data['idusuario'].' o:'.$lastBuy['idoperacion'].' s:'.$this->data['symbol'].' '.$msg,$echo=false);
@@ -370,7 +444,7 @@ class Operacion extends ModelDB
         if (!$this->canStart())
         {
             if (!$this->data['auto_restart'])
-                $this->errLog->add('No es posible iniciar la operacion - La recompra automatica se encuentra bloqueada.');
+                $this->errLog->add('No es posible iniciar la operacion - El reinicio automatico se encuentra bloqueada.');
             else
                 $this->errLog->add('No es posible iniciar la operacion');
             return false;
@@ -403,55 +477,119 @@ class Operacion extends ModelDB
             return false;            
         }
 
-        //Orden para compra inicial
-        $usd = $this->data['inicio_usd'];
-        $qty = toDec($usd/$data['price'],$data['qtyDecs']);
-        try {
-            
-            $order = $api->marketBuy($symbol, $qty);
-            $opr[1]['idoperacion']  = $this->data['idoperacion'];
-            $opr[1]['side']         = self::SIDE_BUY;
-            $opr[1]['origQty']      = $qty;
-            $opr[1]['price']        = 0;
-            $opr[1]['orderId']      = $order['orderId'];
+        //Orden para compra/venta inicial
+        $startOp = 'compra';
+        if ($this->data['tipo'] == self::OP_TIPO_APLSHRT)
+            $startOp = 'venta';
 
-            $ins='';
-            foreach ($opr as $op)
-                $ins .= ($ins?',':'')." (".$op['idoperacion'].",".
-                                        "".$op['side'].",".
-                                        "".$op['origQty'].",".
-                                        "".$op['price'].",".
-                                        "'".$op['orderId']."' ".
-                                        ") ";
-            $ins = 'INSERT INTO operacion_orden (idoperacion,side,origQty,price,orderId) VALUES '.$ins;
-            $this->db->query($ins);
-            $msg = ' START ORDER Buy -> Qty:'.$qty.' Price: MARKET';
-            self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
-            
+        if ($startOp == 'compra')
+        {
+            $usd = $this->data['inicio_usd'];
+            $qty = toDec($usd/$data['price'],$data['qtyDecs']);
+            try {
+                
+                $order = $api->marketBuy($symbol, $qty);
+                $opr[1]['idoperacion']  = $this->data['idoperacion'];
+                $opr[1]['side']         = self::SIDE_BUY;
+                $opr[1]['origQty']      = $qty;
+                $opr[1]['price']        = 0;
+                $opr[1]['orderId']      = $order['orderId'];
 
-            //Actualizar el multiplicador de porcentaje si esta seteado en AUTO, y si la moneda esta seteada en Ticker
-            if ($this->data['multiplicador_porc_auto'])
-            {
-                $tck = new Ticker($symbol);
-                $allData['symbol'] = $tck->get('tickerid');
-                if ($tck->get('tickerid') == $symbol)
+                $ins='';
+                foreach ($opr as $op)
+                    $ins .= ($ins?',':'')." (".$op['idoperacion'].",".
+                                            "".$op['side'].",".
+                                            "".$op['origQty'].",".
+                                            "".$op['price'].",".
+                                            "'".$op['orderId']."' ".
+                                            ") ";
+                $ins = 'INSERT INTO operacion_orden (idoperacion,side,origQty,price,orderId) VALUES '.$ins;
+                $this->db->query($ins);
+                $msg = ' START ORDER Buy -> Qty:'.$qty.' Price: MARKET';
+                self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+                
+
+                //Actualizar el multiplicador de porcentaje si esta seteado en AUTO, y si la moneda esta seteada en Ticker
+                if ($this->data['multiplicador_porc_auto'])
                 {
-                    $symbolData = $api->getSymbolData($symbol);
-                    $palancas = $tck->calcularPalancas($symbolData['price']);
-                    $qtyPalancas = count($palancas['porc']);
-                    $multPorc = $tck->calcularMultiplicadorDePorcentaje($qtyPalancas,end($palancas['porc']));
-                    $this->data['multiplicador_porc'] = toDec($multPorc);
-                    $this->save();
-                    $msg = ' Update Mult.Porc = '.$multPorc;
-                    self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+                    $tck = new Ticker($symbol);
+                    $allData['symbol'] = $tck->get('tickerid');
+                    if ($tck->get('tickerid') == $symbol)
+                    {
+                        $symbolData = $api->getSymbolData($symbol);
+                        $palancas = $tck->calcularPalancas($symbolData['price']);
+                        $qtyPalancas = count($palancas['porc']);
+                        $multPorc = $tck->calcularMultiplicadorDePorcentaje($qtyPalancas,end($palancas['porc']));
+                        $this->data['multiplicador_porc'] = toDec($multPorc);
+                        $this->save();
+                        $msg = ' Update Mult.Porc = '.$multPorc;
+                        self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+                    }
                 }
-            }
 
-            return true;
-        } catch (Throwable $e) {
-            $msg = $e->getMessage();
-            $this->errLog->add($e->getMessage());
-            return false;
+                return true;
+            } catch (Throwable $e) {
+                $msg = $e->getMessage();
+                $this->errLog->add($e->getMessage());
+                return false;
+            }
+            
+        }
+        else //Venta
+        {
+            $qty = $this->data['inicio_usd'];
+            if ($qty*$data['price'] < 11)
+                $qty = 12/$data['price'];
+            $qty = toDec($qty,$data['qtyDecs']);
+            try {
+                $order = $api->marketSell($symbol, $qty);
+                $opr[1]['idoperacion']  = $this->data['idoperacion'];
+                $opr[1]['side']         = self::SIDE_SELL;
+                $opr[1]['origQty']      = $qty;
+                $opr[1]['price']        = 0;
+                $opr[1]['orderId']      = $order['orderId'];
+
+                $ins='';
+                foreach ($opr as $op)
+                    $ins .= ($ins?',':'')." (".$op['idoperacion'].",".
+                                            "".$op['side'].",".
+                                            "".$op['origQty'].",".
+                                            "".$op['price'].",".
+                                            "'".$op['orderId']."' ".
+                                            ") ";
+                $ins = 'INSERT INTO operacion_orden (idoperacion,side,origQty,price,orderId) VALUES '.$ins;
+                $this->db->query($ins);
+                $msg = ' START ORDER Sell -> Qty:'.$qty.' Price: MARKET';
+                self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=true);
+                
+
+                //Actualizar el multiplicador de porcentaje si esta seteado en AUTO, y si la moneda esta seteada en Ticker
+                /*
+                if ($this->data['multiplicador_porc_auto'])
+                {
+                    $tck = new Ticker($symbol);
+                    $allData['symbol'] = $tck->get('tickerid');
+                    if ($tck->get('tickerid') == $symbol)
+                    {
+                        $symbolData = $api->getSymbolData($symbol);
+                        $palancas = $tck->calcularPalancas($symbolData['price']);
+                        $qtyPalancas = count($palancas['porc']);
+                        $multPorc = $tck->calcularMultiplicadorDePorcentaje($qtyPalancas,end($palancas['porc']));
+                        $this->data['multiplicador_porc'] = toDec($multPorc);
+                        $this->save();
+                        $msg = ' Update Mult.Porc = '.$multPorc;
+                        self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+                    }
+                }
+                */
+                return true;
+            } catch (Throwable $e) {
+                $msg = $e->getMessage();
+                echo "\n".$msg;
+        
+                $this->errLog->add($e->getMessage());
+                return false;
+            }
         }
        
     }
@@ -510,6 +648,11 @@ class Operacion extends ModelDB
             {
                 $compraNum++;
                 $rw['compraNum'] = $compraNum;
+            }
+            if ($rw['side']==self::SIDE_SELL && !$rw['completed'])
+            {
+                $ventaNum++;
+                $rw['ventaNum'] = $ventaNum;
             }
             $ds[$rw['idoperacionorden']] = $rw;
         }
@@ -1023,6 +1166,9 @@ class Operacion extends ModelDB
         if (!$this->data['idoperacion'] || !$idoperacionorden)
             return false;
 
+        if ($this->data['tipo'] == self::OP_TIPO_APLSHRT)
+            return false;
+
         $qry = 'SELECT * FROM operacion_orden 
                  WHERE idoperacion = '.$this->data['idoperacion'].
                   ' AND idoperacionorden = '.$idoperacionorden;
@@ -1268,6 +1414,8 @@ class Operacion extends ModelDB
         if (!$tipo)
             $tipo = '0';
         $ds = $this->getDataset("idusuario = ".$idusuario." AND operacion.tipo = '".$tipo."'");
+        if (!is_array($ds))
+            return array();
         return $ds;
     }
 }

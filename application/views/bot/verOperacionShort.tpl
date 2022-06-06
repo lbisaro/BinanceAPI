@@ -25,26 +25,26 @@
     <tr>
       <td>Capital 
         <span class="data">{{capital_usd}}</span></td>
-      <td>Compra inicial 
+      <td>Venta inicial 
         <span class="data">{{inicio_usd}}</span></td>
       
     </tr>
     <tr>
-      <td>Multiplicador Compras 
+      <td>Multiplicador Ventas 
         <span class="data">{{multiplicador_compra}}</td>
       <td>Multiplicador Porcentajes 
         <span class="data" >{{multiplicador_porc}}</td>
     </tr>
     <tr>
-      <td>Venta inicial 
+      <td>Compra inicial 
         <span class="data">{{porc_venta_up}}%</span></td>
-      <td>Venta palanca 
+      <td>Compra palanca 
         <span class="data">{{porc_venta_down}}%</span></td>
     </tr>
     <tr>
       <td>Estado 
         <span class="data">{{estado}}</td>
-      <td>Recompra Automatica 
+      <td>Reventa Automatica 
         <span class="data" colspan="2">{{auto-restart}}</td>
     </tr>
   </table>

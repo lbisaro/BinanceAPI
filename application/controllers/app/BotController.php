@@ -23,7 +23,7 @@ class BotController extends Controller
         $ds = $opr->getDataset('idusuario = '.$auth->get('idusuario'),'auto_restart DESC, symbol');
         
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped');
-        $dg->addHeader('Moneda');
+        $dg->addHeader('Bot');
         $dg->addHeader('Capital',null,null,'center');
         $dg->addHeader('Compra inicial',null,null,'center');
         $dg->addHeader('Multiplicadores',null,null,'center');
@@ -37,7 +37,15 @@ class BotController extends Controller
             {
                 $opr->reset();
                 $opr->set($rw);
-                $link = '<a class="" href="'.Controller::getLink('app','bot','verOperacion','id='.$opr->get('idoperacion')).'">'.$opr->get('symbol').'</a>';
+                
+                $strTipoOp = '';
+                if ($opr->get('tipo')==Operacion::OP_TIPO_APLSHRT)
+                    $strTipoOp = ' <span class="text-danger">'.$opr->getTipoOperacion($opr->get('tipo'),$nombrecorto=true).'</span>';
+                elseif ($opr->get('tipo')==Operacion::OP_TIPO_APLCRZ)
+                    $strTipoOp = ' <span class="text-success">'.$opr->getTipoOperacion($opr->get('tipo'),$nombrecorto=true).'</span>';
+
+                $link = '<a class="" href="'.Controller::getLink('app','bot','verOperacion','id='.$opr->get('idoperacion')).'">'.$opr->get('symbol').$strTipoOp.'</a>';
+
                 $autoRestart = '<span class="glyphicon glyphicon-'.($opr->autoRestart()?'ok text-success':'ban-circle text-danger').'"></span>';
                 $compras = $opr->get('compras');
                 if ($compras < 1)
@@ -87,11 +95,19 @@ class BotController extends Controller
         $arr['hidden'] = '';
 
         $arr['tipo'] = $_REQUEST['tipo'];
+        if (!isset($_REQUEST['tipo']))
+            $arr['tipo'] = '0';
 
         $arr['PORCENTAJE_VENTA_UP'] = toDec(Operacion::PORCENTAJE_VENTA_UP);
         $arr['PORCENTAJE_VENTA_DOWN'] = toDec(Operacion::PORCENTAJE_VENTA_DOWN);
 
-        $this->addView('bot/crearOperacion',$arr);
+        $opr = new Operacion();
+        $arr['strTipoOp'] = $opr->getTipoOperacion($arr['tipo']);
+
+        if ($arr['tipo'] == Operacion::OP_TIPO_APLSHRT)
+            $this->addView('bot/crearOperacionShort',$arr);
+        else
+            $this->addView('bot/crearOperacion',$arr);
     }   
 
     function editarOperacion($auth)
@@ -111,6 +127,7 @@ class BotController extends Controller
         $api = new BinanceAPI($ak,$as);
         $symbolData = $api->getSymbolData($opr->get('symbol'));
         $arr['quoteAsset'] = $symbolData['quoteAsset'];
+        $arr['baseAsset'] = $symbolData['baseAsset'];
         $arr['qtyDecs'] = $symbolData['qtyDecs'];
         $arr['qtyDecsPrice'] = $symbolData['qtyDecsPrice'];
         
@@ -139,7 +156,12 @@ class BotController extends Controller
         if ($tck->get('tickerid') == $opr->get('symbol'))
             $arr['show_check_MPAuto'] = 'true';
 
-        $this->addView('bot/editarOperacion',$arr);
+        $arr['strTipoOp'] = $opr->getTipoOperacion($opr->get('tipo'));
+
+        if ($arr['tipo'] == Operacion::OP_TIPO_APLSHRT)
+            $this->addView('bot/editarOperacionShort',$arr);
+        else
+            $this->addView('bot/editarOperacion',$arr);
     }    
 
     function verOperacion($auth)
@@ -165,6 +187,8 @@ class BotController extends Controller
 
         $link = $this->__selectOperacion($idoperacion,'app.bot.verOperacion+id=');
         $arr['idoperacion'] = $idoperacion;
+        $arr['tipo'] = $opr->get('tipo');
+        $arr['strTipo'] = '<h4 class="text-'.($arr['tipo']==Operacion::OP_TIPO_APLSHRT?'danger':'success').'">'.$opr->getTipoOperacion($opr->get('tipo')).'</h4>';
         $arr['symbolSelector'] = $link;
         $arr['capital_usd'] = $symbolData['quoteAsset'].' '.toDec($opr->get('capital_usd'),$symbolData['qtyDecs']);
         $arr['inicio_usd'] = $symbolData['quoteAsset'].' '.toDec($opr->get('inicio_usd'),$symbolData['qtyDecs']);
@@ -191,8 +215,16 @@ class BotController extends Controller
         }
         if ($status==Operacion::OP_STATUS_READY)
         {
-            $arr['crearOrdenDeCompra_btn'] .= '<br/><a class="btn btn-sm btn-success" href="'.Controller::getLink('app','bot','crearOrdenDeCompra','id='.$idoperacion).'">Crear Nueva Orden de Compra LIMIT</a>';
-            $arr['start_btn'] .= '&nbsp;<button class="btn btn-sm btn-success" onclick="startOperacion();">Crear Nueva Orden de Compra MARKET</button>';
+            if ($arr['tipo'] == Operacion::OP_TIPO_APLSHRT)
+            {
+                $arr['crearOrden_btn'] .= '<br/><a class="btn btn-sm btn-danger" href="'.Controller::getLink('app','bot','crearOrdenDeVenta','id='.$idoperacion).'">Crear Nueva Venta de Compra LIMIT</a>';
+                $arr['start_btn'] .= '&nbsp;<button class="btn btn-sm btn-danger" onclick="startOperacion();">Crear Nueva Orden de Venta MARKET</button>';
+            }
+            else
+            {
+                $arr['crearOrden_btn'] .= '<br/><a class="btn btn-sm btn-success" href="'.Controller::getLink('app','bot','crearOrdenDeCompra','id='.$idoperacion).'">Crear Nueva Orden de Compra LIMIT</a>';
+                $arr['start_btn'] .= '&nbsp;<button class="btn btn-sm btn-success" onclick="startOperacion();">Crear Nueva Orden de Compra MARKET</button>';
+            }
         }
 
         //if ($status==Operacion::OP_STATUS_VENTAOFF)
@@ -223,6 +255,7 @@ class BotController extends Controller
 
         $ordenes = $opr->getOrdenes($enCurso=true,'price DESC');
 
+
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
         $dg->addHeader('Tipo');
         $dg->addHeader('Fecha Hora');
@@ -247,8 +280,8 @@ class BotController extends Controller
             
             $row = array($link,
                          $rw['updatedStr'],
-                         ($rw['origQty']*1),
-                         ($rw['price']*1),
+                         (toDec($rw['origQty']*1,$symbolData['qtyDecs'])),
+                         (toDec($rw['price']*1,$symbolData['qtyDecsPrice'])),
                          ($rw['side']==Operacion::SIDE_BUY?'-':'').$usd
                         );
             if ($rw['price']>0 && (
@@ -287,7 +320,10 @@ class BotController extends Controller
         if ($opr->status() == Operacion::OP_STATUS_ERROR)
             $arr['addButtons'] = '<a class="btn btn-danger btn-sm" href="app.bot.detenerOperacion+id={{idoperacion}}">Detener</a>';
 
-        $this->addView('bot/verOperacion',$arr);
+        if ($arr['tipo'] == Operacion::OP_TIPO_APLSHRT)
+            $this->addView('bot/verOperacionShort',$arr);
+        else
+            $this->addView('bot/verOperacion',$arr);
     }    
 
     function detenerOperacion($auth)

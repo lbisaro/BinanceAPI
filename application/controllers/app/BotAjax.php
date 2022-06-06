@@ -668,8 +668,8 @@ class BotAjax extends ControllerAjax
                 
                 $row = array($link,
                              $rw['updatedStr'],
-                             ($rw['origQty']*1),
-                             ($rw['price']*1),
+                             (toDec($rw['origQty']*1,$symbolData['qtyDecs'])),
+                             (toDec($rw['price']*1,$symbolData['qtyDecsPrice'])),
                              ($rw['side']==Operacion::SIDE_BUY?'-':'').$usd
                             );
  
