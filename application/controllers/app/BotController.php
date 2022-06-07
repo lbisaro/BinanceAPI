@@ -1344,7 +1344,7 @@ class BotController extends Controller
     {
         $auth = UsrUsuario::getAuthInstance();
         $opr = new Operacion($idooperacion);
-        $ds = $opr->getDataset('idusuario = '.$auth->get('idusuario'),'symbol');
+        $ds = $opr->getDataset('idusuario = '.$auth->get('idusuario').' AND (stop = 0 OR idoperacion = '.$idoperacion.')','symbol');
         $options = array();
         foreach ($ds as $rw)
         {
