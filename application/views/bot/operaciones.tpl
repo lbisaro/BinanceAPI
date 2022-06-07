@@ -24,8 +24,28 @@
 
 <script type="text/javascript">
     
+    var showStopped = false;
     $(document).ready( function () {
+      
+      toogleStopOp();
+
     });
+
+    function toogleStopOp()
+    {
+      if (showStopped)
+      {
+        $('#toogleStopped').html('Ocultar Bots apagados');
+        $('.op_stop').show();
+        showStopped = false;
+      } 
+      else
+      {
+        $('#toogleStopped').html('Mostrar Bots apagados');
+        $('.op_stop').hide();
+        showStopped = true;
+      } 
+    }
 
     //CtrlAjax.sendCtrl("mod","ctrl","act");
     

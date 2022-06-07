@@ -33,6 +33,7 @@ class BotController extends Controller
 
         if (!empty($ds))
         {
+            $operacionesStop=0;
             foreach ($ds as $rw)
             {
                 $opr->reset();
@@ -56,7 +57,7 @@ class BotController extends Controller
                 $strEstado = $opr->get('strEstado').$strCompras;
                 
                 if ($opr->get('stop'))
-                    $strEstado = '<span class="text-danger"><span class="glyphicon glyphicon-eye-close"></span>&nbsp;FUERA DE REVISION</span>';
+                    $strEstado = '<span class="text-danger">APAGADO</span>';
 
                 $data = array($link,
                               $opr->get('capital_usd'),
@@ -69,19 +70,29 @@ class BotController extends Controller
                               $strEstado,
                               $autoRestart
                               );
+
+                $opClass = '';
+                if ($opr->get('stop'))
+                {
+                    $opClass .= 'op_stop ';
+                    $operacionesStop++;
+                }
                 if ($rw['ordenesActivas']>0)
-                    $dg->addRow($data);
+                    $rowsActivas[] = array('data'=>$data,'class'=>$opClass);
                 else
-                    $inactivas[] = $data;
+                    $rowsInactivas[] = array('data'=>$data,'class'=>$opClass.' table-secondary text-secondary');
             }
         }
-        if (!empty($inactivas))
-        {
-            foreach ($inactivas as $data)
-                $dg->addRow($data,'table-secondary text-secondary');
-        }
-
+        if (!empty($rowsActivas))
+            foreach ($rowsActivas as $rw)
+                $dg->addRow($rw['data'],$rw['class']);
+        if (!empty($rowsInactivas))
+            foreach ($rowsInactivas as $rw)
+                $dg->addRow($rw['data'],$rw['class']);
+     
         $arr['lista'] = $dg->get();
+        if ($operacionesStop>0)
+            $arr['lista'] .= '<button id="toogleStopped" class="btn btn-secondary btn-block btn-sm" onclick="toogleStopOp();">Mostrar Bots apagados</button>';
         $arr['hidden'] = '';
     
         $this->addView('bot/operaciones',$arr);
@@ -214,7 +225,7 @@ class BotController extends Controller
         }
         else
         {
-            $arr['estado'] = '<b class="text-danger">FUERA DE REVISION DEL BOT</b>';
+            $arr['estado'] = '<b class="text-danger">APAGADO</b>';
         }
         if ($status==Operacion::OP_STATUS_READY)
         {
@@ -247,12 +258,12 @@ class BotController extends Controller
 
         if ($opr->get('stop'))
         {
-            $arr['toogleStopText'] = 'Reanudar';
+            $arr['toogleStopText'] = 'Encender';
             $arr['toogleStopClass'] = 'success';
         }
         else
         {
-            $arr['toogleStopText'] = 'Quitar de revision';
+            $arr['toogleStopText'] = 'Apagar';
             $arr['toogleStopClass'] = 'danger';
         }
 
