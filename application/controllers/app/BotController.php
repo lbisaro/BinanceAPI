@@ -20,7 +20,7 @@ class BotController extends Controller
         $this->addTitle('Bot');
 
         $opr = new Operacion();
-        $ds = $opr->getDataset('idusuario = '.$auth->get('idusuario'),'auto_restart DESC, symbol');
+        $ds = $opr->getDataset('idusuario = '.$auth->get('idusuario'),'auto_restart DESC, stop DESC, symbol');
         
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped');
         $dg->addHeader('Bot');
@@ -203,10 +203,13 @@ class BotController extends Controller
         {
             $arr['estado'] = $opr->get('strEstado');
             $status = $opr->status();
-            if ($status==Operacion::OP_STATUS_APALANCAOFF)
-                $arr['estado'] .= '<br/><a class="btn btn-sm btn-warning" href="'.Controller::getLink('app','bot','resolverApalancamiento','id='.$idoperacion).'">Resolver Apalancamiento</a>';
-            elseif ($status==Operacion::OP_STATUS_STOP_CAPITAL)
-                $arr['estado'] .= '<br/><a class="btn btn-sm btn-info" href="'.Controller::getLink('app','bot','resolverApalancamiento','id='.$idoperacion).'&msg=addCompra">Agregar Apalancamiento</a>';
+            if ($opr->get('tipo')==Operacion::OP_TIPO_APL)
+            {
+                if ($status==Operacion::OP_STATUS_APALANCAOFF)
+                    $arr['estado'] .= '<br/><a class="btn btn-sm btn-warning" href="'.Controller::getLink('app','bot','resolverApalancamiento','id='.$idoperacion).'">Resolver Apalancamiento</a>';
+                elseif ($status==Operacion::OP_STATUS_STOP_CAPITAL)
+                    $arr['estado'] .= '<br/><a class="btn btn-sm btn-info" href="'.Controller::getLink('app','bot','resolverApalancamiento','id='.$idoperacion).'&msg=addCompra">Agregar Apalancamiento</a>';
+            }
             
         }
         else
