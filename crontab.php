@@ -39,29 +39,12 @@ switch ($prmScript) {
         include "crontab/crontab_updateKlines.php";
         break;
         
-    case 'apalancamiento':
-    
-        include "crontab/crontab_apalancamiento.php";
-            
-        break;
-
     case 'bot':
     
         include "crontab/crontab_bot.php";
             
         break;
 
-    case 'apalancamientoCruzado':
-    
-        include "crontab/crontab_apalancamientoCruzado.php";
-            
-        break;
-
-    case 'apalancamientoShort':
-    
-        include "crontab/crontab_apalancamientoShort.php";
-            
-        break;
 
     case 'notificacionApp':
     
