@@ -51,22 +51,13 @@ switch ($prmScript) {
         include "crontab/crontab_notificacionApp.php";
             
         break;
-
-
-    //case 'arbitrajeTriangular':
-    //    include "crontab/crontab_arbitrajeTriangular.php";
+    
+    //case 'scalper_3EMA':
+    //    $token = $prmAdd[0];
+    //    $tokenUSD = $prmAdd[1];
+    //    include "crontab/crontab_scalper_3EMA.php";
     //    break;
-    
-    case 'scalper_3EMA':
-        $token = $prmAdd[0];
-        $tokenUSD = $prmAdd[1];
-        include "crontab/crontab_scalper_3EMA.php";
-        break;
-    
-    //case 'getprices_binance':
-    //    include "crontab/crontab_getprices_binance.php";
-    //    break;
-    
+
     case 'mailer':
         include "crontab/crontab_mailer.php";
         break;
