@@ -39,9 +39,6 @@ if (!empty($symbols))
         echo "\n".$symbol;
         if (!$symbols[$symbol]['quote_asset']) //No existe registro para el Ticker
         {
-            $arrToSet['hst_min'] = -1;
-            $arrToSet['hst_max'] = -1;
-            $arrToSet['max_drawdown'] = -1;
             $tck->set($arrToSet);
             $tck->tableInsert(DB_NAME,'tickers');
             echo " NEW";
