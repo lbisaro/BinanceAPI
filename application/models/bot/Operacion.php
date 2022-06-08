@@ -854,6 +854,20 @@ class Operacion extends ModelDB
 
     function getEstadisticaDiaria()
     {
+/*
+
+Obtener estadistica
+
+SELECT operacion.symbol,
+       pnlDate,
+       sum(IF(side = 0, origQty, origQty * -1)) base, 
+       sum(IF(side = 0, origQty * -1, origQty)*price) quote 
+FROM operacion_orden 
+LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion 
+GROUP BY operacion_orden.idoperacion,pnlDate
+
+*/
+
         $auth = UsrUsuario::getAuthInstance();
         $idusuario = $auth->get('idusuario');
         $qry ="SELECT operacion.symbol, 
@@ -1417,5 +1431,24 @@ class Operacion extends ModelDB
         if (!is_array($ds))
             return array();
         return $ds;
+    }
+
+    function getAllSymbols()
+    {
+        $qry = "SELECT DISTINCT operacion.symbol,
+                                tickers.base_asset,
+                                tickers.quote_asset, 
+                                tickers.qty_decs_units, 
+                                tickers.qty_decs_price 
+                FROM operacion 
+                LEFT JOIN tickers ON tickers.tickerid = operacion.symbol";
+        $stmt = $this->db->query($qry);
+        
+        $symbols = array();
+        while ($rw = $stmt->fetch())
+        {
+            $symbols[$rw['symbol']] = $rw;
+        }
+        return $symbols;
     }
 }
