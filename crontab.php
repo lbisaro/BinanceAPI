@@ -38,6 +38,13 @@ switch ($prmScript) {
         sleep(10);
         include "crontab/crontab_updateKlines.php";
         break;
+
+    case 'updateTickers':
+
+        //Da tiempo para que el bot de apalancamiento se ejecute
+        //sleep(10);
+        include "crontab/crontab_updateTickers.php";
+        break;
         
     case 'bot':
     

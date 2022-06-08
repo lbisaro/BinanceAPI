@@ -1,4 +1,4 @@
- <?php
+<?php
 include_once MDL_PATH."bot/Test.php";
 
 $test = new Test();

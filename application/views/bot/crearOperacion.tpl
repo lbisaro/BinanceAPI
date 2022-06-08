@@ -49,9 +49,9 @@
           <div class="form-group form-check">
             <input type="checkbox" data-toggle="toggle" data-on="Incremental" data-off="Lineal" data-size="sm"class="form-check-input" CHECKED id="multiplicador_porc_inc" onchange="refreshTable()" >
           </div>
-          <div id="check_MPAuto" class="form-group form-check menu-admin">
+          <!-- <div id="check_MPAuto" class="form-group form-check menu-admin">
             <input type="checkbox" data-toggle="toggle" data-on="Automatico" data-off="Auto OFF" data-size="sm"class="form-check-input" id="multiplicador_porc_auto" onchange="refreshTable();getMPAuto();" >
-          </div>
+          </div> -->
         </div>
       </div>
 

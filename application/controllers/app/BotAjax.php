@@ -169,6 +169,17 @@ class BotAjax extends ControllerAjax
         $opr->set($arrToSet);
         if ($opr->save())
         {
+            //Se crea el Ticker para tener info sobre el Symbol de la operacion
+            $tck = new Ticker($opr->get('symbol'));
+            if ($tck->get('tickerid') != $opr->get('symbol'))
+                $tck->set(array('tickerid'=>$opr->get('symbol')));
+            if (!$tck->save())
+            {
+                $opr->delete();
+                $this->ajxRsp->addError('No fue posible crear la operacion. Error en Ticker');
+                $this->ajxRsp->addError($opr->getErrLog());
+            }
+
             if (!$arrToSet['auto_restart'])
             {
                 $this->ajxRsp->redirect('app.bot.verOperacion+id='.$opr->get('idoperacion'));        

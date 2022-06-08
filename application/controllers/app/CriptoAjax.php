@@ -86,12 +86,32 @@ class CriptoAjax extends ControllerAjax
         $arrToSet['hst_max'] = $_REQUEST['hst_max'];
         $arrToSet['max_drawdown'] = $_REQUEST['max_drawdown'];
 
-        $tck->set($arrToSet);
-        if ($tck->save())
-            $this->ajxRsp->redirect(Controller::getLink('app','cripto','verTicker','id='.$tck->get('tickerid')));
+        if ($arrToSet['hst_min']<=0)
+            $err[] = 'Se debe especificar un Minimo historico mayor a 0';
+        
+        if ($arrToSet['hst_max']<=$arrToSet['hst_min'])
+            $err[] = 'Se debe especificar un Maximo historico mayor al Minimo';
+        
+        if ($arrToSet['max_drawdown']<6)
+            $err[] = 'Se debe especificar un Drawdown Maximo mayor 6.00%';
+        elseif ($arrToSet['hst_min']>0 && $arrToSet['hst_max']>0)
+        {
+            $mdd = (1-($arrToSet['hst_min']/$arrToSet['hst_max']))*100;
+            if ($arrToSet['max_drawdown']>toDec($mdd,2))
+                $err[] = 'El Drawdown Maximo no puede ser superior a '.toDec($mdd,2).'% de acuerdo a minimo y maximo historico especificado.';
+        }
+        if (!empty($err))
+        {
+            $this->ajxRsp->addError($err);
+        }
         else
-            $this->ajxRsp->addError($tck->getErrLog());
-
+        {
+            $tck->set($arrToSet);
+            if ($tck->save())
+                $this->ajxRsp->redirect(Controller::getLink('app','cripto','verTicker','id='.$tck->get('tickerid')));
+            else
+                $this->ajxRsp->addError($tck->getErrLog());
+        }
     }
 
     function readTicker()

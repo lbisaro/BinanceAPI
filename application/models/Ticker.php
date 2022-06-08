@@ -54,21 +54,6 @@ class Ticker extends ModelDB
 
         if (!$this->data['tickerid'])
             $err[] = 'Se debe especificar un Ticker valido'.$this->data['tickerid'];
-        
-        if ($this->data['hst_min']<=0)
-            $err[] = 'Se debe especificar un Minimo historico mayor a 0';
-        
-        if ($this->data['hst_max']<=$this->data['hst_min'])
-            $err[] = 'Se debe especificar un Maximo historico mayor al Minimo';
-        
-        if ($this->data['max_drawdown']<6)
-            $err[] = 'Se debe especificar un Drawdown Maximo mayor 6.00%';
-        elseif ($this->data['hst_min']>0 && $this->data['hst_max']>0)
-        {
-            $mdd = (1-($this->data['hst_min']/$this->data['hst_max']))*100;
-            if ($this->data['max_drawdown']>toDec($mdd,2))
-                $err[] = 'El Drawdown Maximo no puede ser superior a '.toDec($mdd,2).'% de acuerdo a minimo y maximo historico especificado.';
-        }
 
         // FIN - Control de errores
 
