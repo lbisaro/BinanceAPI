@@ -857,22 +857,89 @@ class Operacion extends ModelDB
         return $data;
     }    
 
+    function getPnlDiario()
+    {
+        $presetDecs['USDT'] = 2;
+        $presetDecs['BUSD'] = 2;
+        $presetDecs['USDC'] = 2;
+        $presetDecs['BNB'] = 4;
+        $presetDecs['BTC'] = 6;
+        $presetDecs['ETH'] = 5;
+
+        $qry = "SELECT operacion.symbol,
+                       pnlDate,
+                       sum(IF(side = 0, origQty, origQty * -1)) base, 
+                       sum(IF(side = 0, origQty * -1, origQty)*price) quote,
+                       tickers.base_asset,
+                       tickers.quote_asset,
+                       tickers.qty_decs_units as base_decs,
+                       tickers.qty_decs_price as quote_decs
+                FROM operacion_orden 
+                LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion 
+                LEFT JOIN tickers ON tickers.tickerid = operacion.symbol
+                WHERE year(pnlDate)>=".date('Y')." AND month(pnlDate)>=".date('m')."
+                GROUP BY operacion_orden.idoperacion,pnlDate";
+        $stmt = $this->db->query($qry);
+        $data=array();
+        $data['assets'] = array();
+        $data['assets_decs'] = array();
+        $data['iniDate'] = date('Y-m-d');
+        $data['total'] = array();
+        while ($rw = $stmt->fetch())
+        {
+            $dia = substr($rw['pnlDate'],0,10);
+            if (abs($rw['base'])>abs($rw['quote']))
+            {
+                $asset = $rw['base_asset'];
+                $profitField = 'base';
+            }
+            else
+            {
+                $asset = $rw['quote_asset'];
+                $profitField = 'quote';                
+            }
+            $data['assets'][$asset] = $asset;
+
+            if (isset($presetDecs[$asset]))
+            {
+                $data['assets_decs'][$asset] = $presetDecs[$asset]; 
+            }
+            elseif ($profitField == 'base')
+            {
+                $data['assets_decs'][$asset] = $rw['base_decs'];
+            }
+            else
+            {
+                $decs = ($rw['quote_decs']>$rw['base_decs'] ? $rw['quote_decs'] :$rw['base_decs']);
+                $data['assets_decs'][$asset] = ($decs>$data['assets_decs']?$decs:$data['assets_decs']);
+            }
+
+
+            if (!isset($data[$rw['fecha']][$asset]))
+                $data[$dia][$asset] = 0;
+            $data[$dia][$asset] += $rw[$profitField];
+            
+            if (!isset($data['total'][$asset]))
+                $data['total'][$asset]=0;
+            $data['total'][$asset] += $rw[$profitField];
+            
+            if (!isset($data['total']['total']))
+                $data['total']['total']=0;
+            $data['total']['total'] += $rw[$profitField];
+            
+            if (!isset($data[$dia]['total']))
+                $data[$dia]['total']=0;
+            $data[$dia]['total'] += $rw[$profitField];
+            
+            if ($dia < $data['iniDate'])
+                $data['iniDate'] = $dia;
+        }
+
+        return $data;
+    }
+
     function getEstadisticaDiaria()
     {
-/*
-
-Obtener estadistica
-
-SELECT operacion.symbol,
-       pnlDate,
-       sum(IF(side = 0, origQty, origQty * -1)) base, 
-       sum(IF(side = 0, origQty * -1, origQty)*price) quote 
-FROM operacion_orden 
-LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion 
-GROUP BY operacion_orden.idoperacion,pnlDate
-
-*/
-
         $auth = UsrUsuario::getAuthInstance();
         $idusuario = $auth->get('idusuario');
         $qry ="SELECT operacion.symbol, 

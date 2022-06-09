@@ -482,7 +482,67 @@ class BotController extends Controller
 
         //Revision de estadisticas Diaria y Mensual
 
-        //Diaria 
+        //PNL Diario
+        $data = $opr->getPnlDiario();
+
+        unset($dg);
+        $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
+        $maxQtyDecs = 2;
+        $dg->addHeader('Fecha');
+        if (!empty($data['assets']))
+        {
+            foreach ($data['assets'] as $asset)
+            {
+                $qtyDecs[$asset]=2;
+
+                $dg->addHeader($asset,null,null,'right');
+            }
+        }
+
+        $curDate = date('Y-m-d');
+        $days=0;
+        $iniDate = $data['iniDate'];
+        if ($iniDate < date('Y-m-').'01')
+            $iniDate = date('Y-m-').'01';
+        while ($curDate>=$iniDate)
+        {
+            $days++;
+            $row=array();
+            $row[] = dateToStr($curDate);
+            foreach ($data['assets'] as $asset)
+            {
+                $row[] = toDec($data[$curDate][$asset],$data['assets_decs'][$asset]);
+            }
+            $dg->addRow($row);
+            $curDate = date('Y-m-d',strtotime($curDate.' - 1 day'));
+        }
+
+        $row=array();
+        $row[] = 'Total';
+        if (!empty($data['assets']))
+        {
+            foreach ($data['assets'] as $asset)
+            {
+                $row[] = toDec($data['total'][$asset],$data['assets_decs'][$asset]);
+            }
+        }
+        $dg->addFooter($row,'font-weight-bold');
+
+        $row=array();
+        $row[] = 'Promedio diario sobre '.$days.' dia'.($days>1?'s':'');
+        if (!empty($data['symbols']))
+        {
+            foreach ($data['assets'] as $asset)
+            {
+                $row[] = toDec($data['total'][$asset]/$days,$data['assets_decs'][$asset]);
+            }
+        }
+        $dg->addFooter($row,'font-weight-bold');
+
+        $arr['lista'] .= '<h4 class="text-info">PNL Diario</h4>'.$dg->get();
+
+
+        //Estadistica Diaria 
         $data = $opr->getEstadisticaDiaria();
         unset($dg);
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
