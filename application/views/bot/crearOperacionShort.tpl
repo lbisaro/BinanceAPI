@@ -33,6 +33,15 @@
         </div>
       </div>
 
+      <div class="form-group  menu-admin">
+        <div class="input-group mb-2">
+            <select id="destino_profit" class="form-control form-control-sm">
+              <option value="0">Obtener ganancias en Quote</option>
+              <option value="1" SELECTED>Obtener ganancias en Base</option>
+            </select>
+        </div>
+      </div>
+
       <div class="form-group">
         <label for="multiplicador_compra">Multiplicador Ventas</label>
         <input type="text" class="form-control" id="multiplicador_compra"  onchange="refreshTable()" placeholder="Recomendado 1.05 a 2.00">
@@ -106,6 +115,8 @@
     var baseAsset = 'USD';
     var symbolDecs = 2;
     var qtyDecsPrice = 2;
+    var symbolPrice = 10.0;
+    
     $(document).ready( function () {
         $('#btnAddOperacion').hide();
 
@@ -125,8 +136,13 @@
                 {
                     $('.baseAsset').html(data.baseAsset);
                     baseAsset = data.baseAsset;
+                    quoteAsset = data.quoteAsset;
                     symbolDecs = data.qtyDecs;
                     qtyDecsPrice = data.qtyDecsPrice;
+                    symbolPrice = parseFloat(data.price);
+                    
+                    $('#destino_profit option[value="0"]').html('Obtener ganancias en '+quoteAsset);
+                    $('#destino_profit option[value="1"]').html('Obtener ganancias en '+baseAsset);
 
                     $('#symbol').val(data.symbol);
                     $('#symbol').addClass('text-success');
@@ -141,7 +157,7 @@
                         $('#multiplicador_porc_auto').attr('checked',false);
                     }
 
-
+                    refreshTable();
                     return true;
                 }
             });
@@ -187,20 +203,20 @@
                 <thead>
                     <tr>
                         <th>&nbsp;</th>
-                        <th>Precio Generico</th>
+                        <th>Precio de Venta</th>
                         <th>% Sobre ultima venta </th>
                         <th>% Sobre venta Inicial</th>
                         <th>Venta <span class="baseAsset">`+baseAsset+`</span></th>
                         <th>Total Venta</th>
-                        <th>Compra <span class="baseAsset">`+baseAsset+`</span></th>
+                        <th>Precio de compra</th>
                     </tr>
                 </thead>
                 <tbody>
                 `;
             
-            symbolPrice = 200;
             
-            precio = format_number(symbolPrice,symbolDecs);
+            
+            precio = format_number(symbolPrice,qtyDecsPrice);
             psuc = 0;
             psci = 0;
             compraUsd = inicio_usd*1;
@@ -215,12 +231,12 @@
                 qtyVenta = (totalCompra*precio)/precioVenta;
                 table = table + '<tr>';
                 table = table + '<td>#'+i+'</td>';
-                table = table + '<td>'+toDec(precio)+'</td>';
+                table = table + '<td>'+format_number(precio,qtyDecsPrice)+'</td>';
                 table = table + '<td class="text-success">'+format_number(psuc,2)+'%</td>';
                 table = table + '<td class="text-success">'+format_number(psci,2)+'%</td>';
                 table = table + '<td>'+format_number(compraUsd,qtyDecsPrice)+'</td>';
                 table = table + '<td>'+format_number(totalCompra,qtyDecsPrice)+'</td>';
-                table = table + '<td class="text-success">'+toDec(qtyVenta,qtyDecsPrice)+'</td>';
+                table = table + '<td class="text-danger">'+format_number(precioVenta,qtyDecsPrice)+'</td>';
                 table = table + '</tr>';
 
                 if (m_porc_inc==1)

@@ -116,9 +116,13 @@ class BotController extends Controller
         $arr['strTipoOp'] = $opr->getTipoOperacion($arr['tipo']);
 
         if ($arr['tipo'] == Operacion::OP_TIPO_APLSHRT)
+        {
             $this->addView('bot/crearOperacionShort',$arr);
+        }
         else
+        {
             $this->addView('bot/crearOperacion',$arr);
+        }
     }   
 
     function editarOperacion($auth)
@@ -137,6 +141,7 @@ class BotController extends Controller
         $as = $auth->getConfig('bncas');
         $api = new BinanceAPI($ak,$as);
         $symbolData = $api->getSymbolData($opr->get('symbol'));
+        $arr['symbolPrice'] = $symbolData['price'];
         $arr['quoteAsset'] = $symbolData['quoteAsset'];
         $arr['baseAsset'] = $symbolData['baseAsset'];
         $arr['qtyDecs'] = $symbolData['qtyDecs'];
@@ -147,10 +152,17 @@ class BotController extends Controller
         $arr['inicio_usd'] = $opr->get('inicio_usd');
         $arr['multiplicador_compra'] = $opr->get('multiplicador_compra');
         $arr['multiplicador_porc'] = $opr->get('multiplicador_porc');
+        
         if ($opr->get('multiplicador_porc_inc'))
             $arr['mpi_checked'] = 'CHECKED';
+        
         if ($opr->get('multiplicador_porc_auto'))
             $arr['mpa_checked'] = 'CHECKED';
+        
+        if ($opr->get('destino_profit'))
+            $arr['dp_selected_1'] = 'SELECTED';
+        else
+            $arr['dp_selected_0'] = 'SELECTED';
 
         $arr['idoperacion'] = $opr->get('idoperacion');
         $arr['tipo'] = $opr->get('tipo');
@@ -203,6 +215,7 @@ class BotController extends Controller
         $arr['symbolSelector'] = $link;
         $arr['capital_usd'] = $symbolData['quoteAsset'].' '.toDec($opr->get('capital_usd'),$symbolData['qtyDecs']);
         $arr['inicio_usd'] = $symbolData['quoteAsset'].' '.toDec($opr->get('inicio_usd'),$symbolData['qtyDecs']);
+        $arr['strDestinoProfit'] = 'Obtener ganancia en <b>'.($opr->get('destino_profit')?$symbolData['baseAsset']:$symbolData['quoteAsset']).'</b>';
         $arr['multiplicador_compra'] = $opr->get('multiplicador_compra');
         $arr['multiplicador_porc'] = $opr->get('multiplicador_porc').'%'.
                                      ($opr->get('multiplicador_porc_inc')?' Incremental':'').

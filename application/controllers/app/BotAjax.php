@@ -156,6 +156,7 @@ class BotAjax extends ControllerAjax
         $arrToSet['symbol'] = $_REQUEST['symbol'];
         $arrToSet['inicio_usd'] = $_REQUEST['inicio_usd'];
         $arrToSet['capital_usd'] = $_REQUEST['capital_usd'];
+        $arrToSet['destino_profit'] = ($_REQUEST['destino_profit']?1:0);
         $arrToSet['multiplicador_porc'] = $_REQUEST['multiplicador_porc'];
         $arrToSet['multiplicador_porc_inc'] = ($_REQUEST['multiplicador_porc_inc']?1:0);
         $arrToSet['multiplicador_porc_auto'] = ($_REQUEST['multiplicador_porc_auto']?1:0);
@@ -210,6 +211,7 @@ class BotAjax extends ControllerAjax
 
         $arrToSet['capital_usd'] = $_REQUEST['capital_usd'];
         $arrToSet['inicio_usd'] = $_REQUEST['inicio_usd'];
+        $arrToSet['destino_profit'] = ($_REQUEST['destino_profit']?1:0);
         $arrToSet['multiplicador_porc'] = $_REQUEST['multiplicador_porc'];
         $arrToSet['multiplicador_compra'] = $_REQUEST['multiplicador_compra'];
         $arrToSet['multiplicador_porc_inc'] = ($_REQUEST['multiplicador_porc_inc']?1:0);

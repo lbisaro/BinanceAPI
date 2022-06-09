@@ -201,8 +201,20 @@ foreach ($operaciones as $operacion)
             else
                 $porcentaje = $opr->get('real_porc_venta_down');
 
-            $newPrice = toDec($lastSellPrice * (1-($porcentaje/100)),$symbolData['qtyDecsPrice']);
-            $newQty = toDecDown($totQuoteSelled / $newPrice,$symbolData['qtyDecs']);
+            if ($opr->get('destino_profit')==Operacion::OP_DESTINO_PROFIT_QUOTE)
+            {
+                //Compra obteniendo beneficios en Quote
+                $newQuote = $totQuoteSelled * (1-($porcentaje/100));
+                $newPrice = toDec(($newQuote / $totUnitsSelled),$symbolData['qtyDecsPrice']);
+                $newQty = toDecDown($totUnitsSelled,$symbolData['qtyDecs']);
+                
+            }
+            else
+            {
+                //Compra obteniendo beneficios en Base
+                $newPrice = toDec($lastSellPrice * (1-($porcentaje/100)),$symbolData['qtyDecsPrice']);
+                $newQty = toDecDown($totQuoteSelled / $newPrice,$symbolData['qtyDecs']);
+            }
 
             $msg = ' Buy -> Qty:'.$newQty.' Price:'.$newPrice.' '.$symbolData['baseAsset'].':'.toDec($newPrice*$newQty,$symbolData['qtyDecsPrice']).' +'.$porcentaje.'%';
             Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);

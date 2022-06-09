@@ -33,6 +33,15 @@
         </div>
       </div>
 
+      <div class="form-group  menu-admin">
+        <div class="input-group mb-2">
+            <select id="destino_profit" class="form-control form-control-sm">
+              <option value="0" SELECTED>Obtener ganancias en Quote</option>
+              <option value="1">Obtener ganancias en Base</option>
+            </select>
+        </div>
+      </div>
+
       <div class="form-group">
         <label for="multiplicador_compra">Multiplicador Compras</label>
         <input type="text" class="form-control" id="multiplicador_compra"  onchange="refreshTable()" placeholder="Recomendado 1.05 a 2.00">
@@ -104,6 +113,7 @@
     var quoteAsset = 'USD';
     var symbolDecs = 2;
     var qtyDecsPrice = 2;
+    var symbolPrice = 10.0;
     $(document).ready( function () {
         $('#btnAddOperacion').hide();
 
@@ -122,9 +132,15 @@
                 if (data.symbol)
                 {
                     $('.quoteAsset').html(data.quoteAsset);
+                    baseAsset = data.baseAsset;
                     quoteAsset = data.quoteAsset;
                     symbolDecs = data.qtyDecs;
                     qtyDecsPrice = data.qtyDecsPrice;
+                    symbolPrice = parseFloat(data.price);
+                    
+
+                    $('#destino_profit option[value="0"]').html('Obtener ganancias en '+quoteAsset);
+                    $('#destino_profit option[value="1"]').html('Obtener ganancias en '+baseAsset);
 
                     if (tipo != 1 && data.baseAsset == 'BNB')
                     {
@@ -144,7 +160,7 @@
                         $('#multiplicador_porc_auto').attr('checked',false);
                     }
 
-
+                    refreshTable();
                     return true;
                 }
             });
@@ -190,37 +206,41 @@
                 <thead>
                     <tr>
                         <th>&nbsp;</th>
-                        <th>Precio Generico</th>
+                        <th>Precio de Compra</th>
                         <th>% Sobre ultima compra </th>
                         <th>% Sobre compra Inicial</th>
                         <th>Compra <span class="quoteAsset">`+quoteAsset+`</span></th>
                         <th>Total Compra</th>
-                        <th>Venta</th>
+                        <th>Precio de Venta</th>
                     </tr>
                 </thead>
                 <tbody>
                 `;
             
-            symbolPrice = 100;
             
-            precio = format_number(symbolPrice,symbolDecs);
+            
+            precio = format_number(symbolPrice,qtyDecsPrice);
             psuc = 0;
             psci = 0;
             compraUsd = inicio_usd*1;
             totalCompra = compraUsd;
-            venta = '+'+toDec($('#porc_venta_up').val())+'%';
+            ventaPorc = $('#porc_venta_up').val()/100;
 
             var i=1;
             while (totalCompra<=capital_usd)
             {
+                precioVenta = precio * (1+ventaPorc);
+                strVenta = totalCompra+'*'+precio+' = '+(totalCompra*precio)+' -> '+totalCompra+'*'+precioVenta+' = '+(totalCompra*precioVenta);
+                qtyVenta = (totalCompra*precio)/precioVenta;
+                
                 table = table + '<tr>';
                 table = table + '<td>#'+i+'</td>';
-                table = table + '<td>'+toDec(precio)+'</td>';
+                table = table + '<td>'+format_number(precio,qtyDecsPrice)+'</td>';
                 table = table + '<td class="text-danger">'+(psuc!=0?'-':'')+format_number(psuc,2)+'%</td>';
                 table = table + '<td class="text-danger">'+format_number(psci,2)+'%</td>';
                 table = table + '<td>'+format_number(compraUsd,qtyDecsPrice)+'</td>';
                 table = table + '<td>'+format_number(totalCompra,qtyDecsPrice)+'</td>';
-                table = table + '<td class="text-success">'+venta+'</td>';
+                table = table + '<td class="text-success">'+format_number(precioVenta,qtyDecsPrice)+'</td>';
                 table = table + '</tr>';
 
                 if (m_porc_inc==1)
@@ -236,7 +256,7 @@
 
                 totalCompra = parseFloat(totalCompra) + parseFloat(compraUsd);
 
-                venta = '+'+toDec($('#porc_venta_down').val())+'%';
+                ventaPorc = $('#porc_venta_down').val()/100;
                 i++;
             }
             
@@ -281,6 +301,7 @@
         $('#porc_venta_up').val(1.75);
         $('#porc_venta_down').val(2.00);
         $('#symbol').val('MATICUSDT');
+        validSymbol();
     }
 
     

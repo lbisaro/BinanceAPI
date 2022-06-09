@@ -36,6 +36,10 @@ class Operacion extends ModelDB
     const OP_STATUS_COMPRAOFF    = 60;
     const OP_STATUS_COMPLETED    = 90;
 
+    //Destino del profit
+    const OP_DESTINO_PROFIT_QUOTE = 0;
+    const OP_DESTINO_PROFIT_BASE = 1;
+
     //Order status
     const OR_STATUS_NEW = 0;
     const OR_STATUS_FILLED = 10;
@@ -47,6 +51,7 @@ class Operacion extends ModelDB
 
     const PORCENTAJE_VENTA_UP = 2;
     const PORCENTAJE_VENTA_DOWN = 1.75;
+
 
 
     function __Construct($id=null)

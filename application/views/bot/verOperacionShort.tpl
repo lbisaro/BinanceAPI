@@ -20,7 +20,8 @@
         </td>
     </tr>
     <tr>
-        <td colspan="2">{{strTipo}}</td>
+        <td>{{strTipo}}</td>
+        <td>{{strDestinoProfit}}</td>
     </tr>
     <tr>
       <td>Capital 

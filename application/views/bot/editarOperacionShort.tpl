@@ -35,6 +35,15 @@
         </div>
       </div>
 
+      <div class="form-group  menu-admin">
+        <div class="input-group mb-2">
+            <select id="destino_profit" class="form-control form-control-sm">
+              <option value="0" {{dp_selected_0}}>Obtener ganancias en {{quoteAsset}}</option>
+              <option value="1" {{dp_selected_1}}>Obtener ganancias en {{baseAsset}}</option>
+            </select>
+        </div>
+      </div>
+
       <div class="form-group">
         <label for="multiplicador_compra">Multiplicador Ventas</label>
         <input type="text" class="form-control" id="multiplicador_compra" value="{{multiplicador_compra}}"  onchange="refreshTable()" placeholder="Recomendado 1.05 a 2.00">
@@ -102,6 +111,8 @@
     var baseAsset = '{{baseAsset}}';
     var symbolDecs = {{qtyDecs}};
     var qtyDecsPrice = {{qtyDecsPrice}};
+    var symbolPrice = {{symbolPrice}};
+            
 
     $(document).ready( function () {
         refreshTable();
@@ -145,20 +156,19 @@
                 <thead>
                     <tr>
                         <th>&nbsp;</th>
-                        <th>Precio Generico</th>
+                        <th>Precio de Venta</th>
                         <th>% Sobre ultima centa </th>
                         <th>% Sobre venta Inicial</th>
                         <th>Venta {{baseAsset}}</th>
                         <th>Total Venta</th>
-                        <th>Compra {{baseAsset}}</th>
+                        <th>Precio de Compra</th>
                     </tr>
                 </thead>
                 <tbody>
                 `;
             
-            symbolPrice = 200;
             symbolDecs = 2;
-            precio = format_number(symbolPrice,symbolDecs);
+            precio = format_number(symbolPrice,qtyDecsPrice);
             psuc = 0;
             psci = 0;
             compraUsd = inicio_usd*1;
@@ -174,12 +184,12 @@
 
                 table = table + '<tr>';
                 table = table + '<td>#'+i+'</td>';
-                table = table + '<td>'+toDec(precio)+'</td>';
+                table = table + '<td>'+format_number(precio,qtyDecsPrice)+'</td>';
                 table = table + '<td class="text-success">'+format_number(psuc,2)+'%</td>';
                 table = table + '<td class="text-success">'+format_number(psci,2)+'%</td>';
-                table = table + '<td>'+format_number(compraUsd,qtyDecsPrice)+'</td>';
-                table = table + '<td>'+format_number(totalCompra,qtyDecsPrice)+'</td>';
-                table = table + '<td class="text-success">'+toDec(qtyVenta,qtyDecsPrice)+'</td>';
+                table = table + '<td>'+format_number(compraUsd,symbolDecs)+'</td>';
+                table = table + '<td>'+format_number(totalCompra,symbolDecs)+'</td>';
+                table = table + '<td class="text-danger">'+format_number(precioVenta,qtyDecsPrice)+'</td>';
                 table = table + '</tr>';
 
                 if (m_porc_inc==1)

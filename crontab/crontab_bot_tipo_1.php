@@ -147,7 +147,7 @@ foreach ($operaciones as $operacion)
                 }
                 if ($balances['asset'] == $symbolData['quoteAsset'])
                 {
-                    $usdFreeToBuy = $balances['free'];
+                    $quoteFreeToBuy = $balances['free'];
                 }
             }
 
@@ -155,9 +155,9 @@ foreach ($operaciones as $operacion)
             $dbOrders = $opr->getOrdenes();
 
             $lastBuyPrice=0;
-            $totUsdBuyed=0;
+            $totQuoteBuyed=0;
             $totUnitsBuyed=0;
-            $lastUsdBuyed = 0;
+            $lastQuoteBuyed = 0;
             $maxCompraNum = 1; 
             foreach ($dbOrders as $order)
             {
@@ -165,10 +165,10 @@ foreach ($operaciones as $operacion)
                 {
                     $lastBuyPrice = $order['price'];
                     
-                    $lastUsdBuyed = ($order['origQty']*$order['price']);
+                    $lastQuoteBuyed = ($order['origQty']*$order['price']);
                     
                     $totUnitsBuyed += $order['origQty'];
-                    $totUsdBuyed += ($order['origQty']*$order['price']);
+                    $totQuoteBuyed += ($order['origQty']*$order['price']);
 
                     if ($order['compraNum']>$maxCompraNum)
                         $maxCompraNum = $order['compraNum'];
@@ -176,7 +176,7 @@ foreach ($operaciones as $operacion)
             }
 
             $strControlUnitsBuyed = ' - totUnitsBuyed: '.($totUnitsBuyed*1).' - unitsFree: '.($unitsFree*1);
-            $strControlUsdFreeToBuy = ' - usdFreeToBuy: '.$usdFreeToBuy;
+            $strControlQuoteFreeToBuy = ' - quoteFreeToBuy: '.$quoteFreeToBuy;
             //Si la cantidad de unidades compradas segun DB es mayor a la cantidad de unidades en API
             //Toma la cantidad de unidades en la API
             if (($totUnitsBuyed*1) > ($unitsFree*1))
@@ -192,9 +192,21 @@ foreach ($operaciones as $operacion)
             else
                 $porcentaje = $opr->get('real_porc_venta_down');
 
-            $newUsd = $totUsdBuyed * (1+($porcentaje/100));
-            $newPrice = toDec(($newUsd / $totUnitsBuyed),$symbolData['qtyDecsPrice']);
-            $newQty = toDecDown($totUnitsBuyed,$symbolData['qtyDecs']);
+            if ($opr->get('destino_profit')==Operacion::OP_DESTINO_PROFIT_QUOTE)
+            {
+                //Venta obteniendo beneficios en Quote
+                $newQuote = $totQuoteBuyed * (1+($porcentaje/100));
+                $newPrice = toDec(($newQuote / $totUnitsBuyed),$symbolData['qtyDecsPrice']);
+                $newQty = toDecDown($totUnitsBuyed,$symbolData['qtyDecs']);
+                
+            }
+            else
+            {
+                //Venta obteniendo beneficios en Base
+                $newPrice = toDec($lastBuyPrice * (1+($porcentaje/100)),$symbolData['qtyDecsPrice']);
+                $newQty = toDecDown($lastQuoteBuyed / $newPrice,$symbolData['qtyDecs']);
+            }
+            
 
             $msg = ' Sell -> Qty:'.$newQty.' Price:'.$newPrice.' '.$symbolData['quoteAsset'].':'.toDec($newPrice*$newQty,$symbolData['qtyDecs']).' +'.$porcentaje.'%';
             Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
@@ -221,29 +233,29 @@ foreach ($operaciones as $operacion)
                 if ($opr->get('multiplicador_porc_inc'))
                     $multiplicador_porc = $multiplicador_porc*$maxCompraNum; 
                 
-                $newUsd = $lastUsdBuyed*$opr->get('multiplicador_compra');
+                $newQuote = $lastQuoteBuyed*$opr->get('multiplicador_compra');
                 $newPrice = toDec($lastBuyPrice - ( ($lastBuyPrice * $multiplicador_porc) / 100 ),$symbolData['qtyDecsPrice']);
-                $newQty = toDec(($newUsd/$newPrice),($symbolData['qtyDecs']*1));
+                $newQty = toDec(($newQuote/$newPrice),($symbolData['qtyDecs']*1));
     
                 /* Condiciones para crear orden de compra
                     El total comprado no supera capital_usd de la operacion
                     Hay billetera para comprar
                 */
-                if ($opr->get('capital_usd')>0 && ($totUsdBuyed+$newUsd) > $opr->get('capital_usd'))
+                if ($opr->get('capital_usd')>0 && ($totQuoteBuyed+$newQuote) > $opr->get('capital_usd'))
                 {
-                    $msg = ' Stop -> LIMITE DE CAPITAL '.$opr->get('capital_usd').' '.$symbolData['quoteAsset'].' -> Qty:'.$newQty.' Price:'.$newPrice.' Total '.$symbolData['quoteAsset'].':'.($totUsdBuyed+$newUsd);
+                    $msg = ' Stop -> LIMITE DE CAPITAL '.$opr->get('capital_usd').' '.$symbolData['quoteAsset'].' -> Qty:'.$newQty.' Price:'.$newPrice.' Total '.$symbolData['quoteAsset'].':'.($totQuoteBuyed+$newQuote);
                     Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.'  '.$msg);
                     //Se omite la compra por superar el limite de capital de la operacion (si esta seteado)
                     //No se agrega al Log para no generar cantidad de registros sin sentido
                 }
-                elseif ($newUsd > $usdFreeToBuy)
+                elseif ($newQuote > $quoteFreeToBuy)
                 {
-                    $msg = ' Stop -> APALANCAMIENTO INSUFICIENTE '.$strControlUsdFreeToBuy.' '.$symbolData['quoteAsset'].' -> Qty:'.$newQty.' Price:'.$newPrice;
+                    $msg = ' Stop -> APALANCAMIENTO INSUFICIENTE '.$strControlQuoteFreeToBuy.' '.$symbolData['quoteAsset'].' -> Qty:'.$newQty.' Price:'.$newPrice;
                     Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
                 }
                 else
                 {
-                    $msg = ' Buy -> Qty:'.$newQty.' Price:'.$newPrice.' '.$symbolData['quoteAsset'].':'.toDec($newUsd,$symbolData['qtyDecs']).' -'.$multiplicador_porc.'%';
+                    $msg = ' Buy -> Qty:'.$newQty.' Price:'.$newPrice.' '.$symbolData['quoteAsset'].':'.toDec($newQuote,$symbolData['qtyDecs']).' -'.$multiplicador_porc.'%';
                     Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
 
                     try {
@@ -255,7 +267,7 @@ foreach ($operaciones as $operacion)
                         $aOpr['orderId']      = $limitOrder['orderId'];
                         $opr->insertOrden($aOpr);               
                     } catch (Throwable $e) {
-                        $msg = "Error: " . $e->getMessage().$strControlUsdFreeToBuy;
+                        $msg = "Error: " . $e->getMessage().$strControlQuoteFreeToBuy;
                         Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
                         $errorEnOrden = true;
                     }
