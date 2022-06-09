@@ -937,8 +937,8 @@ class Operacion extends ModelDB
     {
         $qry = "SELECT operacion.symbol,
                        pnlDate,
-                       sum(IF(side = 0, origQty, origQty * -1)) base, 
-                       sum(IF(side = 1, origQty * -1, origQty)*price) quote,
+                       sum(IF(side = 1, origQty, origQty * -1)) base, 
+                       sum(IF(side = 0, origQty * -1, origQty)*price) quote,
                        tickers.base_asset,
                        tickers.quote_asset,
                        tickers.qty_decs_units as base_decs,
