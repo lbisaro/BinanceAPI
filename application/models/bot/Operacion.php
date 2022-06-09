@@ -938,7 +938,7 @@ class Operacion extends ModelDB
         $qry = "SELECT operacion.symbol,
                        pnlDate,
                        sum(IF(side = 0, origQty, origQty * -1)) base, 
-                       sum(IF(side = 0, origQty * -1, origQty)*price) quote,
+                       sum(IF(side = 1, origQty * -1, origQty)*price) quote,
                        tickers.base_asset,
                        tickers.quote_asset,
                        tickers.qty_decs_units as base_decs,
@@ -957,7 +957,7 @@ class Operacion extends ModelDB
         while ($rw = $stmt->fetch())
         {
             $mes = substr($rw['pnlDate'],0,7);
-            if (abs($rw['base'])>abs($rw['quote']))
+            if ($rw['base']>$rw['quote'])
             {
                 $asset = $rw['base_asset'];
                 $profitField = 'base';
