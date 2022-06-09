@@ -880,7 +880,7 @@ class Operacion extends ModelDB
                 FROM operacion_orden 
                 LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion 
                 LEFT JOIN tickers ON tickers.tickerid = operacion.symbol
-                WHERE operacion_orden.completed = 1 AND year(pnlDate)>=".date('Y')." AND month(pnlDate)>=".date('m');
+                WHERE operacion_orden.completed = 1 ";//AND year(pnlDate)>=".date('Y')." AND month(pnlDate)>=".date('m');
         $stmt = $this->db->query($qry);
         $data=array();
         $data['assets'] = array();
