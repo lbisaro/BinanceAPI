@@ -22,6 +22,8 @@ class Operacion extends ModelDB
 
     public $binStatus;
 
+    public $presetDecs = array();
+
     const SIDE_BUY = 0;
     const SIDE_SELL = 1;
 
@@ -60,6 +62,13 @@ class Operacion extends ModelDB
             mkdir(LOG_PATH.'bot');
 
         parent::__Construct();
+
+        $this->presetDecs['USDT'] = 2;
+        $this->presetDecs['BUSD'] = 2;
+        $this->presetDecs['USDC'] = 2;
+        $this->presetDecs['BNB'] = 4;
+        $this->presetDecs['BTC'] = 6;
+        $this->presetDecs['ETH'] = 5;
 
         //($db,$tabl,$id)
         $this->addTable(DB_NAME,'operacion','idoperacion');
@@ -859,13 +868,6 @@ class Operacion extends ModelDB
 
     function getPnlDiario()
     {
-        $presetDecs['USDT'] = 2;
-        $presetDecs['BUSD'] = 2;
-        $presetDecs['USDC'] = 2;
-        $presetDecs['BNB'] = 4;
-        $presetDecs['BTC'] = 6;
-        $presetDecs['ETH'] = 5;
-
         $qry = "SELECT operacion.symbol,
                        pnlDate,
                        sum(IF(side = 0, origQty, origQty * -1)) base, 
@@ -877,7 +879,7 @@ class Operacion extends ModelDB
                 FROM operacion_orden 
                 LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion 
                 LEFT JOIN tickers ON tickers.tickerid = operacion.symbol
-                WHERE year(pnlDate)>=".date('Y')." AND month(pnlDate)>=".date('m')."
+                WHERE operacion_orden.completed = 1 AND year(pnlDate)>=".date('Y')." AND month(pnlDate)>=".date('m')."
                 GROUP BY operacion_orden.idoperacion,pnlDate";
         $stmt = $this->db->query($qry);
         $data=array();
@@ -900,9 +902,9 @@ class Operacion extends ModelDB
             }
             $data['assets'][$asset] = $asset;
 
-            if (isset($presetDecs[$asset]))
+            if (isset($this->presetDecs[$asset]))
             {
-                $data['assets_decs'][$asset] = $presetDecs[$asset]; 
+                $data['assets_decs'][$asset] = $this->presetDecs[$asset]; 
             }
             elseif ($profitField == 'base')
             {
@@ -915,7 +917,7 @@ class Operacion extends ModelDB
             }
 
 
-            if (!isset($data[$rw['fecha']][$asset]))
+            if (!isset($data[$dia][$asset]))
                 $data[$dia][$asset] = 0;
             $data[$dia][$asset] += $rw[$profitField];
             
@@ -923,16 +925,75 @@ class Operacion extends ModelDB
                 $data['total'][$asset]=0;
             $data['total'][$asset] += $rw[$profitField];
             
-            if (!isset($data['total']['total']))
-                $data['total']['total']=0;
-            $data['total']['total'] += $rw[$profitField];
-            
-            if (!isset($data[$dia]['total']))
-                $data[$dia]['total']=0;
-            $data[$dia]['total'] += $rw[$profitField];
-            
             if ($dia < $data['iniDate'])
                 $data['iniDate'] = $dia;
+        }
+
+        return $data;
+    }
+
+
+    function getPnlMensual()
+    {
+        $qry = "SELECT operacion.symbol,
+                       pnlDate,
+                       sum(IF(side = 0, origQty, origQty * -1)) base, 
+                       sum(IF(side = 0, origQty * -1, origQty)*price) quote,
+                       tickers.base_asset,
+                       tickers.quote_asset,
+                       tickers.qty_decs_units as base_decs,
+                       tickers.qty_decs_price as quote_decs
+                FROM operacion_orden 
+                LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion 
+                LEFT JOIN tickers ON tickers.tickerid = operacion.symbol
+                WHERE operacion_orden.completed = 1
+                GROUP BY operacion_orden.idoperacion,pnlDate";
+        $stmt = $this->db->query($qry);
+        $data=array();
+        $data['assets'] = array();
+        $data['assets_decs'] = array();
+        $data['iniMonth'] = date('Y-m');
+        $data['total'] = array();
+        while ($rw = $stmt->fetch())
+        {
+            $mes = substr($rw['pnlDate'],0,7);
+            if (abs($rw['base'])>abs($rw['quote']))
+            {
+                $asset = $rw['base_asset'];
+                $profitField = 'base';
+            }
+            else
+            {
+                $asset = $rw['quote_asset'];
+                $profitField = 'quote';                
+            }
+            $data['assets'][$asset] = $asset;
+
+            if (isset($this->presetDecs[$asset]))
+            {
+                $data['assets_decs'][$asset] = $this->presetDecs[$asset]; 
+            }
+            elseif ($profitField == 'base')
+            {
+                $data['assets_decs'][$asset] = $rw['base_decs'];
+            }
+            else
+            {
+                $decs = ($rw['quote_decs']>$rw['base_decs'] ? $rw['quote_decs'] :$rw['base_decs']);
+                $data['assets_decs'][$asset] = ($decs>$data['assets_decs']?$decs:$data['assets_decs']);
+            }
+
+
+            if (!isset($data[$mes][$asset]))
+                $data[$mes][$asset] = 0;
+            $data[$mes][$asset] += $rw[$profitField];
+            
+            if (!isset($data['total'][$asset]))
+                $data['total'][$asset]=0;
+            $data['total'][$asset] += $rw[$profitField];
+            
+            if ($mes < $data['iniMonth'])
+                $data['iniMonth'] = $mes;
         }
 
         return $data;

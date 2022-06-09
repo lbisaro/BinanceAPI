@@ -493,8 +493,6 @@ class BotController extends Controller
         {
             foreach ($data['assets'] as $asset)
             {
-                $qtyDecs[$asset]=2;
-
                 $dg->addHeader($asset,null,null,'right');
             }
         }
@@ -511,7 +509,10 @@ class BotController extends Controller
             $row[] = dateToStr($curDate);
             foreach ($data['assets'] as $asset)
             {
-                $row[] = toDec($data[$curDate][$asset],$data['assets_decs'][$asset]);
+                if ($data[$curDate][$asset]!=0)
+                    $row[] = toDec($data[$curDate][$asset],$data['assets_decs'][$asset]);
+                else
+                    $row[] = '';
             }
             $dg->addRow($row);
             $curDate = date('Y-m-d',strtotime($curDate.' - 1 day'));
@@ -530,7 +531,7 @@ class BotController extends Controller
 
         $row=array();
         $row[] = 'Promedio diario sobre '.$days.' dia'.($days>1?'s':'');
-        if (!empty($data['symbols']))
+        if (!empty($data['assets']))
         {
             foreach ($data['assets'] as $asset)
             {
@@ -540,8 +541,65 @@ class BotController extends Controller
         $dg->addFooter($row,'font-weight-bold');
 
         $arr['lista'] .= '<h4 class="text-info">PNL Diario</h4>'.$dg->get();
+        
+        //PNL Mensual
+        $data = $opr->getPnlMensual();
 
+        unset($dg);
+        $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
+        $dg->addHeader('Fecha');
+        if (!empty($data['assets']))
+        {
+            foreach ($data['assets'] as $asset)
+            {
+                $dg->addHeader($asset,null,null,'right');
+            }
+        }
 
+        $curDate = date('Y-m');
+        $months=0;
+        $iniMonth = $data['iniMonth'];
+        while ($curDate>=$iniMonth)
+        {
+            $months++;
+            $row=array();
+            $row[] = $curDate;
+            foreach ($data['assets'] as $asset)
+            {
+                if ($data[$curDate][$asset]!=0)
+                    $row[] = toDec($data[$curDate][$asset],$data['assets_decs'][$asset]);
+                else
+                    $row[] = '';
+            }
+            $dg->addRow($row);
+            $curDate = date('Y-m',strtotime($curDate.'-01'.' -1 months'));
+        }
+
+        $row=array();
+        $row[] = 'Total';
+        if (!empty($data['assets']))
+        {
+            foreach ($data['assets'] as $asset)
+            {
+                $row[] = toDec($data['total'][$asset],$data['assets_decs'][$asset]);
+            }
+        }
+        $dg->addFooter($row,'font-weight-bold');
+
+        $row=array();
+        $row[] = 'Promedio mensual sobre '.$months.' mes'.($months>1?'es':'');
+        if (!empty($data['assets']))
+        {
+            foreach ($data['assets'] as $asset)
+            {
+                $row[] = toDec($data['total'][$asset]/$months,$data['assets_decs'][$asset]);
+            }
+        }
+        $dg->addFooter($row,'font-weight-bold');
+
+        $arr['lista'] .= '<h4 class="text-info">PNL Mensual</h4>'.$dg->get();
+
+/*
         //Estadistica Diaria 
         $data = $opr->getEstadisticaDiaria();
         unset($dg);
@@ -734,7 +792,7 @@ class BotController extends Controller
         $dg->addFooter($row,'font-weight-bold');
         $arr['lista'] .= '<h4 class="text-info">Historico de Operaciones</h4>'.$dg->get();
 
-
+*/
     
         $this->addView('bot/estadisticas',$arr);
     }
