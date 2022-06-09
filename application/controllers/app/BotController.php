@@ -529,17 +529,6 @@ class BotController extends Controller
         }
         $dg->addFooter($row,'font-weight-bold');
 
-        $row=array();
-        $row[] = 'Promedio diario sobre '.$days.' dia'.($days>1?'s':'');
-        if (!empty($data['assets']))
-        {
-            foreach ($data['assets'] as $asset)
-            {
-                $row[] = toDec($data['total'][$asset]/$days,$data['assets_decs'][$asset]);
-            }
-        }
-        $dg->addFooter($row,'font-weight-bold');
-
         $arr['lista'] .= '<h4 class="text-info">PNL Diario</h4>'.$dg->get();
         
         //PNL Mensual
@@ -586,20 +575,9 @@ class BotController extends Controller
         }
         $dg->addFooter($row,'font-weight-bold');
 
-        $row=array();
-        $row[] = 'Promedio mensual sobre '.$months.' mes'.($months>1?'es':'');
-        if (!empty($data['assets']))
-        {
-            foreach ($data['assets'] as $asset)
-            {
-                $row[] = toDec($data['total'][$asset]/$months,$data['assets_decs'][$asset]);
-            }
-        }
-        $dg->addFooter($row,'font-weight-bold');
-
         $arr['lista'] .= '<h4 class="text-info">PNL Mensual</h4>'.$dg->get();
 
-/*
+
         //Estadistica Diaria 
         $data = $opr->getEstadisticaDiaria();
         unset($dg);
@@ -741,6 +719,7 @@ class BotController extends Controller
 
         $arr['lista'] .= '<h4 class="text-info">Resultado sobre ventas Mensuales</h4>'.$dg->get();
 
+/*
         //Historico de operaciones
 
         $data = $opr->getEstadisticaGeneral();

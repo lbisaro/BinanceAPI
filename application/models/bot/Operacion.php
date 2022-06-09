@@ -870,8 +870,9 @@ class Operacion extends ModelDB
     {
         $qry = "SELECT operacion.symbol,
                        pnlDate,
-                       sum(IF(side = 0, origQty, origQty * -1)) base, 
-                       sum(IF(side = 0, origQty * -1, origQty)*price) quote,
+                       side, 
+                       price,
+                       origQty,
                        tickers.base_asset,
                        tickers.quote_asset,
                        tickers.qty_decs_units as base_decs,
@@ -879,8 +880,7 @@ class Operacion extends ModelDB
                 FROM operacion_orden 
                 LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion 
                 LEFT JOIN tickers ON tickers.tickerid = operacion.symbol
-                WHERE operacion_orden.completed = 1 AND year(pnlDate)>=".date('Y')." AND month(pnlDate)>=".date('m')."
-                GROUP BY operacion_orden.idoperacion,pnlDate";
+                WHERE operacion_orden.completed = 1 AND year(pnlDate)>=".date('Y')." AND month(pnlDate)>=".date('m');
         $stmt = $this->db->query($qry);
         $data=array();
         $data['assets'] = array();
@@ -890,45 +890,81 @@ class Operacion extends ModelDB
         while ($rw = $stmt->fetch())
         {
             $dia = substr($rw['pnlDate'],0,10);
-            if (abs($rw['base'])>abs($rw['quote']))
+
+            if ($rw['side']==self::SIDE_BUY)
             {
-                $asset = $rw['base_asset'];
-                $profitField = 'base';
+                $rw['base']  = $rw['origQty'];
+                $rw['quote'] = (-$rw['origQty'])*$rw['price'];
             }
             else
             {
-                $asset = $rw['quote_asset'];
-                $profitField = 'quote';                
+                $rw['base']  = -$rw['origQty'];
+                $rw['quote'] = $rw['origQty']*$rw['price'];
             }
-            $data['assets'][$asset] = $asset;
 
-            if (isset($this->presetDecs[$asset]))
+
+            //Calculo de Base
+            $data['assets'][$rw['base_asset']] = $rw['base_asset'];
+            if (isset($this->presetDecs[$rw['base_asset']]))
             {
-                $data['assets_decs'][$asset] = $this->presetDecs[$asset]; 
-            }
-            elseif ($profitField == 'base')
-            {
-                $data['assets_decs'][$asset] = $rw['base_decs'];
+                $data['assets_decs'][$rw['base_asset']] = $this->presetDecs[$rw['base_asset']]; 
             }
             else
             {
-                $decs = ($rw['quote_decs']>$rw['base_decs'] ? $rw['quote_decs'] :$rw['base_decs']);
-                $data['assets_decs'][$asset] = ($decs>$data['assets_decs']?$decs:$data['assets_decs']);
+                $data['assets_decs'][$rw['base_asset']] = $rw['base_decs'];
             }
+            if (!isset($data[$dia][$rw['base_asset']]))
+                $data[$dia][$rw['base_asset']] = 0;
+            $data[$dia][$rw['base_asset']] += $rw['base'];
+            
+            if (!isset($data['total'][$rw['base_asset']]))
+                $data['total'][$rw['base_asset']]=0;
+            $data['total'][$rw['base_asset']] += $rw['base'];
 
 
-            if (!isset($data[$dia][$asset]))
-                $data[$dia][$asset] = 0;
-            $data[$dia][$asset] += $rw[$profitField];
+
+            //Calculo de Quote
+            $data['assets'][$rw['quote_asset']] = $rw['quote_asset'];
+            if (isset($this->presetDecs[$rw['quote_asset']]))
+            {
+                $data['assets_decs'][$rw['quote_asset']] = $this->presetDecs[$rw['quote_asset']]; 
+            }
+            else
+            {
+                $decs = ($rw['quote_decs']>$rw['base_decs'] ? $rw['quote_decs'] : $rw['base_decs']);
+                $data['assets_decs'][$rw['quote_asset']] = ($decs>$data['assets_decs'][$rw['quote_asset']]?$decs:$data['assets_decs'][$rw['quote_asset']]);
+            }
+            if (!isset($data[$dia][$rw['quote_asset']]))
+                $data[$dia][$rw['quote_asset']] = 0;
+            $data[$dia][$rw['quote_asset']] += $rw['quote'];
             
-            if (!isset($data['total'][$asset]))
-                $data['total'][$asset]=0;
-            $data['total'][$asset] += $rw[$profitField];
-            
+            if (!isset($data['total'][$rw['quote_asset']]))
+                $data['total'][$rw['quote_asset']]=0;
+            $data['total'][$rw['quote_asset']] += $rw['quote'];
+
+
+
+
             if ($dia < $data['iniDate'])
                 $data['iniDate'] = $dia;
         }
 
+        //Eliminando datos aproximados a 0
+        $assetsToDelete = array();
+        foreach ($data['total'] as $asset => $profit)
+            if (toDec($profit,$data['assets_decs'][$asset]) == 0)
+                $assetsToDelete[] = $asset;
+
+        if (!empty($assetsToDelete))
+        {
+            foreach ($assetsToDelete as $asset)
+            {
+                unset($data['total'][$asset]);
+                unset($data['assets'][$asset]);
+                unset($data['assets_decs'][$asset]);
+            }
+        }
+        
         return $data;
     }
 
@@ -937,8 +973,9 @@ class Operacion extends ModelDB
     {
         $qry = "SELECT operacion.symbol,
                        pnlDate,
-                       sum(IF(side = 1, origQty, origQty * -1)) base, 
-                       sum(IF(side = 0, origQty * -1, origQty)*price) quote,
+                       side, 
+                       price,
+                       origQty,
                        tickers.base_asset,
                        tickers.quote_asset,
                        tickers.qty_decs_units as base_decs,
@@ -946,8 +983,7 @@ class Operacion extends ModelDB
                 FROM operacion_orden 
                 LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion 
                 LEFT JOIN tickers ON tickers.tickerid = operacion.symbol
-                WHERE operacion_orden.completed = 1
-                GROUP BY operacion_orden.idoperacion,pnlDate";
+                WHERE operacion_orden.completed = 1";
         $stmt = $this->db->query($qry);
         $data=array();
         $data['assets'] = array();
@@ -957,43 +993,75 @@ class Operacion extends ModelDB
         while ($rw = $stmt->fetch())
         {
             $mes = substr($rw['pnlDate'],0,7);
-            if ($rw['base']>$rw['quote'])
+            if ($rw['side']==self::SIDE_BUY)
             {
-                $asset = $rw['base_asset'];
-                $profitField = 'base';
+                $rw['base']  = $rw['origQty'];
+                $rw['quote'] = (-$rw['origQty'])*$rw['price'];
             }
             else
             {
-                $asset = $rw['quote_asset'];
-                $profitField = 'quote';                
+                $rw['base']  = -$rw['origQty'];
+                $rw['quote'] = $rw['origQty']*$rw['price'];
             }
-            $data['assets'][$asset] = $asset;
 
-            if (isset($this->presetDecs[$asset]))
+
+            //Calculo de Base
+            $data['assets'][$rw['base_asset']] = $rw['base_asset'];
+            if (isset($this->presetDecs[$rw['base_asset']]))
             {
-                $data['assets_decs'][$asset] = $this->presetDecs[$asset]; 
-            }
-            elseif ($profitField == 'base')
-            {
-                $data['assets_decs'][$asset] = $rw['base_decs'];
+                $data['assets_decs'][$rw['base_asset']] = $this->presetDecs[$rw['base_asset']]; 
             }
             else
             {
-                $decs = ($rw['quote_decs']>$rw['base_decs'] ? $rw['quote_decs'] :$rw['base_decs']);
-                $data['assets_decs'][$asset] = ($decs>$data['assets_decs']?$decs:$data['assets_decs']);
+                $data['assets_decs'][$rw['base_asset']] = $rw['base_decs'];
             }
-
-
-            if (!isset($data[$mes][$asset]))
-                $data[$mes][$asset] = 0;
-            $data[$mes][$asset] += $rw[$profitField];
+            if (!isset($data[$mes][$rw['base_asset']]))
+                $data[$mes][$rw['base_asset']] = 0;
+            $data[$mes][$rw['base_asset']] += $rw['base'];
             
-            if (!isset($data['total'][$asset]))
-                $data['total'][$asset]=0;
-            $data['total'][$asset] += $rw[$profitField];
+            if (!isset($data['total'][$rw['base_asset']]))
+                $data['total'][$rw['base_asset']]=0;
+            $data['total'][$rw['base_asset']] += $rw['base'];
+
+
+
+            //Calculo de Quote
+            $data['assets'][$rw['quote_asset']] = $rw['quote_asset'];
+            if (isset($this->presetDecs[$rw['quote_asset']]))
+            {
+                $data['assets_decs'][$rw['quote_asset']] = $this->presetDecs[$rw['quote_asset']]; 
+            }
+            else
+            {
+                $decs = ($rw['quote_decs']>$rw['base_decs'] ? $rw['quote_decs'] : $rw['base_decs']);
+                $data['assets_decs'][$rw['quote_asset']] = ($decs>$data['assets_decs'][$rw['quote_asset']]?$decs:$data['assets_decs'][$rw['quote_asset']]);
+            }
+            if (!isset($data[$mes][$rw['quote_asset']]))
+                $data[$mes][$rw['quote_asset']] = 0;
+            $data[$mes][$rw['quote_asset']] += $rw['quote'];
+            
+            if (!isset($data['total'][$rw['quote_asset']]))
+                $data['total'][$rw['quote_asset']]=0;
+            $data['total'][$rw['quote_asset']] += $rw['quote'];
             
             if ($mes < $data['iniMonth'])
                 $data['iniMonth'] = $mes;
+        }
+
+        //Eliminando datos aproximados a 0
+        $assetsToDelete = array();
+        foreach ($data['total'] as $asset => $profit)
+            if (toDec($profit,$data['assets_decs'][$asset]) == 0)
+                $assetsToDelete[] = $asset;
+
+        if (!empty($assetsToDelete))
+        {
+            foreach ($assetsToDelete as $asset)
+            {
+                unset($data['total'][$asset]);
+                unset($data['assets'][$asset]);
+                unset($data['assets_decs'][$asset]);
+            }
         }
 
         return $data;
