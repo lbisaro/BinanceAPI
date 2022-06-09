@@ -579,6 +579,7 @@ class BotController extends Controller
 
 
         //Estadistica Diaria 
+/*
         $data = $opr->getEstadisticaDiaria();
         unset($dg);
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
@@ -655,9 +656,10 @@ class BotController extends Controller
         $dg->addFooter($row,'font-weight-bold');
 
         $arr['lista'] .= '<h4 class="text-info">Resultado sobre ventas Diarias</h4>'.$dg->get();
-
+*/
 
         //Mensual 
+/*
         $data = $opr->getEstadisticaMensual();
 
         unset($dg);
@@ -718,7 +720,7 @@ class BotController extends Controller
         $dg->addFooter($row,'font-weight-bold');
 
         $arr['lista'] .= '<h4 class="text-info">Resultado sobre ventas Mensuales</h4>'.$dg->get();
-
+*/
 /*
         //Historico de operaciones
 
