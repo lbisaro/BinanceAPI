@@ -675,7 +675,8 @@ class BotAjax extends ControllerAjax
         {
             if ($rw['completed'])
             {
-                $usd = toDec($rw['origQty']*$rw['price']);
+                $usdDecs = ($symbolData['qtyDecs']>$symbolData['qtyDecsPrice']?$symbolData['qtyDecs']:$symbolData['qtyDecsPrice']);
+                $usd = toDec($rw['origQty']*$rw['price'],$usdDecs);
 
                 $link = '<a href="app.bot.verOrden+symbol='.$opr->get('symbol').'&orderId='.$rw['orderId'].'" target="_blank" label="'.$rw['orderId'].'">'.$rw['sideStr'].'</a>';
                 
