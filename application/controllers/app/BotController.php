@@ -294,7 +294,8 @@ class BotController extends Controller
         $gananciaUsd = 0;
         foreach ($ordenes as $rw)
         {
-            $usd = toDec($rw['origQty']*$rw['price'],$symbolData['qtyDecs']);
+            $usdDecs = ($symbolData['qtyDecs']>$symbolData['qtyDecsPrice']?$symbolData['qtyDecs']:$symbolData['qtyDecsPrice']);
+            $usd = $rw['origQty']*$rw['price'];
 
             if ($rw['side']==Operacion::SIDE_BUY)
                 $rw['sideStr'] .= ' #'.$rw['compraNum'];
@@ -308,7 +309,7 @@ class BotController extends Controller
                          $rw['updatedStr'],
                          (toDec($rw['origQty']*1,$symbolData['qtyDecs'])),
                          (toDec($rw['price']*1,$symbolData['qtyDecsPrice'])),
-                         ($rw['side']==Operacion::SIDE_BUY?'-':'').$usd
+                         ($rw['side']==Operacion::SIDE_BUY?'-':'').toDec($usd,$usdDecs)
                         );
             if ($rw['price']>0 && $rw['status']==Operacion::OR_STATUS_FILLED)
             {
