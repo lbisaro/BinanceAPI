@@ -1285,7 +1285,7 @@ class Operacion extends ModelDB
                 WHERE idusuario = ".$auth->get('idusuario')." 
                   AND status = ".self::OR_STATUS_FILLED."  
                   AND completed = 0 
-                ORDER BY symbol, operacion_orden.updated";
+                ORDER BY stop,symbol, operacion_orden.updated";
         $stmt = $this->db->query($qry);
         $data = array();
 
