@@ -1295,6 +1295,7 @@ class Operacion extends ModelDB
             {
                 $data[$rw['symbol']]['buyedUSD'] = 0;
                 $data[$rw['symbol']]['buyedUnits'] = 0;
+                $data[$rw['symbol']]['stop'] = $rw['stop'];
             }
             if ($rw['side']==Operacion::SIDE_BUY)
             {
@@ -1306,6 +1307,7 @@ class Operacion extends ModelDB
                 $data[$rw['symbol']]['buyedUSD'] -= ($rw['origQty']*$rw['price']);
                 $data[$rw['symbol']]['buyedUnits'] -= $rw['origQty'];
             }
+
         }
         return $data;
     }
@@ -1656,4 +1658,13 @@ class Operacion extends ModelDB
         }
         return $symbols;
     }
+
+    function getDecs($asset)
+    {
+        $decs = 8;
+        $asset = strtoupper($asset);
+        if (isset($this->presetDecs[$asset]))
+            $decs = $this->presetDecs[$asset];
+        return $decs;
+    }   
 }

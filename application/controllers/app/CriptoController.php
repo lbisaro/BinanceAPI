@@ -43,6 +43,7 @@ class CriptoController extends Controller
                     $pnlStatus[$symbol]['actualUSD'] = $prices[$symbol]*$rw['buyedUnits'];
                     $pnlStatus[$symbol]['buyedUnits'] = $rw['buyedUnits'];
                     $pnlStatus[$symbol]['perc'] = (($pnlStatus[$symbol]['actualUSD']/$pnlStatus[$symbol]['buyedUSD'])-1)*100;
+                    $pnlStatus[$symbol]['stop'] = $rw['stop'];
 
                 }
             }
@@ -56,7 +57,8 @@ class CriptoController extends Controller
             foreach ($pnlStatus as $symbol => $rw)
             {
                 $row = array();
-                $row[] = $symbol;
+                $symbolClass = ($rw['stop']?'secondary':'info');
+                $row[] = '<span class="text-'.$symbolClass.'">'.$symbol.'</span>';
                 $row[] = toDec($rw['buyedUSD']);
                 $row[] = $rw['buyedUnits'];
                 $row[] = toDec($rw['actualUSD']);
