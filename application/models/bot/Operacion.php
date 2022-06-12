@@ -1279,7 +1279,7 @@ class Operacion extends ModelDB
     {
         $auth = UsrUsuario::getAuthInstance();
 
-        $qry = "SELECT operacion.symbol, operacion_orden.* 
+        $qry = "SELECT operacion.symbol,operacion.stop, operacion_orden.* 
                 FROM operacion_orden 
                 LEFT JOIN operacion ON operacion.idoperacion =operacion_orden.idoperacion
                 WHERE idusuario = ".$auth->get('idusuario')." 
