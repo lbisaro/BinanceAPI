@@ -20,3 +20,6 @@ ALTER TABLE `tickers`
     CHANGE `hst_max` `hst_max` DECIMAL(15,8) NOT NULL DEFAULT '-1', 
     CHANGE `qty_decs_units` `qty_decs_units` INT NOT NULL DEFAULT '0', 
     CHANGE `qty_decs_price` `qty_decs_price` INT NOT NULL DEFAULT '0';
+
+ALTER TABLE `tickers` 
+    ADD `qty_decs_quote` INT NOT NULL DEFAULT '0' AFTER `qty_decs_price`;

@@ -8,6 +8,19 @@ $tck = new Ticker();
 
 $symbols = $opr->getAllSymbols();
 
+$addSymbols = $tck->getDataSet();
+if (!empty($addSymbols))
+{
+    foreach ($addSymbols as $rw)
+    {
+        if (!isset($symbols[$rw['tickerid']]))
+        {
+            $symbols[$rw['tickerid']] = $rw;
+            $symbols[$rw['tickerid']]['symbol'] = $rw['tickerid'];
+        }
+    }
+}
+
 if (!empty($symbols))
 {
     $prm = array();
@@ -16,6 +29,7 @@ if (!empty($symbols))
 
 
     $apiRsp = $api->exchangeInfo($prm);
+    $apiInfo = array();
 
     foreach ($symbols as $rw)
     {
@@ -25,7 +39,7 @@ if (!empty($symbols))
         $apiInfo[$symbol]['qty_decs_price'] = intval($api->numberOfDecimals($apiRsp['symbols'][$symbol]['filters'][0]['minPrice']));
         $apiInfo[$symbol]['quote_asset'] = $apiRsp['symbols'][$symbol]['quoteAsset'];
         $apiInfo[$symbol]['base_asset'] = $apiRsp['symbols'][$symbol]['baseAsset'];
-        
+        $apiInfo[$symbol]['qty_decs_quote'] = $opr->getDecs($apiInfo[$symbol]['quote_asset']);
     }
 
     foreach ($symbols as $rw)
