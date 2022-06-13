@@ -283,7 +283,10 @@ class BotController extends Controller
             $arr['toogleStopClass'] = 'danger';
         }
 
-        $ordenes = $opr->getOrdenes($enCurso=true,'price DESC');
+        $order = 'price DESC';
+        if ($arr['tipo'] == Operacion::OP_TIPO_APLSHRT)
+            $order = 'price ASC';
+        $ordenes = $opr->getOrdenes($enCurso=true,$order);
 
 
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
