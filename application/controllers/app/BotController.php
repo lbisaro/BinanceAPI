@@ -52,8 +52,15 @@ class BotController extends Controller
                     $strCompras = '';
                 else
                     $strCompras = ' <br/>Compras x '.$compras;
+                $compras = $opr->get('compras');
+                if ($ventas < 1)
+                    $strVentas = '';
+                else
+                    $strVentas = ' <br/>Ventas x '.$ventas;
+
+
                 
-                $strEstado = $opr->get('strEstado').$strCompras;
+                $strEstado = $opr->get('strEstado').$strCompras.$strVentas;
                 
                 if ($opr->get('stop'))
                     $strEstado = '<span class="text-danger">APAGADO</span>';
@@ -198,13 +205,10 @@ class BotController extends Controller
             $this->addError('No esta autorizado a visualizar esta pagina.');
             return false;
         }
-
-        $ak = $auth->getConfig('bncak');
-        $as = $auth->getConfig('bncas');
         
-        $api = new BinanceAPI($ak,$as);
+        $tck = new Ticker();
 
-        $symbolData = $api->getSymbolData($opr->get('symbol'));
+        $symbolData = $tck->getSymbolData($opr->get('symbol'));
         $symbolPrice = $symbolData['price'];
 
         $link = $this->__selectOperacion($idoperacion,'app.bot.verOperacion+id=');

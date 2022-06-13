@@ -6,17 +6,24 @@ include_once MDL_PATH."Ticker.php";
 class Operacion extends ModelDB
 {
     protected $query = "SELECT operacion.*,
+                               tickers.*, 
                                ( SELECT count(idoperacionorden) 
                                    FROM operacion_orden 
                                   WHERE operacion.idoperacion = operacion_orden.idoperacion
                                     AND completed = 0 AND status = 10 AND side = 0) 
-                                compras,
+                                compras,                               
+                                ( SELECT count(idoperacionorden) 
+                                   FROM operacion_orden 
+                                  WHERE operacion.idoperacion = operacion_orden.idoperacion
+                                    AND completed = 0 AND status = 10 AND side = 1) 
+                                ventas,
                                 ( SELECT count(idoperacionorden) 
                                    FROM operacion_orden 
                                   WHERE operacion.idoperacion = operacion_orden.idoperacion
                                     AND completed = 0 ) 
                                 ordenesActivas 
-                        FROM operacion";
+                        FROM operacion
+                        LEFT JOIN tickers ON operacion.symbol = tickers.tickerid ";
 
     protected $pKey  = 'idoperacion';
 
@@ -63,12 +70,8 @@ class Operacion extends ModelDB
 
         parent::__Construct();
 
-        $this->presetDecs['USDT'] = 2;
-        $this->presetDecs['BUSD'] = 2;
-        $this->presetDecs['USDC'] = 2;
-        $this->presetDecs['BNB'] = 4;
-        $this->presetDecs['BTC'] = 6;
-        $this->presetDecs['ETH'] = 5;
+        $tck = new Ticker();
+        $this->presetDecs = $tck->presetDecs;
 
         //($db,$tabl,$id)
         $this->addTable(DB_NAME,'operacion','idoperacion');

@@ -12,12 +12,21 @@ class Ticker extends ModelDB
 
     protected $newTicker = '';
 
+    public $presetDecs = array();
+
     function __Construct($id=null)
     {
         parent::__Construct();
 
         //($db,$tabl,$id)
         $this->addTable(DB_NAME,'tickers','tickerid');
+
+        $this->presetDecs['USDT'] = 2;
+        $this->presetDecs['BUSD'] = 2;
+        $this->presetDecs['USDC'] = 2;
+        $this->presetDecs['BNB'] = 4;
+        $this->presetDecs['BTC'] = 6;
+        $this->presetDecs['ETH'] = 5;
 
         if($id)
             $this->load($id);
@@ -81,9 +90,12 @@ class Ticker extends ModelDB
 
         //Verificando el ticker en Binance
         $api = new BinanceAPI(); 
+        $opr = new Operacion();
+
         $symbolData = $api->getSymbolData($this->data['tickerid']);
         $this->data['qty_decs_units'] = $symbolData['qtyDecs'];
         $this->data['qty_decs_price'] = $symbolData['qtyDecsPrice'];
+        $this->data['qty_decs_quote'] = $this->presetDecs[$symbolData['quoteAsset']];
         $this->data['quote_asset'] = $symbolData['quoteAsset'];
         $this->data['base_asset'] = $symbolData['baseAsset'];
 
@@ -628,6 +640,40 @@ class Ticker extends ModelDB
         }
         
         return $multCompras;
+    }
+
+    public function getSymbolData($symbol)
+    {
+        $api = new BinanceAPI();
+        $price = $api->price($symbol);
+        
+        $data['symbol'] = $symbol;
+        $data['price'] = $price;
+        
+        $ds = $this->getDataSet("tickerid = '".$symbol."'");
+        if (!empty($ds))
+        {
+            foreach ($ds as $rw)
+            {
+                $data['qtyDecs']    = $rw['qty_decs_units'];
+                $data['qtyDecsPrice'] = $rw['qty_decs_price'];
+                $data['qtyDecsQuote'] = $rw['qty_decs_quote'];
+                $data['quoteAsset'] = $rw['quote_asset'];
+                $data['baseAsset']  = $rw['base_asset'];                
+            }
+        }
+        elseif ($price>0)
+        {
+            $exchangeInfo = $this->exchangeInfo($symbol);
+            $data['qtyDecs'] = intval($this->numberOfDecimals($exchangeInfo['symbols'][$symbol]['filters'][2]['minQty']));
+            $data['qtyDecsPrice'] = intval($this->numberOfDecimals($exchangeInfo['symbols'][$symbol]['filters'][0]['minPrice']));
+            $data['qtyDecsQuote'] = $this->presetDecs[$exchangeInfo['symbols'][$symbol]['quoteAsset']];
+            $data['quoteAsset'] = $exchangeInfo['symbols'][$symbol]['quoteAsset'];
+            $data['baseAsset']  = $exchangeInfo['symbols'][$symbol]['baseAsset'];
+        }
+
+        return $data;
+
     }
 
         private function __cmu($ci,$qc,$mu)

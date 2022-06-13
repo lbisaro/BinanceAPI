@@ -39,7 +39,7 @@ if (!empty($symbols))
         $apiInfo[$symbol]['qty_decs_price'] = intval($api->numberOfDecimals($apiRsp['symbols'][$symbol]['filters'][0]['minPrice']));
         $apiInfo[$symbol]['quote_asset'] = $apiRsp['symbols'][$symbol]['quoteAsset'];
         $apiInfo[$symbol]['base_asset'] = $apiRsp['symbols'][$symbol]['baseAsset'];
-        $apiInfo[$symbol]['qty_decs_quote'] = $opr->getDecs($apiInfo[$symbol]['quote_asset']);
+        $apiInfo[$symbol]['qty_decs_quote'] = $tck->presetDecs[$apiInfo[$symbol]['quote_asset']];
     }
 
     foreach ($symbols as $rw)
