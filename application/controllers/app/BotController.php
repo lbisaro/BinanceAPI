@@ -52,7 +52,7 @@ class BotController extends Controller
                     $strCompras = '';
                 else
                     $strCompras = ' <br/>Compras x '.$compras;
-                $compras = $opr->get('compras');
+                $compras = $opr->get('ventas');
                 if ($ventas < 1)
                     $strVentas = '';
                 else
