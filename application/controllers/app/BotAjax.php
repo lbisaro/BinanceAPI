@@ -211,7 +211,7 @@ class BotAjax extends ControllerAjax
 
         $arrToSet['capital_usd'] = $_REQUEST['capital_usd'];
         $arrToSet['inicio_usd'] = $_REQUEST['inicio_usd'];
-        $arrToSet['destino_profit'] = ($_REQUEST['destino_profit']?1:0);
+        $arrToSet['destino_profit'] = ($_REQUEST['destino_profit']?'1':'0');
         $arrToSet['multiplicador_porc'] = $_REQUEST['multiplicador_porc'];
         $arrToSet['multiplicador_compra'] = $_REQUEST['multiplicador_compra'];
         $arrToSet['multiplicador_porc_inc'] = ($_REQUEST['multiplicador_porc_inc']?1:0);
