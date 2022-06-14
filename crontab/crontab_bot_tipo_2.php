@@ -253,7 +253,7 @@ foreach ($operaciones as $operacion)
                 //  El total vendido no supera capital_usd de la operacion
                 
                 
-                if ($opr->get('capital_usd')>0 && ($totBaseSelled+$newBase) > $opr->get('capital_usd'))
+                if ($opr->get('capital_usd')>0 && ($totUnitsSelled+$newBase) > $opr->get('capital_usd'))
                 {
                     $msg = ' Stop -> LIMITE DE CAPITAL '.$opr->get('capital_usd').' '.$symbolData['quoteAsset'].' -> Qty:'.$newQty.' Price:'.$newPrice.' Total '.$symbolData['quoteAsset'].':'.($totBaseBuyed+$newBase);
                     Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.'  '.$msg);
