@@ -320,11 +320,18 @@ class BotController extends Controller
             if ($rw['price']>0)
             {
 
-                $porc = toDec((($symbolPrice/$rw['price'])-1)*100);
+                $porc = toDec((($symbolPrice/$rw['price'])-1)*100,);
                 $refUSD = '';
                 if ($rw['status']==Operacion::OR_STATUS_FILLED)
-                    $refUSD = toDec(($usd * $porc) / 100);
-                $row[] = '<span class="'.($porc<0?'text-danger':'text-success').'" title="'.$refUSD.'">'.$porc.'%</span>';
+                {
+                    $textClass = ($porc<0?'text-danger':'text-success');
+                    $refUSD = $symbolData['quoteAsset'].' '.toDec(($usd * $porc) / 100,$symbolData['qtyDecsQuote']);
+                }
+                else
+                {
+                    $textClass = 'text-secondary';
+                }
+                $row[] = '<span class="'.$textClass.'" title="'.$refUSD.'">'.$porc.'%</span>';
             }
             else
             {
