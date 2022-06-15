@@ -667,9 +667,9 @@ class BotAjax extends ControllerAjax
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
         $dg->addHeader('Tipo');
         $dg->addHeader('Fecha Hora');
-        $dg->addHeader('Unidades',null,null,'right');
+        $dg->addHeader($symbolData['baseAsset'],null,null,'right');
         $dg->addHeader('Precio',null,null,'right');
-        $dg->addHeader($quoteAsset,null,null,'right');
+        $dg->addHeader($symbolData['quoteAsset'],null,null,'right');
 
         $ordenes = $opr->getOrdenes($enCurso=false,'pnlDate, side, price');
         foreach ($ordenes as $rw)

@@ -215,8 +215,8 @@ class BotController extends Controller
         $arr['tipo'] = $opr->get('tipo');
         $arr['strTipo'] = '<h4 class="text-'.($arr['tipo']==Operacion::OP_TIPO_APLSHRT?'danger':'success').'">'.$opr->getTipoOperacion($opr->get('tipo')).'</h4>';
         $arr['symbolSelector'] = $link;
-        $arr['capital_usd'] = $symbolData['quoteAsset'].' '.toDec($opr->get('capital_usd'),$symbolData['qtyDecs']);
-        $arr['inicio_usd'] = $symbolData['quoteAsset'].' '.toDec($opr->get('inicio_usd'),$symbolData['qtyDecs']);
+        $arr['capital_usd'] = $symbolData['quoteAsset'].' '.toDec($opr->get('capital_usd'),$symbolData['qtyDecsQuote']);
+        $arr['inicio_usd'] = $symbolData['quoteAsset'].' '.toDec($opr->get('inicio_usd'),$symbolData['qtyDecsQuote']);
         $arr['strDestinoProfit'] = 'Obtener ganancia en <b>'.($opr->get('destino_profit')?$symbolData['baseAsset']:$symbolData['quoteAsset']).'</b>';
         $arr['multiplicador_compra'] = $opr->get('multiplicador_compra');
         $arr['multiplicador_porc'] = $opr->get('multiplicador_porc').'%'.
@@ -291,7 +291,7 @@ class BotController extends Controller
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
         $dg->addHeader('Tipo');
         $dg->addHeader('Fecha Hora');
-        $dg->addHeader('Unidades',null,null,'right');
+        $dg->addHeader($symbolData['baseAsset'],null,null,'right');
         $dg->addHeader('Precio',null,null,'right');
         $dg->addHeader($symbolData['quoteAsset'],null,null,'right');
         $dg->addHeader('Ref.',null,null,'right');
