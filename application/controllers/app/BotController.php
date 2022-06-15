@@ -207,7 +207,6 @@ class BotController extends Controller
         }
         
         $tck = new Ticker();
-
         $symbolData = $tck->getSymbolData($opr->get('symbol'));
         $symbolPrice = $symbolData['price'];
 
@@ -301,7 +300,7 @@ class BotController extends Controller
         $gananciaUsd = 0;
         foreach ($ordenes as $rw)
         {
-            $usdDecs = ($symbolData['qtyDecs']>$symbolData['qtyDecsPrice']?$symbolData['qtyDecs']:$symbolData['qtyDecsPrice']);
+            $usdDecs = $symbolData['qtyDecsQuote'];
             $usd = $rw['origQty']*$rw['price'];
 
             if ($rw['side']==Operacion::SIDE_BUY)
@@ -318,8 +317,9 @@ class BotController extends Controller
                          (toDec($rw['price']*1,$symbolData['qtyDecsPrice'])),
                          ($rw['side']==Operacion::SIDE_BUY?'-':'').toDec($usd,$usdDecs)
                         );
-            if ($rw['price']>0 && $rw['status']==Operacion::OR_STATUS_FILLED)
+            if ($rw['price']>0)
             {
+                if (&& $rw['status']==Operacion::OR_STATUS_FILLED)
                 $porc = toDec((($symbolPrice/$rw['price'])-1)*100);
                 $refUSD = toDec(($usd * $porc) / 100);
                 $row[] = '<span class="'.($porc<0?'text-danger':'text-success').'" title="'.$refUSD.'">'.$porc.'%</span>';

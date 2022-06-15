@@ -659,9 +659,10 @@ class BotAjax extends ControllerAjax
         $opr = new Operacion($_REQUEST['idoperacion']);
         $dg = New HtmlTableDg();
 
-        $api = new BinanceAPI($ak,$as); 
-        $symbolData = $api->getSymbolData($opr->get('symbol'));
-        $quoteAsset = $symbolData['quoteAsset'];
+        $tck = new Ticker();
+        $symbolData = $tck->getSymbolData($opr->get('symbol'));
+        $symbolPrice = $symbolData['price'];
+
 
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
         $dg->addHeader('Tipo');
@@ -675,7 +676,7 @@ class BotAjax extends ControllerAjax
         {
             if ($rw['completed'])
             {
-                $usdDecs = ($symbolData['qtyDecs']>$symbolData['qtyDecsPrice']?$symbolData['qtyDecs']:$symbolData['qtyDecsPrice']);
+                $usdDecs = $symbolData['qtyDecsQuote'];
                 $usd = toDec($rw['origQty']*$rw['price'],$usdDecs);
 
                 $link = '<a href="app.bot.verOrden+symbol='.$opr->get('symbol').'&orderId='.$rw['orderId'].'" target="_blank" label="'.$rw['orderId'].'">'.$rw['sideStr'].'</a>';
