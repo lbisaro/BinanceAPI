@@ -370,5 +370,93 @@ class CriptoController extends Controller
     }
 
 
+    function checkVentas($auth)
+    {
+        $this->addTitle('Check Ventas');
+        
+        if ($auth->get('idusuario') == 1)
+        {
+            $tickers['ARUSDT']['sellPrice'] = 8.44;
+            $tickers['ARUSDT']['sellQty'] = 62.76;
+            $tickers['AVAXUSDT']['sellPrice'] = 14.84;
+            $tickers['AVAXUSDT']['sellQty'] = 12.58;
+            $tickers['DOTUSDT']['sellPrice'] = 6.47;
+            $tickers['DOTUSDT']['sellQty'] = 40.62;
+            $tickers['GLMRUSDT']['sellPrice'] = 0.8389;
+            $tickers['GLMRUSDT']['sellQty'] = 148.3;
+            $tickers['GRTUSDT']['sellPrice'] = 0.0981;
+            $tickers['GRTUSDT']['sellQty'] = 2406;
+            $tickers['LINKUSDT']['sellPrice'] = 5.41;
+            $tickers['LINKUSDT']['sellQty'] = 65.12;
+            $tickers['MANAUSDT']['sellPrice'] = 0.7602;
+            $tickers['MANAUSDT']['sellQty'] = 853.0;
+            $tickers['MATICUSDT']['sellPrice'] = 0.413;
+            $tickers['MATICUSDT']['sellQty'] = 1673.4;
+            $tickers['NEARUSDT']['sellPrice'] = 3.159;
+            $tickers['NEARUSDT']['sellQty'] = 84.9;
+            $tickers['OCEANUSDT']['sellPrice'] = 0.1837;
+            $tickers['OCEANUSDT']['sellQty'] = 3023;
+            $tickers['SOLUSDT']['sellPrice'] = 26.64;
+            $tickers['SOLUSDT']['sellQty'] = 5.67;
+            $tickers['THETAUSDT']['sellPrice'] = 0.962;
+            $tickers['THETAUSDT']['sellQty'] = 266.6;
+            $tickers['TRXUSDT']['sellPrice'] = 0.05447;
+            $tickers['TRXUSDT']['sellQty'] = 20940;
+        }
+        elseif ($auth->get('idusuario') == 2) 
+        {
+            $tickers['ARUSDT']['sellPrice'] = 8.575;
+            $tickers['ARUSDT']['sellQty'] = 141.61;
+            $tickers['AVAXUSDT']['sellPrice'] = 14.94;
+            $tickers['AVAXUSDT']['sellQty'] = 61.17;
+            $tickers['MATICUSDT']['sellPrice'] = 0.415;
+            $tickers['MATICUSDT']['sellQty'] = 3699.9;
+            $tickers['THETAUSDT']['sellPrice'] = 0.986;
+            $tickers['THETAUSDT']['sellQty'] = 2347.8;
+        }
+
+        $api = new BinanceAPI();
+        $prices = $api->prices();
+        
+        foreach ($tickers as $ticker => $rw)
+        {
+            $tickers[$ticker]['price'] = $prices[$ticker];
+            $tickers[$ticker]['sellUSD'] = toDec($rw['sellPrice']*$rw['sellQty']);
+            $tickers[$ticker]['porc'] = toDec((($prices[$ticker]/$rw['sellPrice'])-1)*100);   
+        }
+
+        $dg = new HtmlTableDg();
+        $dg->addHeader('Ticker');
+        $dg->addHeader('OP Venta');
+        $dg->addHeader('USD Venta');
+        $dg->addHeader('Cambio');
+        $dg->addHeader('USD Actual');
+        $totUSDVenta = 0;
+        $totUSDActual = 0;
+        foreach ($tickers as $ticker => $rw)
+        {
+            $usdActual = toDec($rw['price']*$rw['sellQty']);
+            $row = array($ticker,
+                         $rw['sellPrice'].' x '.$rw['sellQty'],
+                         $rw['sellUSD'],
+                         '<span class="text-'.($rw['porc']>0?'success':'danger').'">'.$rw['porc'].'%</span>',
+                         $usdActual
+                        );
+            $totUSDVenta += $rw['sellUSD'];
+            $totUSDActual += $usdActual;
+            $dg->addRow($row);
+        }
+        $dg->addFooter(array('Totales','',toDec($totUSDVenta),'',toDec($totUSDActual)),'table-secondary');
+
+
+    
+        $arr['data'] = $dg->get();
+        $arr['hidden'] = '';
+    
+        $this->addView('ver',$arr);
+    }
+    
+    
+
     
 }

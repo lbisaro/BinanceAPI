@@ -26,6 +26,9 @@
   <body>
     <script type="text/javascript">
         $(document).ready( function () {
+        $('table.DG tfoot tr td').each(function () {
+            $(this).css('font-weight','bolder');
+        })
         {{onloadJs}}
 
 

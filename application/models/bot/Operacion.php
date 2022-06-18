@@ -527,6 +527,7 @@ class Operacion extends ModelDB
                 
 
                 //Actualizar el multiplicador de porcentaje si esta seteado en AUTO, y si la moneda esta seteada en Ticker
+                /*
                 if ($this->data['multiplicador_porc_auto'])
                 {
                     $tck = new Ticker($symbol);
@@ -543,6 +544,7 @@ class Operacion extends ModelDB
                         self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
                     }
                 }
+                */
 
                 return true;
             } catch (Throwable $e) {
