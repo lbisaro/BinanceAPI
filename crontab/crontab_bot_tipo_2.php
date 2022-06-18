@@ -161,7 +161,7 @@ foreach ($operaciones as $operacion)
             }
 
             //Obteniendo datos de ordenes anteriores
-            $dbOrders = $opr->getOrdenes();
+            $dbOrders = $opr->getOrdenes($enCurso=true,$order='idoperacionorden');
 
             $lastSellPrice=0;
             $totQuoteSelled=0;
@@ -245,10 +245,7 @@ foreach ($operaciones as $operacion)
                     $multiplicador_porc = $multiplicador_porc*$maxVentaNum; 
                 $newBase = $lastBaseSelled*$opr->get('multiplicador_compra');
                 $newPrice = toDec($lastSellPrice + ( ($lastSellPrice * $multiplicador_porc) / 100 ),$symbolData['qtyDecsPrice']);
-                $newQty = toDec(($newBase/$newPrice),($symbolData['qtyDecs']*1));
-                echo "\nnewBase: ".$newBase;
-                echo "\newPrice: ".$newPrice;
-                echo "\newQty: ".$newQty;
+                $newQty = toDec($newBase,($symbolData['qtyDecs']*1));
     
                 // Condiciones para crear orden de venta
                 //  Hay billetera para comprar
