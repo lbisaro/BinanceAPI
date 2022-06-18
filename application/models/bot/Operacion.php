@@ -577,7 +577,7 @@ class Operacion extends ModelDB
                 $ins = 'INSERT INTO operacion_orden (idoperacion,side,origQty,price,orderId) VALUES '.$ins;
                 $this->db->query($ins);
                 $msg = ' START ORDER Sell -> Qty:'.$qty.' Price: MARKET';
-                self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=true);
+                self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
                 
 
                 //Actualizar el multiplicador de porcentaje si esta seteado en AUTO, y si la moneda esta seteada en Ticker

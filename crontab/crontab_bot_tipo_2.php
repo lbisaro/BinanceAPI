@@ -174,7 +174,7 @@ foreach ($operaciones as $operacion)
                 {
                     $lastSellPrice = $order['price'];
                     
-                    $lastBaseSelled = ($order['origQty']*$order['price']);
+                    $lastBaseSelled = $order['origQty'];
                     
                     $totUnitsSelled += $order['origQty'];
                     $totQuoteSelled += ($order['origQty']*$order['price']);
@@ -255,7 +255,7 @@ foreach ($operaciones as $operacion)
                 
                 if ($opr->get('capital_usd')>0 && ($totUnitsSelled+$newBase) > $opr->get('capital_usd'))
                 {
-                    $msg = ' Stop -> LIMITE DE CAPITAL '.$opr->get('capital_usd').' '.$symbolData['quoteAsset'].' -> Qty:'.$newQty.' Price:'.$newPrice.' Total '.$symbolData['quoteAsset'].':'.($totBaseBuyed+$newBase);
+                    $msg = ' Stop -> LIMITE DE CAPITAL '.$opr->get('capital_usd').' '.$symbolData['quoteAsset'].' -> Qty:'.$newQty.' Price:'.$newPrice.' Total '.$symbolData['baseAsset'].':'.($totUnitsSelled+$newBase);
                     Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.'  '.$msg);
                     //Se omite la compra por superar el limite de capital de la operacion (si esta seteado)
                     //No se agrega al Log para no generar cantidad de registros sin sentido
