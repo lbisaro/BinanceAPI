@@ -243,10 +243,12 @@ foreach ($operaciones as $operacion)
                 $multiplicador_porc = $opr->get('multiplicador_porc');
                 if ($opr->get('multiplicador_porc_inc'))
                     $multiplicador_porc = $multiplicador_porc*$maxVentaNum; 
-                
                 $newBase = $lastBaseSelled*$opr->get('multiplicador_compra');
                 $newPrice = toDec($lastSellPrice + ( ($lastSellPrice * $multiplicador_porc) / 100 ),$symbolData['qtyDecsPrice']);
                 $newQty = toDec(($newBase/$newPrice),($symbolData['qtyDecs']*1));
+                echo "\nnewBase: ".$newBase;
+                echo "\newPrice: ".$newPrice;
+                echo "\newQty: ".$newQty;
     
                 // Condiciones para crear orden de venta
                 //  Hay billetera para comprar
