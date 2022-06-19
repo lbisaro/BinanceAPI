@@ -96,7 +96,7 @@ class CriptoController extends Controller
             $balance=array();
             foreach ($account['balances'] as $rw)
             {
-                if ((substr($rw['asset'],0,3)=='USD' || substr($rw['asset'],-3)=='USD' || substr($rw['asset'],0,3)=='EUR') && ($rw['free'] > 0 || $rw['locked'] > 0 ) )
+                if ((substr($rw['asset'],0,3)=='USD' || substr($rw['asset'],-3)=='USD' ) && ($rw['free'] > 0 || $rw['locked'] > 0 ) )
                 {
                     $rw['free'] = toDec($rw['free'],2);
                     $rw['locked'] = toDec($rw['locked'],2);
