@@ -414,6 +414,15 @@ class CriptoController extends Controller
             $tickers['THETAUSDT']['sellPrice'] = 0.986;
             $tickers['THETAUSDT']['sellQty'] = 2347.8;
         }
+        elseif ($auth->get('idusuario') == 7) 
+        {
+            $tickers['DOTUSDT']['sellPrice'] = 7.22;
+            $tickers['DOTUSDT']['sellQty'] = 6.44;
+            $tickers['MATICUSDT']['sellPrice'] = 0.361;
+            $tickers['MATICUSDT']['sellQty'] = 66;
+            $tickers['THETABUSD']['sellPrice'] = 1.211;
+            $tickers['THETABUSD']['sellQty'] = 137;
+        }
 
         $api = new BinanceAPI();
         $prices = $api->prices();
