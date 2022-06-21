@@ -1127,6 +1127,8 @@ class Operacion extends ModelDB
                 $data[$rw['idoperacion']]['quote'] = 0;
                 $data[$rw['idoperacion']]['base_decs'] = $rw['base_decs'];
                 $data[$rw['idoperacion']]['quote_decs'] = $rw['quote_decs'];
+                $data[$rw['idoperacion']]['base_asset'] = $rw['base_asset'];
+                $data[$rw['idoperacion']]['quote_asset'] = $rw['quote_asset'];
 
                 
             }

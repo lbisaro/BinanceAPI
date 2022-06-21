@@ -514,8 +514,7 @@ class BotController extends Controller
         $dg->addHeader('Dias Operando');
         $dg->addHeader('Capital');
         $dg->addHeader('Destino Ganancia');
-        $dg->addHeader('Ganancia Base');
-        $dg->addHeader('Ganancia Quote');
+        $dg->addHeader('Ganancia');
         $dg->addHeader('% Ganancia');
         foreach ($data as $rw)
         {
@@ -524,8 +523,12 @@ class BotController extends Controller
             $row[] = diferenciaFechas($rw['inicio'],date('Y-m-d H:i:s'));
             $row[] = $rw['capital_asset'].' '.toDec($rw['capital'],$rw['capital_decs']);
             $row[] = $rw['asset_profit'];
-            $row[] = toDec($rw['base'],$rw['base_decs']);
-            $row[] = toDec($rw['quote'],$rw['quote_decs']);
+            if ($rw['base_asset']==$rw['asset_profit'])
+                $row[] = $rw['base_asset'].' '.toDec($rw['base'],$rw['base_decs']).
+                         ($rw['quote']!=0 ?' ('.$rw['quote_asset'].' '.toDec($rw['quote'],$rw['quote_decs']).')':'');
+            else
+                $row[] = $rw['quote_asset'].' '.toDec($rw['quote'],$rw['quote_decs']).
+                         ($rw['base']!=0 ?' ('.$rw['base_asset'].' '.toDec($rw['base'],$rw['base_decs']).')':'');
             $row[] = $rw['porc_ganancia'].'%';
 
             $dg->addRow($row);
