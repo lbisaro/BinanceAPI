@@ -871,7 +871,7 @@ class Operacion extends ModelDB
         return $data;
     }    
 
-    function getPnlDiario()
+    function getPnlDiario($idoperacion=null)
     {
         $auth = UsrUsuario::getAuthInstance();
         $idusuario = $auth->get('idusuario');
@@ -888,6 +888,8 @@ class Operacion extends ModelDB
                 LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion 
                 LEFT JOIN tickers ON tickers.tickerid = operacion.symbol
                 WHERE operacion.idusuario = ".$idusuario." AND operacion_orden.completed = 1 AND year(pnlDate)>=".date('Y')." AND month(pnlDate)>=".date('m');
+        if ($idoperacion)
+            $qry .= ' AND idoperacion = '.$idoperacion;
         $stmt = $this->db->query($qry);
         $data=array();
         $data['assets'] = array();
@@ -975,8 +977,7 @@ class Operacion extends ModelDB
         return $data;
     }
 
-
-    function getPnlMensual()
+    function getPnlMensual($idoperacion=null)
     {
         $auth = UsrUsuario::getAuthInstance();
         $idusuario = $auth->get('idusuario');
@@ -993,6 +994,8 @@ class Operacion extends ModelDB
                 LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion 
                 LEFT JOIN tickers ON tickers.tickerid = operacion.symbol
                 WHERE operacion.idusuario = ".$idusuario." AND operacion_orden.completed = 1";
+        if ($idoperacion)
+            $qry .= ' AND idoperacion = '.$idoperacion;
         $stmt = $this->db->query($qry);
         $data=array();
         $data['assets'] = array();
@@ -1071,6 +1074,85 @@ class Operacion extends ModelDB
                 unset($data['assets'][$asset]);
                 unset($data['assets_decs'][$asset]);
             }
+        }
+
+        return $data;
+    }
+
+    function getPnlOperacion($idoperacion=null)
+    {
+        $auth = UsrUsuario::getAuthInstance();
+        $idusuario = $auth->get('idusuario');
+        $qry = "SELECT operacion.*,
+                       updated,
+                       pnlDate,
+                       side, 
+                       price,
+                       origQty,
+                       tickers.base_asset,
+                       tickers.quote_asset,
+                       tickers.qty_decs_units as base_decs,
+                       tickers.qty_decs_price as quote_decs
+                FROM operacion_orden 
+                LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion 
+                LEFT JOIN tickers ON tickers.tickerid = operacion.symbol
+                WHERE operacion.idusuario = ".$idusuario." AND operacion_orden.completed = 1";
+        if ($idoperacion)
+            $qry .= ' AND idoperacion = '.$idoperacion;
+        $qry .= ' ORDER BY operacion_orden.pnlDate, operacion_orden.updated';
+        $stmt = $this->db->query($qry);
+        $data=array();
+        while ($rw = $stmt->fetch())
+        {
+            if (!isset($data[$rw['idoperacion']]))
+            {
+
+                $data[$rw['idoperacion']]['symbol'] = $rw['symbol'];
+                $data[$rw['idoperacion']]['capital'] = $rw['capital_usd'];
+                if ($rw['tipo']==self::OP_TIPO_APLSHRT)
+                {
+                    $data[$rw['idoperacion']]['capital_asset'] = $rw['quote_asset'];
+                    $data[$rw['idoperacion']]['capital_decs'] = $rw['quote_decs'];
+                }
+                else
+                {
+                    $data[$rw['idoperacion']]['capital_asset'] = $rw['base_asset'];
+                    $data[$rw['idoperacion']]['capital_decs'] = $rw['base_decs'];
+                }
+                $data[$rw['idoperacion']]['inicio'] = $rw['updated'];
+                $data[$rw['idoperacion']]['strTipo'] = $this->getTipoOperacion($rw['tipo'],$nombreCorto=true);
+                $data[$rw['idoperacion']]['destino_profit'] = $rw['destino_profit'];
+                $data[$rw['idoperacion']]['asset_profit'] = ($rw['destino_profit']==self::OP_DESTINO_PROFIT_QUOTE?$rw['quote_asset']:$rw['base_asset']);
+                $data[$rw['idoperacion']]['base'] = 0;
+                $data[$rw['idoperacion']]['quote'] = 0;
+                $data[$rw['idoperacion']]['base_decs'] = $rw['base_decs'];
+                $data[$rw['idoperacion']]['quote_decs'] = $rw['quote_decs'];
+
+                
+            }
+            if ($rw['side']==self::SIDE_BUY)
+            {
+                $data[$rw['idoperacion']]['base']  += $rw['origQty'];
+                $data[$rw['idoperacion']]['quote'] += (-$rw['origQty'])*$rw['price'];
+            }
+            else
+            {
+                $data[$rw['idoperacion']]['base']  += -$rw['origQty'];
+                $data[$rw['idoperacion']]['quote'] += $rw['origQty']*$rw['price'];
+            }
+        }
+
+        //Eliminando datos aproximados a 0
+        foreach ($data as $idoperacion => $rw)
+        {
+            if (toDec($rw['base'],$data['base_decs']) == 0)
+                $data[$idoperacion]['base'] = 0;
+            if (toDec($rw['quote'],$data['quote_decs']) == 0)
+                $data[$idoperacion]['quote'] = 0;
+            if ($rw['destino_profit']==self::OP_DESTINO_PROFIT_QUOTE)
+                $data[$idoperacion]['porc_ganancia'] = toDec(($data[$idoperacion]['quote']/$data[$idoperacion]['capital'])*100);
+            else
+                $data[$idoperacion]['porc_ganancia'] = toDec(($data[$idoperacion]['base']/$data[$idoperacion]['capital'])*100);
         }
 
         return $data;
@@ -1672,4 +1754,14 @@ class Operacion extends ModelDB
             $decs = $this->presetDecs[$asset];
         return $decs;
     }   
+
+    function isShort()
+    {
+        return ($this->data['tipo'] == self::OP_TIPO_APLSHRT);
+    }
+
+    function isLong()
+    {
+        return ($this->data['tipo'] != self::OP_TIPO_APLSHRT);
+    }
 }
