@@ -513,7 +513,7 @@ class BotController extends Controller
         $dg->addHeader('Operacion');
         $dg->addHeader('Dias Operando');
         $dg->addHeader('Capital');
-        $dg->addHeader('Destino Ganancia');
+        //$dg->addHeader('Destino Ganancia');
         $dg->addHeader('Ganancia');
         $dg->addHeader('% Ganancia');
         foreach ($data as $rw)
@@ -522,7 +522,7 @@ class BotController extends Controller
             $row[] = $rw['symbol'].' '.$rw['strTipo'];
             $row[] = diferenciaFechas($rw['inicio'],date('Y-m-d H:i:s'));
             $row[] = $rw['capital_asset'].' '.toDec($rw['capital'],$rw['capital_decs']);
-            $row[] = $rw['asset_profit'];
+            //$row[] = $rw['asset_profit'];
             if ($rw['base_asset']==$rw['asset_profit'])
                 $row[] = $rw['base_asset'].' '.toDec($rw['base'],$rw['base_decs']).
                          ($rw['quote']!=0 ?' ('.$rw['quote_asset'].' '.toDec($rw['quote'],$rw['quote_decs']).')':'');
