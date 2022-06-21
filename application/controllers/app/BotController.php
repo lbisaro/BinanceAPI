@@ -506,6 +506,32 @@ class BotController extends Controller
         //Revision de estadisticas Diaria y Mensual
 
 
+        //PNL por Operacion
+        $data = $opr->getPnlOperacion();
+        unset($dg);
+        $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
+        $dg->addHeader('Operacion');
+        $dg->addHeader('Dias Operando');
+        $dg->addHeader('Capital');
+        $dg->addHeader('Destino Ganancia');
+        $dg->addHeader('Ganancia Base');
+        $dg->addHeader('Ganancia Quote');
+        $dg->addHeader('% Ganancia');
+        foreach ($data as $rw)
+        {
+            $row = array();
+            $row[] = $rw['symbol'].' '.$rw['strTipo'];
+            $row[] = diferenciaFechas($rw['inicio'],date('Y-m-d H:i:s'));
+            $row[] = $rw['capital_asset'].' '.toDec($rw['capital'],$rw['capital_decs']);
+            $row[] = $rw['asset_profit'];
+            $row[] = toDec($rw['base'],$rw['base_decs']);
+            $row[] = toDec($rw['quote'],$rw['quote_decs']);
+            $row[] = $rw['porc_ganancia'].'%';
+
+            $dg->addRow($row);
+        }
+        $arr['lista'] .= '<h4 class="text-info">PNL Operaciones</h4>'.$dg->get();
+        
         //PNL Diario
         $data = $opr->getPnlDiario();
 
@@ -554,33 +580,6 @@ class BotController extends Controller
         $dg->addFooter($row,'font-weight-bold');
 
         $arr['lista'] .= '<h4 class="text-info">PNL Diario</h4>'.$dg->get();
-
-        //PNL por Operacion
-        $data = $opr->getPnlOperacion();
-        unset($dg);
-        $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
-        $dg->addHeader('Operacion');
-        $dg->addHeader('Dias Operando');
-        $dg->addHeader('Capital');
-        $dg->addHeader('Destino Ganancia');
-        $dg->addHeader('Ganancia Base');
-        $dg->addHeader('Ganancia Quote');
-        $dg->addHeader('% Ganancia');
-        foreach ($data as $rw)
-        {
-            $row = array();
-            $row[] = $rw['symbol'].' '.$rw['strTipo'];
-            $row[] = diferenciaFechas($rw['inicio'],date('Y-m-d H:i:s'));
-            $row[] = $rw['capital_asset'].' '.toDec($rw['capital'],$rw['capital_decs']);
-            $row[] = $rw['asset_profit'];
-            $row[] = toDec($rw['base'],$rw['base_decs']);
-            $row[] = toDec($rw['quote'],$rw['quote_decs']);
-            $row[] = $rw['porc_ganancia'].'%';
-
-            $dg->addRow($row);
-        }
-        $arr['lista'] .= '<h4 class="text-info">PNL Operaciones</h4>'.$dg->get();
-        
 
 
         //PNL Mensual
