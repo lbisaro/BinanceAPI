@@ -883,7 +883,7 @@ class Operacion extends ModelDB
                        tickers.base_asset,
                        tickers.quote_asset,
                        tickers.qty_decs_units as base_decs,
-                       tickers.qty_decs_price as quote_decs
+                       tickers.qty_decs_quote as quote_decs
                 FROM operacion_orden 
                 LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion 
                 LEFT JOIN tickers ON tickers.tickerid = operacion.symbol
@@ -989,7 +989,7 @@ class Operacion extends ModelDB
                        tickers.base_asset,
                        tickers.quote_asset,
                        tickers.qty_decs_units as base_decs,
-                       tickers.qty_decs_price as quote_decs
+                       tickers.qty_decs_quote as quote_decs
                 FROM operacion_orden 
                 LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion 
                 LEFT JOIN tickers ON tickers.tickerid = operacion.symbol
@@ -1092,7 +1092,7 @@ class Operacion extends ModelDB
                        tickers.base_asset,
                        tickers.quote_asset,
                        tickers.qty_decs_units as base_decs,
-                       tickers.qty_decs_price as quote_decs
+                       tickers.qty_decs_quote as quote_decs
                 FROM operacion_orden 
                 LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion 
                 LEFT JOIN tickers ON tickers.tickerid = operacion.symbol
