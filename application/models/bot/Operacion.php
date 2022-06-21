@@ -1147,10 +1147,10 @@ class Operacion extends ModelDB
         //Eliminando datos aproximados a 0
         foreach ($data as $idoperacion => $rw)
         {
-            //if (toDec($rw['base'],$data['base_decs']) == 0)
-            //    $data[$idoperacion]['base'] = 0;
-            //if (toDec($rw['quote'],$data['quote_decs']) == 0)
-            //    $data[$idoperacion]['quote'] = 0;
+            if (toDec($rw['base'],$data['base_decs']) == 0)
+                $data[$idoperacion]['base'] = 0;
+            if (toDec($rw['quote'],$data['quote_decs']) == 0)
+                $data[$idoperacion]['quote'] = 0;
             if ($rw['destino_profit']==self::OP_DESTINO_PROFIT_QUOTE)
                 $data[$idoperacion]['porc_ganancia'] = toDec(($data[$idoperacion]['quote']/$data[$idoperacion]['capital'])*100);
             else
