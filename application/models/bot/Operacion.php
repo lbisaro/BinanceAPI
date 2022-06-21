@@ -1096,7 +1096,7 @@ class Operacion extends ModelDB
                 FROM operacion_orden 
                 LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion 
                 LEFT JOIN tickers ON tickers.tickerid = operacion.symbol
-                WHERE operacion.idusuario = ".$idusuario." AND operacion_orden.completed = 1";
+                WHERE operacion.stop<1 AND operacion.idusuario = ".$idusuario." AND operacion_orden.completed = 1";
         if ($idoperacion)
             $qry .= ' AND idoperacion = '.$idoperacion;
         $qry .= ' ORDER BY operacion_orden.pnlDate, operacion_orden.updated';
