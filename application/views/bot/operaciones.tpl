@@ -3,7 +3,7 @@
       <li class="nav-item">
         <a href="app.bot.crearOperacion+" class="nav-link " >Nueva <b>Operacion Estandard</b></a>
       </li>
-      <li class="nav-item menu-admin">
+      <li class="nav-item">
         <a href="app.bot.crearOperacion+tipo=1" class="nav-link " >Nueva <b class="text-success">Martingala LONG</b></a>
       </li>
       <li class="nav-item menu-admin">
