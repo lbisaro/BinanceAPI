@@ -152,72 +152,83 @@ class CriptoController extends Controller
             $arr['tab_billetera'] = $dg->get();
 
 
-            //Gestion del capital
+            //Gestion del capital 
+            $gdc = $opr->gestionDelCapital();
+
             unset($dg);
             $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
             $dg->addHeader('Operacion');
-            $dg->addHeader('Capital<br>USD',null,null,'right');
-            $dg->addHeader('Comprado<br>USD',null,null,'right');
-            $dg->addHeader('Bloqueado<br>USD',null,null,'right');
-            $dg->addHeader('Remanente<br>USD',null,null,'right');
-            $dg->addHeader('Venta<br>%',null,null,'right');
-
-            $gdc = $opr->gestionDelCapital();
-            
-            $autoRestartOffIcon = '<span class="badge badge-danger"><span class="glyphicon glyphicon-ban-circle"></span></span> ';
-            $autoRestartOnIcon = '';//'<span class="badge badge-success"><span class="glyphicon glyphicon-ok"></span></span>';
-            
-            $total = array();
-            $total['capital'] = 0;
-            $total['comprado'] = 0;
-            $total['bloqueado'] = 0;
-            $total['remanente'] = 0;
+            $dg->addHeader('Capital',null,null,'right');
+            $dg->addHeader('Ejecutado',null,null,'right');
+            $dg->addHeader('Bloqueado',null,null,'right');
+            $dg->addHeader('Remanente',null,null,'right');
+            $remanente = array();
             if (!empty($gdc))
             {
+                //LONG
                 foreach ($gdc as $idoperacion=>$rw)
                 {
-                    $symbolStr = '<span class="text-'.($rw['auto_restart']?'primary':'secondary').'">'.$rw['symbol'].'</span>'.' <small>[#'.$rw['idoperacion'].']</small>';
-                    $row = array($symbolStr,
-                                 toDec($rw['capital']),
-                                 toDec($rw['comprado']),
-                                 toDec($rw['bloqueado']),
-                                 toDec($rw['remanente']),
-                                 toDec($rw['porc_venta'])
-                                 );
-                    $dg->addRow($row);
-                    $total['capital'] += $rw['capital'];
-                    $total['comprado'] += $rw['comprado'];
-                    $total['bloqueado'] += $rw['bloqueado'];
-                    $total['remanente'] += $rw['remanente'];
+                    if ($rw['is_long'])
+                    {
+
+                        $symbolStr = $rw['symbol'].' <span class="text-success">'.$rw['strTipo'].'</span>'.' <small>[#'.$rw['idoperacion'].']</small>';
+                        $row = array($symbolStr,
+                                     $rw['capital_asset'].' '.toDec($rw['capital'],$rw['qty_decs_capital']),
+                                     $rw['quote_asset'].' '.toDec($rw['comprado'],$rw['qty_decs_quote']),
+                                     $rw['quote_asset'].' '.toDec($rw['en_compra'],$rw['qty_decs_quote']),
+                                     $rw['quote_asset'].' '.toDec($rw['remanente'],$rw['qty_decs_quote'])
+                                     );
+                        $dg->addRow($row);
+                        $remanente[$rw['quote_asset']]['importe'] += $rw['remanente'];
+                        $remanente[$rw['quote_asset']]['decs'] = $rw['qty_decs_quote'];
+                    }
                 }
-            }
 
-            $row = array('TOTAL',
-                         toDec($total['capital']),
-                         toDec($total['comprado']),
-                         toDec($total['bloqueado']),
-                         toDec($total['remanente']),
-                         '&nbsp;'
-                        );
-            $dg->addFooter($row);
-
-            $freeUSD=0;
-            foreach ($balance as $asset=>$rw)
-            {
-                if ((substr($asset,0,3)=='USD' || substr($asset,-3)=='USD') )
+                //SHORT
+                foreach ($gdc as $idoperacion=>$rw)
                 {
-                    $freeUSD += $rw['free'];
+                    if ($rw['is_short'])
+                    {
+                        $symbolStr = $rw['symbol'].' <span class="text-danger">'.$rw['strTipo'].'</span>'.' <small>[#'.$rw['idoperacion'].']</small>';
+                        $row = array($symbolStr,
+                                     $rw['capital_asset'].' '.toDec($rw['capital'],$rw['qty_decs_capital']),
+                                     $rw['base_asset'].' '.toDec($rw['vendido'],$rw['qty_decs_units']),
+                                     $rw['base_asset'].' '.toDec($rw['en_venta'],$rw['qty_decs_units']),
+                                     $rw['base_asset'].' '.toDec($rw['remanente'],$rw['qty_decs_units'])
+                                     );
+                        $dg->addRow($row);
+                        $remanente[$rw['base_asset']]['importe'] += $rw['remanente'];
+                        $remanente[$rw['base_asset']]['decs'] = $rw['qty_decs_units'];
+
+                    }
                 }
             }
 
-            $capitalFree = toDec($freeUSD-$total['remanente']);
-            $htmlResultado = '<h4 class="text-info">Analisis sobre la gestion del capital</h4>';
-            $htmlResultado .= '<p>Capital disponible: <b>USD '.toDec($freeUSD).'</b></p>';
-            $htmlResultado .= '<p>Remanente para ordenes de compra: <b>USD '.toDec($total['remanente']).'</b></p>';
-            $htmlResultado .= '<p>Capital libre para operaciones: <b class="'.($capitalFree<0?'text-danger':'text-success').'">USD '.$capitalFree.'</b></p>';
+            $arr['tab_capitalDisponible'] .= $dg->get();
 
-            $arr['tab_capitalDisponible'] = $dg->get();
-            $arr['tab_capitalDisponible_analisis'] = $htmlResultado;
+            if (!empty($remanente))
+            {
+                foreach ($account['balances'] as $rw)
+                    if(isset($remanente[$rw['asset']]))
+                        $remanente[$rw['asset']]['free'] = $rw['free'];
+                debug($remanente); 
+                unset($dg);
+                $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
+                $dg->addHeader('Token');
+                $dg->addHeader('Disponible');
+                $dg->addHeader('Remanente');
+                $dg->addHeader('Libre para operar');
+                foreach ($remanente as $asset => $rw)
+                {
+                    $row = array($asset,
+                                 toDec($rw['free'],$rw['decs']),
+                                 toDec($rw['importe'],$rw['decs']),
+                                 toDec($rw['free']-$rw['importe'],$rw['decs'])
+                                );
+                    $dg->addRow($row);
+                }
+                $arr['tab_capitalDisponible_analisis'] .= '<h4 class="text-info">Analisis sobre la gestion del capital</h4>'.$dg->get();
+            }
 
 
 
