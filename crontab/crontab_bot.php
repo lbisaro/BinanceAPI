@@ -32,7 +32,6 @@ $usuarios = $opr->getUsuariosActivos();
     
 foreach ($usuarios as $idusuario => $usuarioData)
 {
-    echo "\n".date('d/m/Y H:i:s').' '.$usr->get('username');
     try {
 
         if (isset($opr))
@@ -43,7 +42,9 @@ foreach ($usuarios as $idusuario => $usuarioData)
         $usr->load($idusuario);
         $ak = $usr->getConfig('bncak');
         $as = $usr->getConfig('bncas');
-
+        
+        echo "\n".date('d/m/Y H:i:s').' '.$usr->get('username');
+    
         if (isset($api))
             unset($api);
         $api = new BinanceAPI($ak,$as);      
