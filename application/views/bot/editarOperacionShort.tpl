@@ -35,7 +35,7 @@
         </div>
       </div>
 
-      <div class="form-group  menu-admin">
+      <div class="form-group">
         <div class="input-group mb-2">
             <select id="destino_profit" class="form-control form-control-sm">
               <option value="0" {{dp_selected_0}}>Obtener ganancias en {{quoteAsset}}</option>
@@ -157,7 +157,7 @@
                     <tr>
                         <th>&nbsp;</th>
                         <th>Precio de Venta</th>
-                        <th>% Sobre ultima centa </th>
+                        <th>% Sobre ultima venta </th>
                         <th>% Sobre venta Inicial</th>
                         <th>Venta {{baseAsset}}</th>
                         <th>Total Venta</th>

@@ -33,7 +33,7 @@
         </div>
       </div>
 
-      <div class="form-group  menu-admin">
+      <div class="form-group">
         <div class="input-group mb-2">
             <select id="destino_profit" class="form-control form-control-sm">
               <option value="0">Obtener ganancias en Quote</option>
