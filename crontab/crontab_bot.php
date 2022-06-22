@@ -32,6 +32,7 @@ $usuarios = $opr->getUsuariosActivos();
     
 foreach ($usuarios as $idusuario => $usuarioData)
 {
+    echo "\n".date('d/m/Y H:i:s').' '.$usr->get('username');
     try {
 
         if (isset($opr))
@@ -64,18 +65,18 @@ foreach ($usuarios as $idusuario => $usuarioData)
         
         //Operaciones de APALANCAMIENTO ESTANDARD
         $tipo = Operacion::OP_TIPO_APL;
-        echo "\n".date('d/m/Y H:i:s').' '.$usr->get('username')." ".$opr->getTipoOperacion($tipo);
+        //echo "\n".date('d/m/Y H:i:s').' '.$usr->get('username')." ".$opr->getTipoOperacion($tipo);
         include 'crontab_bot_tipo_0.php';
 
         //Operaciones tipo Martingala LONG
         $tipo = Operacion::OP_TIPO_APLCRZ;
-        echo "\n".date('d/m/Y H:i:s').' '.$usr->get('username')." ".$opr->getTipoOperacion($tipo);
+        //echo "\n".date('d/m/Y H:i:s').' '.$usr->get('username')." ".$opr->getTipoOperacion($tipo);
         include 'crontab_bot_tipo_1.php';
 
 
         //Operaciones tipo Martingala LONG
         $tipo = Operacion::OP_TIPO_APLSHRT;
-        echo "\n".date('d/m/Y H:i:s').' '.$usr->get('username')." ".$opr->getTipoOperacion($tipo);
+        //echo "\n".date('d/m/Y H:i:s').' '.$usr->get('username')." ".$opr->getTipoOperacion($tipo);
         include 'crontab_bot_tipo_2.php';
 
 
