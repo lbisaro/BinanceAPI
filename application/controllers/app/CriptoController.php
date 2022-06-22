@@ -211,7 +211,6 @@ class CriptoController extends Controller
                 foreach ($account['balances'] as $rw)
                     if(isset($remanente[$rw['asset']]))
                         $remanente[$rw['asset']]['free'] = $rw['free'];
-                debug($remanente); 
                 unset($dg);
                 $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
                 $dg->addHeader('Token');
