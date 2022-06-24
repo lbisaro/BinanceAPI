@@ -93,17 +93,11 @@ class Operacion extends ModelDB
         }
         if ($field == 'real_porc_venta_up')
         {
-            if ($this->data['porc_venta_up'] > 1)
-                return $this->data['porc_venta_up'];
-            else
-                return self::PORCENTAJE_VENTA_UP;
+            return $this->data['porc_venta_up'];
         }
         if ($field == 'real_porc_venta_down')
         {
-            if ($this->data['porc_venta_down'] > 1)
-                return $this->data['porc_venta_down'];
-            else
-                return self::PORCENTAJE_VENTA_DOWN;
+            return $this->data['porc_venta_down'];
         }
         if ($field == 'strPorcVenta')
         {
