@@ -512,7 +512,6 @@ class Operacion extends ModelDB
             $usd = $this->data['inicio_usd'];
             $qty = toDec($usd/$data['price'],$data['qtyDecs']);
             try {
-                
                 $order = $api->marketBuy($symbol, $qty);
                 $opr[1]['idoperacion']  = $this->data['idoperacion'];
                 $opr[1]['side']         = self::SIDE_BUY;
@@ -565,8 +564,6 @@ class Operacion extends ModelDB
         else //Venta
         {
             $qty = $this->data['inicio_usd'];
-            if ($qty*$data['price'] < 11)
-                $qty = 12/$data['price'];
             $qty = toDec($qty,$data['qtyDecs']);
             try {
                 $order = $api->marketSell($symbol, $qty);

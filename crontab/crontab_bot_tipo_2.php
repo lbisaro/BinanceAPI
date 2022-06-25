@@ -14,7 +14,6 @@ foreach ($operaciones as $operacion)
     $data['compra']=array();
     $data['venta']=array();
     
-
     $opr->reset();
     $opr->load($idoperacion);
 
@@ -73,7 +72,7 @@ foreach ($operaciones as $operacion)
         }
     }
 
-    if ($$ordenExpiradaenBinance)
+    if ($ordenExpiradaenBinance)
         continue;
 
     $ordenDesconocidaEnBinance = false;
@@ -330,7 +329,7 @@ foreach ($operaciones as $operacion)
     }
     else
     {
-
+            
         if ($opr->autoRestart() && $opr->canStart())
         {
             $opr->restart();
