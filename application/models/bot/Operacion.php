@@ -1668,72 +1668,78 @@ class Operacion extends ModelDB
         $auth = UsrUsuario::getAuthInstance();
         $idusuario = $auth->get('idusuario');
         $oprs = $this->getDataSet('idusuario = '.$idusuario.' AND stop<1','auto_restart DESC,tipo,symbol,idoperacion');
-        foreach ($oprs as $op)
+        if (!empty($oprs))
         {
-            $this->reset();
-            $this->set($op);
-            $data[$op['idoperacion']]['idoperacion']      = $op['idoperacion'];
-            $data[$op['idoperacion']]['symbol']           = $op['symbol'];
-            $data[$op['idoperacion']]['capital']          = $op['capital_usd'];
-            $data[$op['idoperacion']]['auto_restart']     = $op['auto_restart'];
-            $data[$op['idoperacion']]['stop']             = $op['stop'];
-            $data[$op['idoperacion']]['qty_decs_units']   = $op['qty_decs_units'];
-            $data[$op['idoperacion']]['qty_decs_quote']   = $op['qty_decs_quote'];
-            $data[$op['idoperacion']]['quote_asset']      = $op['quote_asset'];
-            $data[$op['idoperacion']]['base_asset']       = $op['base_asset'];
-          
-            $data[$op['idoperacion']]['qty_decs_capital'] = $this->get('qty_decs_capital');
-            $data[$op['idoperacion']]['capital_asset']    = $this->get('capital_asset');
+            foreach ($oprs as $op)
+            {
+                $this->reset();
+                $this->set($op);
+                $data[$op['idoperacion']]['idoperacion']      = $op['idoperacion'];
+                $data[$op['idoperacion']]['symbol']           = $op['symbol'];
+                $data[$op['idoperacion']]['capital']          = $op['capital_usd'];
+                $data[$op['idoperacion']]['auto_restart']     = $op['auto_restart'];
+                $data[$op['idoperacion']]['stop']             = $op['stop'];
+                $data[$op['idoperacion']]['qty_decs_units']   = $op['qty_decs_units'];
+                $data[$op['idoperacion']]['qty_decs_quote']   = $op['qty_decs_quote'];
+                $data[$op['idoperacion']]['quote_asset']      = $op['quote_asset'];
+                $data[$op['idoperacion']]['base_asset']       = $op['base_asset'];
+              
+                $data[$op['idoperacion']]['qty_decs_capital'] = $this->get('qty_decs_capital');
+                $data[$op['idoperacion']]['capital_asset']    = $this->get('capital_asset');
 
-            $data[$op['idoperacion']]['is_short']    = $this->isShort();
-            $data[$op['idoperacion']]['is_long']     = $this->isLong();
-            $data[$op['idoperacion']]['strTipo']     = $this->getTipoOperacion($this->data['tipo'],$nombreCorto=true);
+                $data[$op['idoperacion']]['is_short']    = $this->isShort();
+                $data[$op['idoperacion']]['is_long']     = $this->isLong();
+                $data[$op['idoperacion']]['strTipo']     = $this->getTipoOperacion($this->data['tipo'],$nombreCorto=true);
 
+            }
         }
 
         $oact = $this->getOrdenesActivas();
-        foreach ($oact as $orden)
+        if (!empty($oact))
         {
-            if ($data[$orden['idoperacion']]['is_long'])
+            foreach ($oact as $orden)
             {
-                $usd = $orden['price']*$orden['origQty'];
+                if ($data[$orden['idoperacion']]['is_long'])
+                {
+                    $usd = $orden['price']*$orden['origQty'];
+                    if ($orden['side']==self::SIDE_SELL)
+                        $usd = $usd*(-1);
+                }
+                else
+                {
+                    $usd = $orden['origQty'];
+                    if ($orden['side']==self::SIDE_BUY)
+                        $usd = $usd*(-1);
+                }
+
+
+                if (!isset($data[$orden['idoperacion']]['comprado']))
+                    $data[$orden['idoperacion']]['comprado']=0;
+                if (!isset($data[$orden['idoperacion']]['vendido']))
+                    $data[$orden['idoperacion']]['vendido']=0;
+                if (!isset($data[$orden['idoperacion']]['en_venta']))
+                    $data[$orden['idoperacion']]['en_venta']=0;
+                if (!isset($data[$orden['idoperacion']]['en_compra']))
+                    $data[$orden['idoperacion']]['en_compra']=0;
+
                 if ($orden['side']==self::SIDE_SELL)
-                    $usd = $usd*(-1);
-            }
-            else
-            {
-                $usd = $orden['origQty'];
+                {
+                    if ($orden['status'] == self::OR_STATUS_FILLED)
+                        $data[$orden['idoperacion']]['vendido'] += $usd;
+                    if ($orden['status'] == self::OR_STATUS_NEW) 
+                        $data[$orden['idoperacion']]['en_venta'] += $usd;
+                }
+
                 if ($orden['side']==self::SIDE_BUY)
-                    $usd = $usd*(-1);
+                {
+                    if ($orden['status'] == self::OR_STATUS_FILLED)
+                        $data[$orden['idoperacion']]['comprado'] += $usd;
+                    if ($orden['status'] == self::OR_STATUS_NEW) 
+                        $data[$orden['idoperacion']]['en_compra'] += $usd;
+                }
+
+
             }
-
-
-            if (!isset($data[$orden['idoperacion']]['comprado']))
-                $data[$orden['idoperacion']]['comprado']=0;
-            if (!isset($data[$orden['idoperacion']]['vendido']))
-                $data[$orden['idoperacion']]['vendido']=0;
-            if (!isset($data[$orden['idoperacion']]['en_venta']))
-                $data[$orden['idoperacion']]['en_venta']=0;
-            if (!isset($data[$orden['idoperacion']]['en_compra']))
-                $data[$orden['idoperacion']]['en_compra']=0;
-
-            if ($orden['side']==self::SIDE_SELL)
-            {
-                if ($orden['status'] == self::OR_STATUS_FILLED)
-                    $data[$orden['idoperacion']]['vendido'] += $usd;
-                if ($orden['status'] == self::OR_STATUS_NEW) 
-                    $data[$orden['idoperacion']]['en_venta'] += $usd;
-            }
-
-            if ($orden['side']==self::SIDE_BUY)
-            {
-                if ($orden['status'] == self::OR_STATUS_FILLED)
-                    $data[$orden['idoperacion']]['comprado'] += $usd;
-                if ($orden['status'] == self::OR_STATUS_NEW) 
-                    $data[$orden['idoperacion']]['en_compra'] += $usd;
-            }
-
-
         }
 
         foreach ($data as $idoperacion=>$op)
