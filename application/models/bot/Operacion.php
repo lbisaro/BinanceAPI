@@ -1101,9 +1101,12 @@ class Operacion extends ModelDB
                 FROM operacion_orden 
                 LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion 
                 LEFT JOIN tickers ON tickers.tickerid = operacion.symbol
-                WHERE operacion.stop<1 AND operacion.idusuario = ".$idusuario." AND operacion_orden.completed = 1";
+                WHERE operacion.idusuario = ".$idusuario." AND operacion_orden.completed = 1 ";
         if ($idoperacion)
-            $qry .= ' AND idoperacion = '.$idoperacion;
+            $qry .= ' AND operacion.idoperacion = '.$idoperacion.' ';
+        else
+            $qry .= ' AND operacion.stop<1 ';
+
         $qry .= ' ORDER BY operacion_orden.pnlDate, operacion_orden.updated';
         $stmt = $this->db->query($qry);
         $data=array();
@@ -1150,17 +1153,20 @@ class Operacion extends ModelDB
         }
 
         //Eliminando datos aproximados a 0
-        foreach ($data as $idoperacion => $rw)
+        foreach ($data as $id => $rw)
         {
             if (toDec($rw['base'],$rw['base_decs']) == 0)
-                $data[$idoperacion]['base'] = 0;
+                $data[$id]['base'] = 0;
             if (toDec($rw['quote'],$rw['quote_decs']) == 0)
-                $data[$idoperacion]['quote'] = 0;
+                $data[$id]['quote'] = 0;
             if ($rw['destino_profit']==self::OP_DESTINO_PROFIT_QUOTE)
-                $data[$idoperacion]['porc_ganancia'] = toDec(($data[$idoperacion]['quote']/$data[$idoperacion]['capital'])*100);
+                $data[$id]['porc_ganancia'] = toDec(($data[$id]['quote']/$data[$id]['capital'])*100);
             else
-                $data[$idoperacion]['porc_ganancia'] = toDec(($data[$idoperacion]['base']/$data[$idoperacion]['capital'])*100);
+                $data[$id]['porc_ganancia'] = toDec(($data[$id]['base']/$data[$id]['capital'])*100);
         }
+        
+        if ($idoperacion)
+            return $data[$idoperacion];
 
         return $data;
     }

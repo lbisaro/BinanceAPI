@@ -48,6 +48,14 @@
       <td>Recompra Automatica 
         <span class="data" colspan="2">{{auto-restart}}</td>
     </tr>
+    <tr>
+      <td>PNL</td>
+      <td colspan="2">
+        <div style="width:30%;display:inline-block;vertical-align:top;"><div class="text-info">Ordenes Abiertas</div>{{pnlAbiertas}}</div>
+        <div style="width:30%;display:inline-block;vertical-align:top;"><div class="text-info">Ordenes Completas</div>{{pnlCompletas}}</div>
+        <div style="width:30%;display:inline-block;vertical-align:top;"><div class="text-info">General</div>{{pnlGeneral}}</div>
+        </td>
+    </tr>
   </table>
 
   {{hidden}}

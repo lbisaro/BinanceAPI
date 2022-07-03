@@ -205,7 +205,7 @@ class BotController extends Controller
             $this->addError('No esta autorizado a visualizar esta pagina.');
             return false;
         }
-        
+
         $tck = new Ticker();
         $symbolData = $tck->getSymbolData($opr->get('symbol'));
         $symbolPrice = $symbolData['price'];
@@ -252,6 +252,7 @@ class BotController extends Controller
         {
             $arr['estado'] = '<b class="text-danger">APAGADO</b>';
         }
+
         if ($status==Operacion::OP_STATUS_READY)
         {
             if ($arr['tipo'] == Operacion::OP_TIPO_APLSHRT)
@@ -308,6 +309,7 @@ class BotController extends Controller
 
         $totVentas = 0;
         $gananciaUsd = 0;
+        $pnlAbiertas = 0;
         foreach ($ordenes as $rw)
         {
             $usdDecs = $symbolData['qtyDecsQuote'];
@@ -350,22 +352,72 @@ class BotController extends Controller
 
             $dg->addRow($row,$rw['sideClass'],null,null,$id='ord_'.$rw['orderId']);
 
-            if ($rw['completed'])
+            //PNL Abiertas
+            if ($rw['status'] == Operacion::OR_STATUS_FILLED)
             {
-                if ($rw['side']==Operacion::SIDE_SELL)
+                if ($opr->get('destino_profit') == Operacion::OP_DESTINO_PROFIT_QUOTE)
                 {
-                    $totVentas++;
-                    $gananciaUsd += $usd;
+                    if ($rw['side']==Operacion::SIDE_BUY)
+                    {
+                        $pnlAbiertas += ( (-$rw['origQty'])*$rw['price'] ) - ( (-$rw['origQty'])*$symbolPrice );
+                    }
+                    else
+                    {
+                        $pnlAbiertas += $rw['origQty']*$rw['price'] - $rw['origQty']*$symbolPrice;
+                    }
                 }
                 else
                 {
-                    $gananciaUsd -= $usd;
+                    if ($rw['side']==Operacion::SIDE_BUY)
+                    {
+                        $pnlAbiertas += ( ( (-$rw['origQty'])*$symbolPrice ) - ( (-$rw['origQty'])*$rw['price'] ) ) / $symbolPrice;
+                    }
+                    else
+                    {
+                        $pnlAbiertas += ( $rw['origQty']*$symbolPrice - $rw['origQty']*$rw['price'] ) / $symbolPrice;
+                    }
+                    
                 }
             }
 
         }
 
         $arr['ordenesActivas'] = $dg->get();
+
+        //PNL
+        $pnlOp = $opr->getPnlOperacion($idoperacion);
+
+        if ($pnlOp['base']!=0 || $pnlOp['quote']!=0 )
+        {
+            if ($opr->get('destino_profit') == Operacion::OP_DESTINO_PROFIT_QUOTE)
+            {
+                $arr['pnlAbiertas'] = $pnlOp['quote_asset'].' '.toDec($pnlAbiertas,$pnlOp['quote_decs']);
+                $arr['pnlAbiertas'] .= '<br>'.toDec(($pnlAbiertas/$opr->get('capital_usd'))*100).'%';
+
+                $arr['pnlCompletas'] = $pnlOp['quote_asset'].' '.toDec($pnlOp['quote'],$pnlOp['quote_decs']);
+                $arr['pnlCompletas'] .= '<br>'.toDec(($pnlOp['quote']/$opr->get('capital_usd'))*100).'%';
+
+                if ($pnlOp['base'] != 0)
+                    $arr['pnlCompletas'] .= '<br>'.$pnlOp['base_asset'].' '.toDec($pnlOp['base'],$pnlOp['base_decs']).'';
+                
+                $arr['pnlGeneral'] = $pnlOp['quote_asset'].' '.toDec($pnlOp['quote']+$pnlAbiertas,$pnlOp['quote_decs']);;
+                $arr['pnlGeneral'] .= '<br>'.toDec((($pnlOp['quote']+$pnlAbiertas)/$opr->get('capital_usd'))*100).'%';
+            }
+            else
+            {
+                $arr['pnlAbiertas'] = $pnlOp['base_asset'].' '.toDec($pnlAbiertas,$pnlOp['base_decs']);
+                $arr['pnlAbiertas'] .= '<br>'.toDec(($pnlAbiertas/$opr->get('capital_usd'))*100).'%';
+
+                $arr['pnlCompletas'] = $pnlOp['base_asset'].' '.toDec($pnlOp['base'],$pnlOp['base_decs']);
+                $arr['pnlCompletas'] .= '<br>'.toDec(($pnlOp['base']/$opr->get('capital_usd'))*100).'%';
+
+                if ($pnlOp['quote'] != 0)
+                    $arr['pnlCompletas'] .= '<br>'.$pnlOp['quote_asset'].' '.toDec($pnlOp['quote'],$pnlOp['quote_decs']).'';
+                
+                $arr['pnlGeneral'] = $pnlOp['base_asset'].' '.toDec($pnlOp['base']+$pnlAbiertas,$pnlOp['base_decs']);;
+                $arr['pnlGeneral'] .= '<br>'.toDec((($pnlOp['base']+$pnlAbiertas)/$opr->get('capital_usd'))*100).'%';
+            }
+        }
         
         if ($opr->status() == Operacion::OP_STATUS_ERROR)
             $arr['addButtons'] = '<a class="btn btn-danger btn-sm" href="app.bot.detenerOperacion+id={{idoperacion}}">Detener</a>';
