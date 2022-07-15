@@ -204,7 +204,7 @@ foreach ($operaciones as $operacion)
             {
                 //Venta obteniendo beneficios en Base
                 $newPrice = toDec($lastBuyPrice * (1+($porcentaje/100)),$symbolData['qtyDecsPrice']);
-                $newQty = toDecDown($lastQuoteBuyed / $newPrice,$symbolData['qtyDecs']);
+                $newQty = toDecDown($totQuoteBuyed / $newPrice,$symbolData['qtyDecs']);
             }
             
 
