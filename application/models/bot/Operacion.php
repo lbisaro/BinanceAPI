@@ -1824,4 +1824,47 @@ class Operacion extends ModelDB
     {
         return ($this->data['tipo'] != self::OP_TIPO_APLSHRT);
     }
+
+    function loadStartData()
+    {
+        $idoperacion = $this->data['idoperacion'];
+        if (!$idoperacion)
+            return null;
+        $qry = "SELECT min(updated) as start FROM operacion_orden WHERE idoperacion = '".$idoperacion."'";
+        $stmt = $this->db->query($qry);
+        $data = $stmt->fetch();
+
+        $data['start'] = substr($data['start'],0,16); //Se quitan los segundos
+        $startTime = date('U',strtotime($data['start'])).'000';
+        
+        $data['base_asset'] = $this->data['base_asset'];
+        $data['quote_asset'] = $this->data['quote_asset'];
+
+        $data['base_start_in_usd'] = 0;
+        $data['quote_start_in_usd'] = 0;
+        $usdAssets = array('USDT','BUSD','USDC');
+        if (in_array($data['base_asset'], $usdAssets))
+            $data['base_start_in_usd'] = 1;        
+        if (in_array($data['quote_asset'], $usdAssets))
+            $data['quote_start_in_usd'] = 1;
+
+        $api = new BinanceAPI();
+        if (!$data['base_start_in_usd'])
+        {
+            $klines = $api->candlesticks($data['base_asset'].'USDT', $interval = "1m", $limit = 1, $startTime );
+            $data['base_start_in_usd'] = $klines[$startTime]['close'];
+        }
+        if (!$data['quote_start_in_usd'])
+        {
+            $klines = $api->candlesticks($data['quote_asset'].'USDT', $interval = "1m", $limit = 1, $startTime );
+            $data['quote_start_in_usd'] = $klines[$startTime]['close'];
+        }
+
+        $upd = "UPDATE operacion SET start = '".$data['start']."',".
+                                   " base_start_in_usd = '".$data['base_start_in_usd']."', ".
+                                   " base_start_in_usd = '".$data['base_start_in_usd']."' ".
+                " WHERE idoperacion = ".$idoperacion;
+        $this->db->query($upd);        
+
+    }
 }

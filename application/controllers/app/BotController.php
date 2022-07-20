@@ -200,11 +200,16 @@ class BotController extends Controller
 
         $opr = new Operacion($idoperacion);
 
+
+
         if ($opr->get('idusuario') != $auth->get('idusuario'))
         {
             $this->addError('No esta autorizado a visualizar esta pagina.');
             return false;
         }
+
+        if (!$opr->get('start') || !$opr->get('base_start_in_usd') || !$opr->get('quote_start_in_usd'))
+            $opr->loadStartData();
 
         $tck = new Ticker();
         $symbolData = $tck->getSymbolData($opr->get('symbol'));
@@ -417,34 +422,49 @@ class BotController extends Controller
 
             if ($opr->get('destino_profit') == Operacion::OP_DESTINO_PROFIT_QUOTE)
             {
+                $strGanancia = $pnlOp['quote_asset'].' '.toDec($pnlOp['quote'],$pnlOp['quote_decs']);
+                $pnlOp['quoteFull'] = $pnlOp['quote'];
+                if ($pnlOp['base'] != 0)
+                {
+                    $pnlOp['quoteFull'] += $pnlOp['base']*$symbolPrice;
+                    $strGanancia .= ' + '.$pnlOp['base_asset'].' '.toDec($pnlOp['base'],$pnlOp['base_decs']).'';
+                }
+
                 $arr['pnlAbiertas'] = $pnlOp['quote_asset'].' '.toDec($pnlAbiertas,$pnlOp['quote_decs']);
                 $arr['pnlAbiertas'] .= '<br>'.toDec(($pnlAbiertas/$capitalReal)*100).'%';
 
-                $arr['pnlCompletas'] = $pnlOp['quote_asset'].' '.toDec($pnlOp['quote'],$pnlOp['quote_decs']);
-                $arr['pnlCompletas'] .= '<br>'.toDec(($pnlOp['quote']/$capitalReal)*100).'%';
-
+                $arr['pnlCompletas'] = $pnlOp['quote_asset'].' '.toDec($pnlOp['quoteFull'],$pnlOp['quote_decs']);
+                $arr['pnlCompletas'] .= '<br>'.toDec(($pnlOp['quoteFull']/$capitalReal)*100).'%';
                 if ($pnlOp['base'] != 0)
-                    $arr['pnlCompletas'] .= '<br>'.$pnlOp['base_asset'].' '.toDec($pnlOp['base'],$pnlOp['base_decs']).'';
+                    $arr['pnlCompletas'] .= '<br><small><i class="text-secondary">'.$strGanancia.'</i></small>';
                 
-                $arr['pnlGeneral'] = $pnlOp['quote_asset'].' '.toDec($pnlOp['quote']+$pnlAbiertas,$pnlOp['quote_decs']);;
-                $arr['pnlGeneral'] .= '<br>'.toDec((($pnlOp['quote']+$pnlAbiertas)/$capitalReal)*100).'%';
+                $arr['pnlGeneral'] = $pnlOp['quote_asset'].' '.toDec($pnlOp['quoteFull']+$pnlAbiertas,$pnlOp['quote_decs']);;
+                $arr['pnlGeneral'] .= '<br>'.toDec((($pnlOp['quoteFull']+$pnlAbiertas)/$capitalReal)*100).'%';
 
                 if ($pnlOp['base'] != 0)
                     $arr['pnlGeneral'] .= '<br>'.$pnlOp['base_asset'].' '.toDec($pnlOp['base'],$pnlOp['base_decs']).'';
             }
             else
             {
+                $strGanancia = $pnlOp['base_asset'].' '.toDec($pnlOp['base'],$pnlOp['base_decs']);
+                $pnlOp['baseFull'] = $pnlOp['base'];
+                if ($pnlOp['quote'] != 0)
+                {
+                    $pnlOp['baseFull'] += $pnlOp['quote']/$symbolPrice;
+                    $strGanancia .= ' + '.$pnlOp['quote_asset'].' '.toDec($pnlOp['quote'],$pnlOp['quote_decs']).'';
+                }
+
                 $arr['pnlAbiertas'] = $pnlOp['base_asset'].' '.toDec($pnlAbiertas,$pnlOp['base_decs']);
                 $arr['pnlAbiertas'] .= '<br>'.toDec(($pnlAbiertas/$capitalReal)*100).'%';
 
-                $arr['pnlCompletas'] = $pnlOp['base_asset'].' '.toDec($pnlOp['base'],$pnlOp['base_decs']);
-                $arr['pnlCompletas'] .= '<br>'.toDec(($pnlOp['base']/$capitalReal)*100).'%';
+                $arr['pnlCompletas'] = $pnlOp['base_asset'].' '.toDec($pnlOp['baseFull'],$pnlOp['base_decs']);
+                $arr['pnlCompletas'] .= '<br>'.toDec(($pnlOp['baseFull']/$capitalReal)*100).'%';
 
                 if ($pnlOp['quote'] != 0)
-                    $arr['pnlCompletas'] .= '<br>'.$pnlOp['quote_asset'].' '.toDec($pnlOp['quote'],$pnlOp['quote_decs']).'';
+                    $arr['pnlCompletas'] .= '<br><small><i class="text-secondary">'.$strGanancia.'</i></small>';
                 
-                $arr['pnlGeneral'] = $pnlOp['base_asset'].' '.toDec($pnlOp['base']+$pnlAbiertas,$pnlOp['base_decs']);;
-                $arr['pnlGeneral'] .= '<br>'.toDec((($pnlOp['base']+$pnlAbiertas)/$capitalReal)*100).'%';
+                $arr['pnlGeneral'] = $pnlOp['base_asset'].' '.toDec($pnlOp['baseFull']+$pnlAbiertas,$pnlOp['base_decs']);;
+                $arr['pnlGeneral'] .= '<br>'.toDec((($pnlOp['baseFull']+$pnlAbiertas)/$capitalReal)*100).'%';
 
                 if ($pnlOp['quote'] != 0)
                     $arr['pnlGeneral'] .= '<br>'.$pnlOp['quote_asset'].' '.toDec($pnlOp['quote'],$pnlOp['quote_decs']).'';
