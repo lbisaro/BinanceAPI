@@ -414,9 +414,10 @@ class BotController extends Controller
 
         if ($pnlOp['base']!=0 || $pnlOp['quote']!=0 )
         {
+
             $capitalReal = $opr->get('capital_usd');
             if ($opr->isLong() && $opr->get('destino_profit') != Operacion::OP_DESTINO_PROFIT_QUOTE)
-                $capitalReal = $opr->get('capital_usd')*$symbolPrice;
+                $capitalReal = $opr->get('capital_usd')/$symbolPrice;
             elseif ($opr->isShort() && $opr->get('destino_profit') == Operacion::OP_DESTINO_PROFIT_QUOTE)
                 $capitalReal = $opr->get('capital_usd')*$symbolPrice;
 
