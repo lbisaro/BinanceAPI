@@ -441,8 +441,6 @@ class BotController extends Controller
                 $arr['pnlGeneral'] = $pnlOp['quote_asset'].' '.toDec($pnlOp['quoteFull']+$pnlAbiertas,$pnlOp['quote_decs']);;
                 $arr['pnlGeneral'] .= '<br>'.toDec((($pnlOp['quoteFull']+$pnlAbiertas)/$capitalReal)*100).'%';
 
-                if ($pnlOp['base'] != 0)
-                    $arr['pnlGeneral'] .= '<br>'.$pnlOp['base_asset'].' '.toDec($pnlOp['base'],$pnlOp['base_decs']).'';
             }
             else
             {
@@ -466,8 +464,6 @@ class BotController extends Controller
                 $arr['pnlGeneral'] = $pnlOp['base_asset'].' '.toDec($pnlOp['baseFull']+$pnlAbiertas,$pnlOp['base_decs']);;
                 $arr['pnlGeneral'] .= '<br>'.toDec((($pnlOp['baseFull']+$pnlAbiertas)/$capitalReal)*100).'%';
 
-                if ($pnlOp['quote'] != 0)
-                    $arr['pnlGeneral'] .= '<br>'.$pnlOp['quote_asset'].' '.toDec($pnlOp['quote'],$pnlOp['quote_decs']).'';
             }
         }
         
