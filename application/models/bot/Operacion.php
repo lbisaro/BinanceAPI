@@ -1086,6 +1086,9 @@ class Operacion extends ModelDB
 
     function getPnlOperacion($idoperacion=null)
     {
+        $api = new BinanceAPI();
+        $prices = $api->prices();
+
         $auth = UsrUsuario::getAuthInstance();
         $idusuario = $auth->get('idusuario');
         $qry = "SELECT operacion.*,
@@ -1104,8 +1107,8 @@ class Operacion extends ModelDB
                 WHERE operacion.idusuario = ".$idusuario." AND operacion_orden.completed = 1 ";
         if ($idoperacion)
             $qry .= ' AND operacion.idoperacion = '.$idoperacion.' ';
-        else
-            $qry .= ' AND operacion.stop<1 ';
+        //else
+        //    $qry .= ' AND operacion.stop<1 ';
 
         $qry .= ' ORDER BY operacion_orden.pnlDate, operacion_orden.updated';
         $stmt = $this->db->query($qry);
@@ -1159,10 +1162,27 @@ class Operacion extends ModelDB
                 $data[$id]['base'] = 0;
             if (toDec($rw['quote'],$rw['quote_decs']) == 0)
                 $data[$id]['quote'] = 0;
+
+            $data[$id]['realCapital'] = $rw['capital'];
+            if ($rw['strTipo']=='LONG' && $rw['destino_profit'] != Operacion::OP_DESTINO_PROFIT_QUOTE)
+                $data[$id]['realCapital'] = $rw['capital']/$prices[$rw['symbol']];
+            elseif ($rw['strTipo']=='SHORT' && $rw['destino_profit'] == Operacion::OP_DESTINO_PROFIT_QUOTE)
+                $data[$id]['realCapital'] = $rw['capital']*$prices[$rw['symbol']];
+
             if ($rw['destino_profit']==self::OP_DESTINO_PROFIT_QUOTE)
-                $data[$id]['porc_ganancia'] = toDec(($data[$id]['quote']/$data[$id]['capital'])*100);
+            {
+                $data[$id]['realQuote'] = $data[$id]['quote'];
+                if ($data[$id]['base'] != 0)
+                    $data[$id]['realQuote'] += $data[$id]['base']*$prices[$rw['symbol']];
+                $data[$id]['porc_ganancia'] = toDec(($data[$id]['realQuote']/$data[$id]['realCapital'])*100);
+            }
             else
-                $data[$id]['porc_ganancia'] = toDec(($data[$id]['base']/$data[$id]['capital'])*100);
+            {
+                $data[$id]['realBase'] = $data[$id]['base'];
+                if ($data[$id]['quote'] != 0)
+                    $data[$id]['realBase'] += $data[$id]['quote']/$prices[$rw['symbol']];
+                 $data[$id]['porc_ganancia'] = toDec(($data[$id]['realBase']/$data[$id]['realCapital'])*100);
+            }
         }
         
         if ($idoperacion)
