@@ -1107,8 +1107,8 @@ class Operacion extends ModelDB
                 WHERE operacion.idusuario = ".$idusuario." AND operacion_orden.completed = 1 ";
         if ($idoperacion)
             $qry .= ' AND operacion.idoperacion = '.$idoperacion.' ';
-        //else
-        //    $qry .= ' AND operacion.stop<1 ';
+        else
+            $qry .= ' AND operacion.stop<1 ';
 
         $qry .= ' ORDER BY operacion_orden.pnlDate, operacion_orden.updated';
         $stmt = $this->db->query($qry);
