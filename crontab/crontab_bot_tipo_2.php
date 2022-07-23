@@ -211,8 +211,8 @@ foreach ($operaciones as $operacion)
             else
             {
                 //Compra obteniendo beneficios en Base
-                $newPrice = toDec($lastSellPrice * (1-($porcentaje/100)),$symbolData['qtyDecsPrice']);
-                $newQty = toDecDown($totQuoteSelled / $newPrice,$symbolData['qtyDecs']);
+                $newQty = toDec($totUnitsSelled * (1+($porcentaje/100)),$symbolData['qtyDecs']); 
+                $newPrice = toDec($totQuoteSelled/$newQty,$symbolData['qtyDecsPrice']);
             }
 
             $msg = ' Buy -> Qty:'.$newQty.' Price:'.$newPrice.' '.$symbolData['baseAsset'].':'.toDec($newPrice*$newQty,$symbolData['qtyDecsPrice']).' +'.$porcentaje.'%';
