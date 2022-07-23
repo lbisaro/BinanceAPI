@@ -174,7 +174,6 @@ foreach ($operaciones as $operacion)
                     $lastSellPrice = $order['price'];
                     
                     $lastBaseSelled = $order['origQty'];
-                    
                     $totUnitsSelled += $order['origQty'];
                     $totQuoteSelled += ($order['origQty']*$order['price']);
 
@@ -187,12 +186,12 @@ foreach ($operaciones as $operacion)
             $strControlBaseFree = ' - unitsFree: '.$unitsFree;
             //Si la cantidad de unidades vendidas segun DB es mayor a la cantidad de unidades en API
             //Toma la cantidad de unidades en la API
-            if (($totUnitsSelled*1) > ($unitsFree*1))
-            {
-                $msg = ' WARNING '.$strControlUnitsSelled;
-                Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
-                $totUnitsSelled = $unitsFree;
-            }       
+            //if (($totUnitsSelled*1) > ($unitsFree*1))
+            //{
+            //    $msg = ' WARNING '.$strControlUnitsSelled;
+            //    Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
+            //    $totUnitsSelled = $unitsFree;
+            //}       
 
             //Orden para compra
             if ($maxVentaNum==1) 
@@ -203,9 +202,9 @@ foreach ($operaciones as $operacion)
             if ($opr->get('destino_profit')==Operacion::OP_DESTINO_PROFIT_QUOTE)
             {
                 //Compra obteniendo beneficios en Quote
+                $newQty = toDecDown($totUnitsSelled,$symbolData['qtyDecs']);
                 $newQuote = $totQuoteSelled * (1-($porcentaje/100));
                 $newPrice = toDec(($newQuote / $totUnitsSelled),$symbolData['qtyDecsPrice']);
-                $newQty = toDecDown($totUnitsSelled,$symbolData['qtyDecs']);
                 
             }
             else
@@ -228,6 +227,7 @@ foreach ($operaciones as $operacion)
                 $aOpr['price']        = $newPrice;
                 $aOpr['orderId']      = $limitOrder['orderId'];
                 $opr->insertOrden($aOpr); 
+
             } catch (Throwable $e) {
                 $msg = "Error: " . $e->getMessage().$strControlUnitsSelled;
                 Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
