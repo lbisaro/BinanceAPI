@@ -296,6 +296,7 @@ class BotAjax extends ControllerAjax
         $content = str_ireplace('Warning ','<b class="badge badge-warning">WARNING </b>',$content);
         $content = str_ireplace('PENDIENTE DE ELIMINAR ','<b class="badge badge-warning">PENDIENTE DE ELIMINAR </b>',$content);
         $content = str_ireplace('START ORDER ','<b class="badge badge-info">START ORDER </b>',$content);
+        $content = str_ireplace('STOP_BOT','<b class="badge badge-danger">STOP BOT </b>',$content);
         if (!empty($content))
         {
             $this->ajxRsp->assign('contenido','innerHTML','<code class="text-dark">'.nl2br($content).'</code>');
@@ -312,9 +313,9 @@ class BotAjax extends ControllerAjax
         $idoperacion = $_REQUEST['idoperacion'];
         $opr = new Operacion($idoperacion);
 
-        $params['delOrdenesActivas']  = $_REQUEST['delOrdenesActivas'];
-        $params['autoRestartOff']     = $_REQUEST['autoRestartOff'];
-        $params['delOrdenesBinance']  = $_REQUEST['delOrdenesBinance'];
+        $params['delOrdenesActivas']  = ($_REQUEST['delOrdenesActivas']?true:false);
+        $params['autoRestartOff']     = ($_REQUEST['autoRestartOff']?true:false);
+        $params['delOrdenesBinance']  = ($_REQUEST['delOrdenesBinance']?true:false);
         
         $opr->apagarBot($params);
         $this->ajxRsp->redirect(Controller::getLink('app','bot','verOperacion','id='.$idoperacion));

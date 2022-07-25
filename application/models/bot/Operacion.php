@@ -1902,6 +1902,13 @@ class Operacion extends ModelDB
         $upd = "UPDATE operacion SET ".$operacionSet." WHERE idoperacion = ".$this->data['idoperacion'];
         $this->db->query($upd);
 
+        $strParams = '';
+        foreach ($params as $k=>$v)
+            if ($v)
+                $strParams .= ' '.$k;
+        $msg = 'STOP_BOT'.$strParams;
+        self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+
         if ($params['delOrdenesActivas'])
         {
             $del = 'DELETE FROM operacion_orden 
@@ -1909,26 +1916,33 @@ class Operacion extends ModelDB
                             AND completed = 0';
             $this->db->query($del);
         }
-
         if ($params['delOrdenesBinance'])
         {
             if (!empty($ordenesActivas))
             {
                 $auth = UsrUsuario::getAuthInstance();
-                $idusuario = $auth->get('idusuario');
                 $ak = $auth->getConfig('bncak');
                 $as = $auth->getConfig('bncas');
                 $api = new BinanceAPI($ak,$as);
-                foreach ($ordenesActivas as $orden)
-                {
-                    if ($orden['status'] != Operacion::OR_STATUS_FILLED)
+                try {
+                    foreach ($ordenesActivas as $orden)
                     {
-                        $api->cancel($symbol, $orden['orderId']);
+                        if ($orden['status'] != Operacion::OR_STATUS_FILLED)
+                        {
+                            $api->cancel($symbol, $orden['orderId']);
+
+                            $msg = 'ORDER_CANCELLED id#'.$orden['orderId'];
+                            self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+
+                        }
                     }
+                } catch (Throwable $e) {
+                    $errorAlCancelarOrden = true;
                 }
             }
         }
-
+        $msg = 'STOP_BOT';
+        self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
         return $this->data['stop'];
     }
 }
