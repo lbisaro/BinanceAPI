@@ -469,7 +469,7 @@ class BotController extends Controller
         }
         
         if ($opr->status() == Operacion::OP_STATUS_ERROR)
-            $arr['addButtons'] = '<a class="btn btn-danger btn-sm" href="app.bot.detenerOperacion+id={{idoperacion}}">Detener</a>';
+            $arr['addButtons'] = '<a class="btn btn-danger btn-sm" href="app.bot.apagarBot+id={{idoperacion}}">Detener</a>';
 
         if ($arr['tipo'] == Operacion::OP_TIPO_APLSHRT)
             $this->addView('bot/verOperacionShort',$arr);
@@ -477,10 +477,10 @@ class BotController extends Controller
             $this->addView('bot/verOperacion',$arr);
     }    
 
-    function detenerOperacion($auth)
+    function apagarBot($auth)
     {
         $idoperacion = $_REQUEST['id'];
-        $this->addTitle('Detener Operacion #'.$idoperacion);
+        $this->addTitle('Apagar Bot #'.$idoperacion);
 
         $opr = new Operacion($idoperacion);
 
@@ -489,14 +489,45 @@ class BotController extends Controller
             $this->addError('No esta autorizado a visualizar esta pagina.');
             return false;
         }
-        $link = '<a href="https://www.binance.com/es/trade/'.$opr->get('symbol').'" target="_blank">'.$opr->get('symbol').'</a>';
+
+        $tck = new Ticker();
+        $symbolData = $tck->getSymbolData($opr->get('symbol'));
+        $symbolPrice = $symbolData['price'];
+
+        $link = $this->__selectOperacion($idoperacion,'app.bot.verOperacion+id=');
         $arr['idoperacion'] = $idoperacion;
-        $arr['symbol'] = $link;
-        $arr['inicio_usd'] = 'USD '.$opr->get('inicio_usd');
+        $arr['tipo'] = $opr->get('tipo');
+        $arr['strTipo'] = '<h4 class="text-'.($arr['tipo']==Operacion::OP_TIPO_APLSHRT?'danger':'success').'">'.$opr->getTipoOperacion($opr->get('tipo')).'</h4>';
+        $arr['symbolSelector'] = $link;
+
+        if ($arr['tipo']!=Operacion::OP_TIPO_APLSHRT)
+        {
+            $arr['capital_usd'] = $symbolData['quoteAsset'].' '.toDec($opr->get('capital_usd'),$symbolData['qtyDecsQuote']);
+            $arr['inicio_usd'] = $symbolData['quoteAsset'].' '.toDec($opr->get('inicio_usd'),$symbolData['qtyDecsQuote']);
+        }
+        else
+        {
+            $arr['capital_usd'] = $symbolData['baseAsset'].' '.toDec($opr->get('capital_usd'),$symbolData['qtyDecs']);
+            $arr['inicio_usd'] = $symbolData['baseAsset'].' '.toDec($opr->get('inicio_usd'),$symbolData['qtyDecs']);
+        }
+
+        $arr['strDestinoProfit'] = 'Obtener ganancia en <b>'.($opr->get('destino_profit')?$symbolData['baseAsset']:$symbolData['quoteAsset']).'</b>';
         $arr['multiplicador_compra'] = $opr->get('multiplicador_compra');
         $arr['multiplicador_porc'] = $opr->get('multiplicador_porc').'%'.
-                                     ($opr->get('multiplicador_porc_inc')?' Incremental':'');
-        $arr['estado'] = $opr->get('strEstado');
+                                     ($opr->get('multiplicador_porc_inc')?' Incremental':'').
+                                     ($opr->get('multiplicador_porc_auto')?' Automatico':'');
+        $arr['porc_venta_up'] = toDec($opr->get('real_porc_venta_up'));
+        $arr['porc_venta_down'] = toDec($opr->get('real_porc_venta_down'));
+
+        if (!$opr->get('stop'))
+        {
+            $arr['estado'] = $opr->get('strEstado');
+            $status = $opr->status();
+        }
+        else
+        {
+            $arr['estado'] = '<b class="text-danger">APAGADO</b>';
+        }
 
         if ($opr->autoRestart())
             $autoRestart = '<span class="glyphicon glyphicon-ok"></span>';
@@ -506,73 +537,70 @@ class BotController extends Controller
         $arr['auto-restart'] = $autoRestart;
         $arr['hidden'] = Html::getTagInput('idoperacion',$opr->get('idoperacion'),'hidden');
 
-        $ordenes = $opr->getOrdenes($enCurso=false);
+        $order = 'price DESC';
+        if ($arr['tipo'] == Operacion::OP_TIPO_APLSHRT)
+            $order = 'price ASC';
+        $ordenes = $opr->getOrdenes($enCurso=true,$order);
 
-        $dgA = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
-        $dgA->addHeader('ID');
-        $dgA->addHeader('Tipo');
-        $dgA->addHeader('Unidades',null,null,'right');
-        $dgA->addHeader('Precio',null,null,'right');
-        $dgA->addHeader('USD',null,null,'right');
-        $dgA->addHeader('Estado');
-        $dgA->addHeader('Fecha Hora');
 
-        $dgB = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
-        $dgB->addHeader('ID');
-        $dgB->addHeader('Tipo');
-        $dgB->addHeader('Unidades',null,null,'right');
-        $dgB->addHeader('Precio',null,null,'right');
-        $dgB->addHeader('USD',null,null,'right');
-        $dgB->addHeader('Estado');
-        $dgB->addHeader('Fecha Hora');
+        $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
+        $dg->addHeader('Tipo');
+        $dg->addHeader('Fecha Hora');
+        $dg->addHeader($symbolData['baseAsset'],null,null,'right');
+        $dg->addHeader('Precio',null,null,'right');
+        $dg->addHeader($symbolData['quoteAsset'],null,null,'right');
+        $dg->addHeader('Ref.',null,null,'right');
 
         $totVentas = 0;
         $gananciaUsd = 0;
+        $pnlOpenOrders = array();
         foreach ($ordenes as $rw)
         {
-            $usd = toDec($rw['origQty']*$rw['price']);
+            $usdDecs = $symbolData['qtyDecsQuote'];
+            $usd = $rw['origQty']*$rw['price'];
 
-            if (!$rw['completed'] && $rw['side']==Operacion::SIDE_BUY)
+            if ($rw['side']==Operacion::SIDE_BUY)
                 $rw['sideStr'] .= ' #'.$rw['compraNum'];
 
-            $link = '<a href="app.bot.verOrden+symbol='.$opr->get('symbol').'&orderId='.$rw['orderId'].'" target="_blank">'.$rw['orderId'].'</a>';
+            $link = '<a href="app.bot.verOrden+symbol='.$opr->get('symbol').'&orderId='.$rw['orderId'].'" target="_blank" label="'.$rw['orderId'].'">'.$rw['sideStr'].'</a>';
         
+            if (!$rw['completed'] && $rw['status']==Operacion::OR_STATUS_FILLED)
+                $link .= ' <span class="glyphicon glyphicon-ok" style="font-size: 0.7em;"></span>';
+            
             $row = array($link,
-                         $rw['sideStr'],
-                         ($rw['origQty']*1),
-                         ($rw['price']*1),
-                         ($rw['side']==Operacion::SIDE_BUY?'-':'').$usd,
-                         $rw['statusStr'],
-                         $rw['updatedStr']
+                         $rw['updatedStr'],
+                         ($rw['side']!=Operacion::SIDE_BUY?'-':'').(toDec($rw['origQty']*1,$symbolData['qtyDecs'])),
+                         (toDec($rw['price']*1,$symbolData['qtyDecsPrice'])),
+                         ($rw['side']==Operacion::SIDE_BUY?'-':'').toDec($usd,$usdDecs)
                         );
-
-            if (!$rw['completed'])
-                $dgA->addRow($row,$rw['sideClass'],null,null,$id='ord_'.$rw['orderId']);
-            else
-                $dgB->addRow($row,$rw['sideClass'],null,null,$id='ord_'.$rw['orderId']);
-
-            if ($rw['completed'])
+            if ($rw['price']>0)
             {
-                if ($rw['side']==Operacion::SIDE_SELL)
+
+                $porc = toDec((($symbolPrice/$rw['price'])-1)*100,);
+                $refUSD = '';
+                if ($rw['status']==Operacion::OR_STATUS_FILLED)
                 {
-                    $totVentas++;
-                    $gananciaUsd += $usd;
+                    $textClass = ($porc<0?'text-danger':'text-success');
+                    $refUSD = $symbolData['quoteAsset'].' '.toDec(($usd * $porc) / 100,$symbolData['qtyDecsQuote']);
                 }
                 else
                 {
-                    $gananciaUsd -= $usd;
+                    $textClass = 'text-secondary';
                 }
+                $row[] = '<span class="'.$textClass.'" title="'.$refUSD.'">'.$porc.'%</span>';
             }
+            else
+            {
+                $row[] = '&nbsp;';
+            }
+
+            $dg->addRow($row,$rw['sideClass'],null,null,$id='ord_'.$rw['orderId']);
 
         }
 
-        $arr['ordenesActivas'] = $dgA->get();
-        $arr['idoperacion'] = $opr->get('idoperacion');
+        $arr['ordenesActivas'] = $dg->get();
 
-        if ($opr->status() == Operacion::OP_STATUS_ERROR)
-            $arr['addButtons'] = '<button class="btn btn-danger btn-block" onclick="detenerOperacion();">Detener la operacion para finalizarla manualmente en Binance.com</button>';
-
-        $this->addView('bot/detenerOperacion',$arr);
+        $this->addView('bot/apagarBot',$arr);
     }       
 
     function revisarEstrategia($auth)    

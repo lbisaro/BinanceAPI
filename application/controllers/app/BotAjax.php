@@ -307,14 +307,19 @@ class BotAjax extends ControllerAjax
         $this->ajxRsp->script("activate('".$file."')");
     }
 
-    function detenerOperacion()
+    function apagarBot()
     {
         $idoperacion = $_REQUEST['idoperacion'];
         $opr = new Operacion($idoperacion);
-        if ($opr->detener())
-            $this->ajxRsp->redirect(Controller::getLink('app','bot','verOperacion','id='.$idoperacion));
-        else
-            $this->ajxRsp->addError($opr->getErrLog());
+
+        $params['delOrdenesActivas']  = $_REQUEST['delOrdenesActivas'];
+        $params['autoRestartOff']     = $_REQUEST['autoRestartOff'];
+        $params['delOrdenesBinance']  = $_REQUEST['delOrdenesBinance'];
+        
+        $opr->apagarBot($params);
+        $this->ajxRsp->redirect(Controller::getLink('app','bot','verOperacion','id='.$idoperacion));
+
+            
     }
 
     function resolverApalancamiento()
@@ -750,8 +755,16 @@ class BotAjax extends ControllerAjax
     function toogleStop()
     {
         $opr = new Operacion($_REQUEST['idoperacion']);
-        $newAutoRestart = $opr->toogleStop();
-        $this->ajxRsp->redirect('app.bot.verOperacion+id='.$opr->get('idoperacion'));   
+        if ($opr->get('stop'))
+        {
+            $newAutoRestart = $opr->toogleStop();
+            $this->ajxRsp->redirect('app.bot.verOperacion+id='.$opr->get('idoperacion'));   
+        }
+        else
+        {
+            $this->ajxRsp->redirect('app.bot.apagarBot+id='.$opr->get('idoperacion'));
+        }
+
     }
 
 }

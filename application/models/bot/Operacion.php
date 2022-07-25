@@ -1375,6 +1375,8 @@ class Operacion extends ModelDB
         }
     }
 
+
+
     function detener()
     {
         if ($this->data['idoperacion'])
@@ -1886,5 +1888,47 @@ class Operacion extends ModelDB
                 " WHERE idoperacion = ".$idoperacion;
         $this->db->query($upd);        
 
+    }
+
+    function apagarBot($params)
+    {
+        $ordenesActivas = $this->getOrdenes($enCurso=true);
+        $symbol = $this->data['symbol'];
+
+        $operacionSet = " stop = '1' ";
+        if ($params['autoRestartOff'])
+            $operacionSet .= ", auto_restart = '0' ";
+            
+        $upd = "UPDATE operacion SET ".$operacionSet." WHERE idoperacion = ".$this->data['idoperacion'];
+        $this->db->query($upd);
+
+        if ($params['delOrdenesActivas'])
+        {
+            $del = 'DELETE FROM operacion_orden 
+                          WHERE idoperacion = '.$this->data['idoperacion'].'
+                            AND completed = 0';
+            $this->db->query($del);
+        }
+
+        if ($params['delOrdenesBinance'])
+        {
+            if (!empty($ordenesActivas))
+            {
+                $auth = UsrUsuario::getAuthInstance();
+                $idusuario = $auth->get('idusuario');
+                $ak = $auth->getConfig('bncak');
+                $as = $auth->getConfig('bncas');
+                $api = new BinanceAPI($ak,$as);
+                foreach ($ordenesActivas as $orden)
+                {
+                    if ($orden['status'] != Operacion::OR_STATUS_FILLED)
+                    {
+                        $api->cancel($symbol, $orden['orderId']);
+                    }
+                }
+            }
+        }
+
+        return $this->data['stop'];
     }
 }
