@@ -1552,6 +1552,7 @@ class BotController extends Controller
             }
             $rowClass .= ($rw['side']==Operacion::SIDE_BUY?' side_buy':' side_sell');
             
+            
             $btnLiquidar = '&nbsp;';
             if ($porc>=2 && $rw['side']==Operacion::SIDE_BUY && $rw['status']==Operacion::OR_STATUS_FILLED)
             {
