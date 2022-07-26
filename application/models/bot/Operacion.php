@@ -1931,7 +1931,7 @@ class Operacion extends ModelDB
                         {
                             $api->cancel($symbol, $orden['orderId']);
 
-                            $msg = 'ORDER_CANCELLED id#'.$orden['orderId'];
+                            $msg = 'STOP_BOT Cancelar Orden Binance id#'.$orden['orderId'];
                             self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
 
                         }
