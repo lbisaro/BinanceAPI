@@ -315,6 +315,7 @@ class BotController extends Controller
         $totVentas = 0;
         $gananciaUsd = 0;
         $pnlOpenOrders = array();
+        $ordenesALiquidar = 0;
         foreach ($ordenes as $rw)
         {
             $usdDecs = $symbolData['qtyDecsQuote'];
@@ -324,7 +325,10 @@ class BotController extends Controller
                 $rw['sideStr'] .= ' #'.$rw['compraNum'];
 
             $link = '<a href="app.bot.verOrden+symbol='.$opr->get('symbol').'&orderId='.$rw['orderId'].'" target="_blank" label="'.$rw['orderId'].'">'.$rw['sideStr'].'</a>';
-        
+            
+            if ($rw['status']==Operacion::OR_STATUS_FILLED)
+                $ordenesALiquidar++;
+
             if (!$rw['completed'] && $rw['status']==Operacion::OR_STATUS_FILLED)
                 $link .= ' <span class="glyphicon glyphicon-ok" style="font-size: 0.7em;"></span>';
             
@@ -468,8 +472,8 @@ class BotController extends Controller
             }
         }
         
-        if ($opr->status() == Operacion::OP_STATUS_ERROR)
-            $arr['addButtons'] = '<a class="btn btn-danger btn-sm" href="app.bot.apagarBot+id={{idoperacion}}">Detener</a>';
+        if ($ordenesALiquidar>0)
+            $arr['addButtons'] = '<a class="btn btn-warning btn-sm" href="app.bot.liquidarOp+id='.$idoperacion.'">Liquidar</a>';
 
         if ($arr['tipo'] == Operacion::OP_TIPO_APLSHRT)
             $this->addView('bot/verOperacionShort',$arr);
@@ -601,7 +605,138 @@ class BotController extends Controller
         $arr['ordenesActivas'] = $dg->get();
 
         $this->addView('bot/apagarBot',$arr);
-    }       
+    }      
+
+
+    function liquidarOp($auth)
+    {
+        $idoperacion = $_REQUEST['id'];
+        $this->addTitle('Liquidar Operacion #'.$idoperacion);
+
+        $opr = new Operacion($idoperacion);
+
+        if ($opr->get('idusuario') != $auth->get('idusuario'))
+        {
+            $this->addError('No esta autorizado a visualizar esta pagina.');
+            return false;
+        }
+
+        $tck = new Ticker();
+        $symbolData = $tck->getSymbolData($opr->get('symbol'));
+        $symbolPrice = $symbolData['price'];
+
+        $link = $this->__selectOperacion($idoperacion,'app.bot.verOperacion+id=');
+        $arr['idoperacion'] = $idoperacion;
+        $arr['tipo'] = $opr->get('tipo');
+        $arr['strTipo'] = '<h4 class="text-'.($arr['tipo']==Operacion::OP_TIPO_APLSHRT?'danger':'success').'">'.$opr->getTipoOperacion($opr->get('tipo')).'</h4>';
+        $arr['symbolSelector'] = $link;
+
+        if ($arr['tipo']!=Operacion::OP_TIPO_APLSHRT)
+        {
+            $arr['capital_usd'] = $symbolData['quoteAsset'].' '.toDec($opr->get('capital_usd'),$symbolData['qtyDecsQuote']);
+            $arr['inicio_usd'] = $symbolData['quoteAsset'].' '.toDec($opr->get('inicio_usd'),$symbolData['qtyDecsQuote']);
+        }
+        else
+        {
+            $arr['capital_usd'] = $symbolData['baseAsset'].' '.toDec($opr->get('capital_usd'),$symbolData['qtyDecs']);
+            $arr['inicio_usd'] = $symbolData['baseAsset'].' '.toDec($opr->get('inicio_usd'),$symbolData['qtyDecs']);
+        }
+
+        $arr['strDestinoProfit'] = 'Obtener ganancia en <b>'.($opr->get('destino_profit')?$symbolData['baseAsset']:$symbolData['quoteAsset']).'</b>';
+        $arr['multiplicador_compra'] = $opr->get('multiplicador_compra');
+        $arr['multiplicador_porc'] = $opr->get('multiplicador_porc').'%'.
+                                     ($opr->get('multiplicador_porc_inc')?' Incremental':'').
+                                     ($opr->get('multiplicador_porc_auto')?' Automatico':'');
+        $arr['porc_venta_up'] = toDec($opr->get('real_porc_venta_up'));
+        $arr['porc_venta_down'] = toDec($opr->get('real_porc_venta_down'));
+
+        if (!$opr->get('stop'))
+        {
+            $arr['estado'] = $opr->get('strEstado');
+            $status = $opr->status();
+        }
+        else
+        {
+            $arr['estado'] = '<b class="text-danger">APAGADO</b>';
+        }
+
+        if ($opr->autoRestart())
+            $autoRestart = '<span class="glyphicon glyphicon-ok"></span>';
+        else
+            $autoRestart = '<span class="glyphicon glyphicon-ban-circle"></span>';
+
+        $arr['auto-restart'] = $autoRestart;
+        $arr['hidden'] = Html::getTagInput('idoperacion',$opr->get('idoperacion'),'hidden');
+
+        $order = 'price DESC';
+        if ($arr['tipo'] == Operacion::OP_TIPO_APLSHRT)
+            $order = 'price ASC';
+        $ordenes = $opr->getOrdenes($enCurso=true,$order);
+        if (empty($ordenes))
+        {
+            $this->addError('No es posible liquidar una operacion sin ordenes abiertas.');
+            return false;
+        }
+
+        $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
+        $dg->addHeader('Tipo');
+        $dg->addHeader('Fecha Hora');
+        $dg->addHeader($symbolData['baseAsset'],null,null,'right');
+        $dg->addHeader('Precio',null,null,'right');
+        $dg->addHeader($symbolData['quoteAsset'],null,null,'right');
+        $dg->addHeader('Ref.',null,null,'right');
+
+        $totVentas = 0;
+        $gananciaUsd = 0;
+        $pnlOpenOrders = array();
+        foreach ($ordenes as $rw)
+        {
+            $usdDecs = $symbolData['qtyDecsQuote'];
+            $usd = $rw['origQty']*$rw['price'];
+
+            if ($rw['side']==Operacion::SIDE_BUY)
+                $rw['sideStr'] .= ' #'.$rw['compraNum'];
+
+            $link = '<a href="app.bot.verOrden+symbol='.$opr->get('symbol').'&orderId='.$rw['orderId'].'" target="_blank" label="'.$rw['orderId'].'">'.$rw['sideStr'].'</a>';
+        
+            if (!$rw['completed'] && $rw['status']==Operacion::OR_STATUS_FILLED)
+                $link .= ' <span class="glyphicon glyphicon-ok" style="font-size: 0.7em;"></span>';
+            
+            $row = array($link,
+                         $rw['updatedStr'],
+                         ($rw['side']!=Operacion::SIDE_BUY?'-':'').(toDec($rw['origQty']*1,$symbolData['qtyDecs'])),
+                         (toDec($rw['price']*1,$symbolData['qtyDecsPrice'])),
+                         ($rw['side']==Operacion::SIDE_BUY?'-':'').toDec($usd,$usdDecs)
+                        );
+            if ($rw['price']>0)
+            {
+
+                $porc = toDec((($symbolPrice/$rw['price'])-1)*100,);
+                $refUSD = '';
+                if ($rw['status']==Operacion::OR_STATUS_FILLED)
+                {
+                    $textClass = ($porc<0?'text-danger':'text-success');
+                    $refUSD = $symbolData['quoteAsset'].' '.toDec(($usd * $porc) / 100,$symbolData['qtyDecsQuote']);
+                }
+                else
+                {
+                    $textClass = 'text-secondary';
+                }
+                $row[] = '<span class="'.$textClass.'" title="'.$refUSD.'">'.$porc.'%</span>';
+            }
+            else
+            {
+                $row[] = '&nbsp;';
+            }
+
+            $dg->addRow($row,$rw['sideClass'],null,null,$id='ord_'.$rw['orderId']);
+
+        }
+
+        $arr['ordenesActivas'] = $dg->get();
+
+        $this->addView('bot/liquidarOperacion',$arr);
+    }      
 
     function revisarEstrategia($auth)    
     {
@@ -1369,6 +1504,7 @@ class BotController extends Controller
             unset($v['updateTime']);
             unset($v['isWorking']);
             unset($v['time']);
+            //$lastComplete = '2022-08-01 00:00:00';
             if ($v['datetime'] >= $lastComplete && $v['status']!='CANCELED' && $v['status']!='EXPIRED')
             {
                 if ($auditBot[$v['orderId']])

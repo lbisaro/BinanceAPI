@@ -59,30 +59,18 @@
 
 <div class="container">
   <h5 class="text-info">
-    Seleccione las opciones adicionales al apagar el Bot
+    Seleccione las opciones adicionales al liquidar la operacion
   </h5>
   <div class="container">
-    <div class="input-group mb-2">
-        <div class="form-group form-check">
-          <input type="checkbox" data-toggle="toggle" data-on="Si" data-off="No" data-size="mini" class="form-check-input" CHECKED id="delOrdenesActivas" >
-          Eliminar registros de ordenes activas en el Bot
-        </div>
-    </div>
     <div class="input-group mb-2">
         <div class="form-group form-check">
           <input type="checkbox" data-toggle="toggle" data-on="Si" data-off="No" data-size="mini" class="form-check-input" CHECKED id="autoRestartOff" >
           Anular el reinicio automatico
         </div>
     </div>    
-    <div class="input-group mb-2">
-        <div class="form-group form-check">
-          <input type="checkbox" data-toggle="toggle" data-on="Si" data-off="No" data-size="mini" class="form-check-input" CHECKED id="delOrdenesBinance" >
-          Eliminar ordenes abiertas en Binance
-        </div>
-    </div>
   </div>
   <div class="input-group mb-2">
-    <button id="btnApagar" class="btn btn-danger btn-large btn-block" onclick="apagarBot();">Detener Bot</button>
+    <button id="btnLiquidar" class="btn btn-warning btn-large btn-block" onclick="apagarBot();">Liquidar la operacion</button>
   </div>
 </div>
 
@@ -101,10 +89,10 @@
     
     function apagarBot()
     {
-        if (confirm('Confirma Apagar el Bot?'))
+        if (confirm('Confirma Liquidar la operacion?'))
         {
-            $('#btnApagar').attr('disabled','disabled');
-            CtrlAjax.sendCtrl("app","bot","apagarBot","id={{idoperacion}}");
+            $('#btnLiquidar').attr('disabled','disabled');
+            CtrlAjax.sendCtrl("app","bot","liquidarOp","id={{idoperacion}}");
         }
     }
 

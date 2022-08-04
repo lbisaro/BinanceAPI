@@ -297,6 +297,7 @@ class BotAjax extends ControllerAjax
         $content = str_ireplace('PENDIENTE DE ELIMINAR ','<b class="badge badge-warning">PENDIENTE DE ELIMINAR </b>',$content);
         $content = str_ireplace('START ORDER ','<b class="badge badge-info">START ORDER </b>',$content);
         $content = str_ireplace('STOP_BOT','<b class="badge badge-danger">STOP BOT </b>',$content);
+        $content = str_ireplace('LIQUIDAR_OPERACION','<b class="badge badge-danger">LIQUIDAR OPERACION </b>',$content);
         if (!empty($content))
         {
             $this->ajxRsp->assign('contenido','innerHTML','<code class="text-dark">'.nl2br($content).'</code>');
@@ -320,6 +321,20 @@ class BotAjax extends ControllerAjax
         $opr->apagarBot($params);
         $this->ajxRsp->redirect(Controller::getLink('app','bot','verOperacion','id='.$idoperacion));
 
+            
+    }
+
+    function liquidarOp()
+    {
+        $idoperacion = $_REQUEST['idoperacion'];
+        $opr = new Operacion($idoperacion);
+
+        $params['autoRestartOff']     = ($_REQUEST['autoRestartOff']?true:false);
+        
+        if ($opr->liquidarOp($params))
+            $this->ajxRsp->redirect(Controller::getLink('app','bot','verOperacion','id='.$idoperacion));
+        else
+            $this->ajxRsp->addError($opr->getErrLog());
             
     }
 

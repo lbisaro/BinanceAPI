@@ -1690,6 +1690,171 @@ class Operacion extends ModelDB
         return false;
     }
 
+
+    function liquidarOp($params=array())
+    {
+        if (!$this->data['idoperacion'])
+            return false;
+
+        if ($this->isShort())
+        {
+            $this->errLog->add('El tipo de Operacion no se puede liquidar');
+            return false;
+        }
+
+        //Apagando el Bot
+        $upd = "UPDATE operacion SET stop = '1' WHERE idoperacion = ".$this->data['idoperacion'];
+        $this->db->query($upd);
+
+
+        $qry = 'SELECT * FROM operacion_orden 
+                 WHERE idoperacion = '.$this->data['idoperacion'].
+                  ' AND completed = 0';
+        $stmt = $this->db->query($qry);
+        $usr = new UsrUsuario($this->data['idusuario']);
+        $ak = $usr->getConfig('bncak');
+        $as = $usr->getConfig('bncas');
+        $api = new BinanceAPI($ak,$as); 
+        $symbol = $this->data['symbol'];
+        $idusuario = $this->data['idusuario'];
+        $qtyBase = 0;
+        $qtyQuote = 0;
+        $qtyOrdenesALiquidar = 0;
+
+        $msg = 'LIQUIDAR_OPERACION';
+        self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+
+        while ($rw = $stmt->fetch())
+        {
+            if ($rw['status'] == self::OR_STATUS_FILLED)
+            {
+                $qtyOrdenesALiquidar++;
+                if ($rw['side'] == self::SIDE_BUY)
+                {
+                    $qtyBase += $rw['origQty'];
+                    $qtyQuote -= $rw['origQty'] * $rw['price'];
+                }
+                else
+                {
+                    $qtyBase -= $rw['origQty'];
+                    $qtyQuote += $rw['origQty'] * $rw['price'];
+                }
+            }
+            else
+            {
+                $ordersToCancel[$rw['idoperacionorden']] = $rw['orderId'];
+            }
+        }
+
+        if ($qtyOrdenesALiquidar==0)
+        {
+            $this->errLog->add('No existen ordenes a liquidar');
+            return false;
+        }
+
+        //Cancelar Ordenes Abiertas
+        if (!empty($ordersToCancel))
+        {
+            foreach ($ordersToCancel as $idoperacionorden => $orderId)
+            {
+                try {
+                    $msg = 'LIQUIDAR_OPERACION CANCELAR ORDEN '.$orderId;
+                    self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+                    $api->cancel($symbol, $orderId);
+                    $this->deleteOrder($orderId);
+                } catch (Throwable $e) {
+                    $msg = 'No fue posible cancelar la orden ID# '.$orderId;
+                    self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+                    $this->errLog->add($msg);
+                    return false;
+                }
+            }
+            while (!empty($ordersToCancel))
+            {
+                sleep(1);               
+                foreach ($ordersToCancel as $idoperacionorden => $orderId)
+                {
+$msg = 'Verificando ordenes a cancelar';
+self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+                    $orderStatus = $api->orderStatus($symbol,$orderId);
+                    if (empty($orderStatus) || $orderStatus['status']=='CANCELED' || $orderStatus['status']=='EXPIRED')
+{
+$msg = 'Orden cancelada OK ID# '.$orderId;
+self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+                        unset($ordersToCancel[$idoperacionorden]);
+}
+                }
+            }
+        }
+
+         
+        if ($this->isLong()) //Vender qtyBase comprado
+        {   
+            try {
+                $qty = toDec($qtyBase,$this->data['qty_decs_units']);
+                $msg = ' START ORDER Sell -> Qty:'.$qty.' Price: MARKET - Liquidar Orden';
+                self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+                $order = $api->marketSell($symbol, $qtyBase);
+                $op['idoperacion']  = $this->data['idoperacion'];
+                $op['side']         = self::SIDE_SELL;
+                $op['origQty']      = $qty;
+                $op['price']        = 0;
+                $op['orderId']      = $order['orderId'];
+                $this->insertOrden($op);
+
+            } catch (Throwable $e) {
+                $msg = ' START ORDER Sell -> Qty:'.$qty.' Price: MARKET - Liquidar Orden - CANCELADO';
+                self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+                $msg = $e->getMessage();
+                $this->errLog->add($e->getMessage());
+                return false;
+            }
+
+        }
+        /** Verificar el caso de liquidar una operacion SHORT
+        else //Comprar qtyQuote vendido
+        {
+            try {
+                $actualPrice = $api->price($symbol);
+                $qty = toDec($actualPrice/(-$qtyBase),$this->data['qty_decs_quote']);
+                $msg = ' START ORDER Buy -> Qty:'.$qty.' Price: MARKET - Liquidar Orden';
+                self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+                $order = $api->marketBuy($symbol, $qtyQuote);
+                $op['idoperacion']  = $this->data['idoperacion'];
+                $op['side']         = self::SIDE_BUY;
+                $op['origQty']      = $qty;
+                $op['price']        = 0;
+                $op['orderId']      = $order['orderId'];
+                $this->insertOrden($op);
+
+            } catch (Throwable $e) {
+                $msg = ' START ORDER Buy -> Qty:'.$qty.' Price: MARKET - Liquidar Orden - CANCELADO';
+                self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+                $msg = $e->getMessage();
+                $this->errLog->add($e->getMessage());
+                return false;
+            }
+
+        }
+        */
+
+        //Apagando el Bot
+        $upd = "UPDATE operacion SET stop = '0' WHERE idoperacion = ".$this->data['idoperacion'];
+        $this->db->query($upd);
+
+        
+        if ($params['autoRestartOff'])
+        {
+            $upd = "UPDATE operacion SET auto_restart = '0' WHERE idoperacion = ".$this->data['idoperacion'];
+            $this->db->query($upd);
+        }
+
+        $msg = 'LIQUIDAR_OPERACION - Finalizado';
+        self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+
+        return true;
+    }
+
     function gestionDelCapital()
     {
         $data = array();
@@ -1865,20 +2030,23 @@ class Operacion extends ModelDB
         $data['base_start_in_usd'] = 0;
         $data['quote_start_in_usd'] = 0;
         $usdAssets = array('USDT','BUSD','USDC');
-        if (in_array($data['base_asset'], $usdAssets))
-            $data['base_start_in_usd'] = 1;        
         if (in_array($data['quote_asset'], $usdAssets))
             $data['quote_start_in_usd'] = 1;
+        if (in_array($data['base_asset'], $usdAssets))
+            $data['base_start_in_usd'] = 1;        
+        
 
         $api = new BinanceAPI();
         if (!$data['base_start_in_usd'])
         {
-            $klines = $api->candlesticks($data['base_asset'].'USDT', $interval = "1m", $limit = 1, $startTime );
+            $strSymbol = $data['base_asset'].($data['base_asset']!='USDT'?'USDT':'BUSD');
+            $klines = $api->candlesticks($strSymbol, $interval = "1m", $limit = 1, $startTime );
             $data['base_start_in_usd'] = $klines[$startTime]['close'];
         }
         if (!$data['quote_start_in_usd'])
         {
-            $klines = $api->candlesticks($data['quote_asset'].'USDT', $interval = "1m", $limit = 1, $startTime );
+            $strSymbol = $data['quote_asset'].($data['quote_asset']!='USDT'?'USDT':'BUSD');
+            $klines = $api->candlesticks($strSymbol, $interval = "1m", $limit = 1, $startTime );
             $data['quote_start_in_usd'] = $klines[$startTime]['close'];
         }
 
