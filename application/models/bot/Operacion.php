@@ -1774,15 +1774,15 @@ class Operacion extends ModelDB
                 sleep(1);               
                 foreach ($ordersToCancel as $idoperacionorden => $orderId)
                 {
-$msg = 'Verificando ordenes a cancelar';
-self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+                    $msg = 'LIQUIDAR_OPERACION Verificando ordenes a cancelar';
+                    self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
                     $orderStatus = $api->orderStatus($symbol,$orderId);
                     if (empty($orderStatus) || $orderStatus['status']=='CANCELED' || $orderStatus['status']=='EXPIRED')
-{
-$msg = 'Orden cancelada OK ID# '.$orderId;
-self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+                    {
+                        $msg = 'LIQUIDAR_OPERACION Orden cancelada OK ID# '.$orderId;
+                        self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
                         unset($ordersToCancel[$idoperacionorden]);
-}
+                    }
                 }
             }
         }
@@ -1792,7 +1792,7 @@ self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.
         {   
             try {
                 $qty = toDec($qtyBase,$this->data['qty_decs_units']);
-                $msg = ' START ORDER Sell -> Qty:'.$qty.' Price: MARKET - Liquidar Orden';
+                $msg = 'LIQUIDAR_OPERACION START ORDER Sell -> Qty:'.$qty.' Price: MARKET - Liquidar Orden';
                 self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
                 $order = $api->marketSell($symbol, $qtyBase);
                 $op['idoperacion']  = $this->data['idoperacion'];
