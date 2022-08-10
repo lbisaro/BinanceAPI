@@ -1277,6 +1277,11 @@ class Operacion extends ModelDB
         //}        
         
         $logFile = LOG_PATH.'bot/bot_'.date('Ymd').'.log';
+        if (!is_file($logFile))
+        {
+            file_put_contents($logFile, "\n"."START");
+            chmod($logFile, 0777);
+        }
         file_put_contents($logFile, $msg,FILE_APPEND);
         if ($echo)  
             echo $msg; 
