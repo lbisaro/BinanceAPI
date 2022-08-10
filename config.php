@@ -61,7 +61,8 @@ date_default_timezone_set('America/Argentina/Buenos_Aires');
     // Imagenes
     define('IMG_PATH','public/images/');
     
-    
+    // JSON Data - Controllers REST
+    define('JSON_DATA_PATH', ROOT_DIR.'/json.data/');
 /** CHARSET */
 
     // General
