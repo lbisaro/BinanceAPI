@@ -4,11 +4,14 @@
         font-weight: bolder;
         color: #555;
     }
+    .table_data tr td {
+        padding: 5px;
+    }
 </style>
 
 
 <div class="container">
-  <table class="table table-borderless">
+  <table class="table table-borderless table_data">
     <tr>
       <td>{{symbolSelector}}</td>
       <td style="text-align: right;">
