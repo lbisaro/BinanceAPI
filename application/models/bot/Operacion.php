@@ -2025,7 +2025,9 @@ class Operacion extends ModelDB
         $qry = "SELECT min(updated) as start FROM operacion_orden WHERE idoperacion = '".$idoperacion."'";
         $stmt = $this->db->query($qry);
         $data = $stmt->fetch();
-
+        if (!$data['start'])
+            return null;
+        
         $data['start'] = substr($data['start'],0,16); //Se quitan los segundos
         $startTime = date('U',strtotime($data['start'])).'000';
         
