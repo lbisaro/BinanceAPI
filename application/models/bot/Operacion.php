@@ -166,10 +166,10 @@ class Operacion extends ModelDB
                 $err[] = 'Se debe especificar un multiplicador de compra entre 1 y 2.5';
             if ($this->data['multiplicador_porc']<0.5 || $this->data['multiplicador_porc']>10 )
                 $err[] = 'Se debe especificar un multiplicador de porcentaje entre 0.5 y 10';
-            if ($this->data['porc_venta_up']<1 || $this->data['porc_venta_up']>30 )
-                $err[] = 'Se debe especificar un porcentaje de venta inicial entre 1 y 30';
-            if ($this->data['porc_venta_down']<1 || $this->data['porc_venta_down']>100 )
-                $err[] = 'Se debe especificar un porcentaje de venta palanca entre 1 y 100';
+            if ($this->data['porc_venta_up']<0.5 || $this->data['porc_venta_up']>30 )
+                $err[] = 'Se debe especificar un porcentaje de venta inicial entre 0.5 y 30';
+            if ($this->data['porc_venta_down']<0.5 || $this->data['porc_venta_down']>100 )
+                $err[] = 'Se debe especificar un porcentaje de venta palanca entre 0.5 y 100';
             
         }
 
