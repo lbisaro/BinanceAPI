@@ -1698,7 +1698,7 @@ class BotController extends Controller
             }
             $refUSD = toDec(($usd * $porc) / 100);
             $row = array($rw['symbol'].' #'.$rw['idoperacion'],
-                         $rw['strSide'].$status,
+                         $rw['sideStr'].$status,
                          $rw['updatedStr'],
                          ($rw['origQty']*1),
                          ($rw['price']*1),
