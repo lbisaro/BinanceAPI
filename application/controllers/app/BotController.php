@@ -1655,7 +1655,7 @@ class BotController extends Controller
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
         $dg->setCaption('Ordenes activas');
         $dg->addHeader('Moneda');
-        $dg->addHeader('Pos');
+        $dg->addHeader('Posicion');
         $dg->addHeader('Fecha Hora');
         $dg->addHeader('Unidades',null,null,'right');
         $dg->addHeader('Precio',null,null,'right');
