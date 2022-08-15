@@ -1655,7 +1655,7 @@ class BotController extends Controller
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
         $dg->setCaption('Ordenes activas');
         $dg->addHeader('Moneda');
-        $dg->addHeader('ID');
+        $dg->addHeader('Pos');
         $dg->addHeader('Fecha Hora');
         $dg->addHeader('Unidades',null,null,'right');
         $dg->addHeader('Precio',null,null,'right');
@@ -1696,7 +1696,7 @@ class BotController extends Controller
             }
             $refUSD = toDec(($usd * $porc) / 100);
             $row = array($rw['symbol'].' #'.$rw['idoperacion'],
-                         $rw['orderId'].$status,
+                         $rw['strSide'].$status.$rw['porcLimit'],
                          $rw['updatedStr'],
                          ($rw['origQty']*1),
                          ($rw['price']*1),
@@ -1972,8 +1972,10 @@ class BotController extends Controller
 
             foreach ($orders as $rw)
             {
+                //http://www.bisaro.ar/app.bot.verOrden+symbol=EURUSDT&orderId=218477961
+                $linkToOrder = '<a href="app.bot.verOrden+symbol='.$symbol.'&orderId='.$rw['orderId'].'" target="_orderView">'.$rw['orderId'].'</a>';
                 $row = array();
-                $row[] = $symbol;
+                $row[] = $symbol.' '.$linkToOrder;
                 $row[] = ($rw['side']=='BUY'?'Compra':'Venta');
                 $row[] = '<span title="Order ID '.$rw['orderId'].'">'.dateToStr($rw['datetime'],true).'</span>';
                 $row[] = $rw['price'];

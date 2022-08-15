@@ -1444,7 +1444,7 @@ class Operacion extends ModelDB
         $auth = UsrUsuario::getAuthInstance();
         $idusuario = $auth->get('idusuario');
 
-        $qry = "SELECT operacion.symbol, operacion_orden.* 
+        $qry = "SELECT operacion.symbol,operacion.real_porc_venta_up,operacion.real_porc_venta_down, operacion_orden.* 
                 FROM operacion_orden 
                 LEFT JOIN operacion ON operacion.idoperacion =operacion_orden.idoperacion
                 WHERE idusuario = ".$idusuario;
@@ -1470,6 +1470,7 @@ class Operacion extends ModelDB
                 $compraNum++;
                 $rw['compraNum'] = $compraNum;
             }
+            $rw['porcLimit'] = ($rw['compraNum']==1?$rw['real_porc_venta_up']:$rw['real_porc_venta_down']);
             $ds[$rw['idoperacionorden']] = $rw;
         }
         return $ds;
