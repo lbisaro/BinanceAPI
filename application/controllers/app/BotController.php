@@ -1670,7 +1670,9 @@ class BotController extends Controller
             $usd = toDec($rw['origQty']*$rw['price']);
 
             if ($rw['side']==Operacion::SIDE_BUY)
-                $rw['sideStr'] .= ' #'.$rw['compraNum'];
+                $rw['sideStr'] .= 'Compra #'.$rw['compraNum'];
+            else
+                $rw['sideStr'] .= 'Venta';
 
             $status = '';
             if (!$rw['completed'] && $rw['status']==Operacion::OR_STATUS_FILLED)
@@ -1692,11 +1694,11 @@ class BotController extends Controller
             $btnLiquidar = '&nbsp;';
             if (/*$porc>=1 && */$rw['side']==Operacion::SIDE_BUY && $rw['status']==Operacion::OR_STATUS_FILLED)
             {
-                $btnLiquidar = '<a href="'.Controller::getLink('app','bot','liquidarOrden','id='.$rw['idoperacion'].'&idoo='.$rw['idoperacionorden']).'" class="badge badge-'.($porc>=2?'danger':'light').'">Liquidar Orden</a>';
+                $btnLiquidar = '<a href="'.Controller::getLink('app','bot','liquidarOrden','id='.$rw['idoperacion'].'&idoo='.$rw['idoperacionorden']).'" class="badge badge-'.($porc>=$rw['porcLimit']?'danger':'light').'">Liquidar Orden</a>';
             }
             $refUSD = toDec(($usd * $porc) / 100);
             $row = array($rw['symbol'].' #'.$rw['idoperacion'],
-                         $rw['strSide'].$status.$rw['porcLimit'],
+                         $rw['strSide'].$status,
                          $rw['updatedStr'],
                          ($rw['origQty']*1),
                          ($rw['price']*1),
