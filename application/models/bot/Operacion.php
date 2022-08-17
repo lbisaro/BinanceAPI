@@ -1590,7 +1590,7 @@ class Operacion extends ModelDB
 
             //Creando una nueva orden de compra y venta, solo si ha ordenes de compra pendientes de venta
             $ordenesActivas = $this->getOrdenes();
-            if (!empty($ordenesActivas))
+            if (!empty($ordenesActivas) && !$this->datà['stop'])
             {
                 //Creando una nueva orden de compra en el valor de la orden liquidada
 
