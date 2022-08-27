@@ -1510,7 +1510,7 @@ class Operacion extends ModelDB
         chmod(LOCK_FILE, 666);
     }
 
-    function liquidarOrden($idoperacionorden)
+    function liquidarOrden($idoperacionorden,$recomprar=false)
     {
         if (!$this->data['idoperacion'] || !$idoperacionorden)
             return false;
@@ -1590,7 +1590,7 @@ class Operacion extends ModelDB
 
             //Creando una nueva orden de compra y venta, solo si ha ordenes de compra pendientes de venta
             $ordenesActivas = $this->getOrdenes();
-            if (!empty($ordenesActivas) && !$this->datà['stop'])
+            if ($recomprar)
             {
                 //Creando una nueva orden de compra en el valor de la orden liquidada
 

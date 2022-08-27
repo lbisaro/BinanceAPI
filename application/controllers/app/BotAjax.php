@@ -565,6 +565,7 @@ class BotAjax extends ControllerAjax
     {
         $idoperacion = $_REQUEST['idoperacion'];
         $idoperacionorden = $_REQUEST['idoperacionorden'];
+        $recomprar = ($_REQUEST['recomprar']?true:false);
         /** Proceso
             - Bloquear el proceso del Robot (O esperar que sea posible)
             - Binance - Eliminar la ordenes de compra abiertas
@@ -623,7 +624,7 @@ class BotAjax extends ControllerAjax
             // - Verificar que se haya vendido y Pasar a completadas la orden compra#1 y la venta Market, 
             //   actualizando el pnlDate de ambas a fecha y hora actual
             // - Crear nueva compra apalancada replicando la orden de compra#1, si aun hay compras pendientes
-            if (!$opr->liquidarOrden($idoperacionorden)) 
+            if (!$opr->liquidarOrden($idoperacionorden,$recomprar)) 
             {
                 $msg = 'No fue posible liquidar la orden.';
                 $errLog = $opr->getErrLog();

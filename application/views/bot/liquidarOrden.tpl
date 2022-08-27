@@ -49,6 +49,19 @@
     </tr>
     <tr>
       <td colspan="2">
+        <div class="input-group mb-2">
+            <div class="form-group form-check">
+              <input type="checkbox" data-toggle="toggle" data-on="Si" data-off="No" data-size="mini" class="form-check-input" CHECKED id="recomprar" >
+              Generar orden de compra en el mismo valor y recalcular la venta
+            </div>
+        </div>    
+      </td>
+    </tr>
+  
+
+
+    <tr>
+      <td colspan="2">
         {{addButtons}}
       </td>
     </tr>
