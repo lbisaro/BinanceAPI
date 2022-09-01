@@ -84,6 +84,9 @@ class DB
 
                 $field['type'] = ( $rval[1]?$rval[1]:$rw['Type'] );
                 $field['len'] = $rval[2];
+                if ($field['type'] == 'decimal')
+                    $field['len']++; //Si es decimal, el LEN del campo es la cantidad de numeros mas el punto decimal
+                
                 if ( $rval[3] )
                     $field[trim( $rval[3] )] = 1;
 
