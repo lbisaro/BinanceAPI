@@ -186,8 +186,8 @@
                 table = table + '<td>'+format_number(precio,qtyDecsPrice)+'</td>';
                 table = table + '<td class="text-danger">'+(psuc!=0?'-':'')+format_number(psuc,2)+'%</td>';
                 table = table + '<td class="text-danger">'+format_number(psci,2)+'%</td>';
-                table = table + '<td>'+format_number(compraUsd,symbolDecs)+'</td>';
-                table = table + '<td>'+format_number(totalCompra,symbolDecs)+'</td>';
+                table = table + '<td>'+format_number(compraUsd,qtyDecsPrice)+'</td>';
+                table = table + '<td>'+format_number(totalCompra,qtyDecsPrice)+'</td>';
                 table = table + '<td class="text-success">'+format_number(precioVenta,qtyDecsPrice)+'</td>';
                 table = table + '</tr>';
 
