@@ -1919,10 +1919,6 @@ class BotController extends Controller
                 
                 if ($v['datetime']<date('Y-m-d H:i:s',strtotime('-30 days')))
                     continue;
-                if ($v['status'] == 'EXPIRED')
-                    continue;                
-                if ($v['status'] == 'CANCELED')
-                    continue;
 
                 //Correccion para ordenes parciales
                 if (!isset($strQtyDecs))
@@ -1943,22 +1939,15 @@ class BotController extends Controller
                 unset($v['updateTime']);
                 unset($v['isWorking']);
                 unset($v['time']);
-                if ($v['datetime'] >= $lastComplete && $v['status']!='CANCELED' && $v['status']!='EXPIRED')
+                
+                $tradeQty = $v['executedQty'];
+                if ($tradeQty > 0)
                 {
-                    $tradeInfo = $api->orderTradeInfo($symbol,$v['orderId']);
-                    $tradeQty = 0;
-                    $tradeUsd = 0;
-                    if (!empty($tradeInfo))
-                    {
-                        foreach($tradeInfo as $tii)
-                        {
-                            $tradeQty += $tii['qty'];
-                            $tradeUsd += $tii['quoteQty'];
-                        }
-                        $v['price'] = toDec(toDec($tradeUsd/$tradeQty,$qtyDecsPrice),$strQtyDecs);
-                    }
+                    $tradeUsd = $v['cummulativeQuoteQty'];
+                    $v['qty'] = $v['executedQty'];
+                    $v['price'] = toDec(toDec($tradeUsd/$tradeQty,$qtyDecsPrice),$strQtyDecs);
+                    array_unshift($orders,$v);
                 }
-                array_unshift($orders,$v);
             } 
             $dg = new HtmlTableDg('tbl_orders');
             $dg->setCaption('Ordenes ejecutadas');
@@ -1979,8 +1968,8 @@ class BotController extends Controller
                 $row[] = ($rw['side']=='BUY'?'Compra':'Venta');
                 $row[] = '<span title="Order ID '.$rw['orderId'].'">'.dateToStr($rw['datetime'],true).'</span>';
                 $row[] = $rw['price'];
-                $row[] = ($rw['side']=='SELL'?'-':'').toDec($rw['origQty'],$qtyDecsUnits);
-                $row[] = ($rw['side']=='BUY'?'-':'').toDec($rw['origQty']*$rw['price'],$qtyDecsPrice);
+                $row[] = ($rw['side']=='SELL'?'-':'').toDec($rw['qty'],$qtyDecsUnits);
+                $row[] = ($rw['side']=='BUY'?'-':'').toDec($rw['qty']*$rw['price'],$qtyDecsPrice);
                 if ($rw['status']=='NEW')
                     $row[] = 'PENDIENTE';
                 elseif ($rw['status']=='FILLED')
