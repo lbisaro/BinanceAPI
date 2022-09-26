@@ -443,7 +443,7 @@ class Ticker extends ModelDB
         return $data;
     }
 
-    function depth($symbol)
+    function depth($symbol,$scale=null)
     {
         $data = array();
 
@@ -457,7 +457,10 @@ class Ticker extends ModelDB
         $dp = $this->__depth_get_parameters($data['price'],$symbolData['qtyDecsPrice']);
         $data['askScaleStart'] = $dp['askScaleStart'];
         $data['bidScaleStart'] = $dp['bidScaleStart'];
-        $data['scale']         = $dp['scale'];
+        if ($scale)
+            $data['scale'] = $scale;
+        else
+            $data['scale']         = $dp['scale'];
 
         $data['askMin'] = -1;
         $data['askMax'] = -1;
