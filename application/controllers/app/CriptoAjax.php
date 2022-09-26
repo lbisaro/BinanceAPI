@@ -32,7 +32,7 @@ class CriptoAjax extends ControllerAjax
         $symbol = strtoupper($_REQUEST['asset'].$_REQUEST['assetQuote']);
 
         $tck = new Ticker();
-        $data = $tck->depth($symbol);
+        $data = $tck->depth($symbol,($_REQUEST['scale']?$_REQUEST['scale']:null));
         $dg = new HtmlTableDg();
         $dg->addHeader('Price');
         $dg->addHeader('Amount',null,null,'right');
@@ -58,6 +58,8 @@ class CriptoAjax extends ControllerAjax
 
         $html = '<div class="container"><div class="row">'.$htmlTables.'</div></div>';
 
+
+        $this->ajxRsp->assign('scale','value',$data['scale']);
         $this->ajxRsp->assign('resultado','innerHTML',$html);
 
     }
