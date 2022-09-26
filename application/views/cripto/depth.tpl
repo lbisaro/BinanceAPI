@@ -17,12 +17,17 @@
                 <div class="row">
                     <div class="col">
                         <div class="input-group">
-                            <input class="form-control form-control-sm force-uppercase" id="asset" >
+                            <input class="form-control form-control-sm force-uppercase" id="asset" onchange="refreshScale()">
                         </div>
                     </div>
                     <div class="col">
                         <div class="input-group">
-                            <input class="form-control form-control-sm force-uppercase" id="assetQuote" value="USDT" >
+                            <input class="form-control form-control-sm force-uppercase" id="assetQuote" value="USDT"  onchange="refreshScale()">
+                        </div>
+                    </div>
+                    <div class="col">
+                        <div class="input-group">
+                            <input class="form-control form-control-sm force-uppercase" id="scale" value="" placeholder="AUTOMATICO">
                         </div>
                     </div>
                     <div class="col">
@@ -51,6 +56,11 @@
             });
         });
     });
+
+    function refreshScale() 
+    {
+        $('#scale').val('');
+    }
 
     function analizar()
     {
