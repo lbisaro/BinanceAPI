@@ -2059,8 +2059,8 @@ class Operacion extends ModelDB
         }
 
         $upd = "UPDATE operacion SET start = '".$data['start']."',".
-                                   " base_start_in_usd = '".$data['base_start_in_usd']."', ".
-                                   " base_start_in_usd = '".$data['base_start_in_usd']."' ".
+                                   " base_start_in_usd = '".($data['base_start_in_usd']?$data['base_start_in_usd']:'0')."', ".
+                                   " base_start_in_usd = '".($data['base_start_in_usd']?$data['base_start_in_usd']:'0')."' ".
                 " WHERE idoperacion = ".$idoperacion;
         $this->db->query($upd);        
 
