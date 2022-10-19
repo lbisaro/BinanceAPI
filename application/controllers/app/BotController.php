@@ -1959,6 +1959,9 @@ class BotController extends Controller
             $dg->addHeader($quoteAsset);
             $dg->addHeader('Estado');
 
+            $qtyToken = 0;
+            $qtyBase = 0;
+
             foreach ($orders as $rw)
             {
                 //http://www.bisaro.ar/app.bot.verOrden+symbol=EURUSDT&orderId=218477961
@@ -1970,6 +1973,22 @@ class BotController extends Controller
                 $row[] = $rw['price'];
                 $row[] = ($rw['side']=='SELL'?'-':'').toDec($rw['qty'],$qtyDecsUnits);
                 $row[] = ($rw['side']=='BUY'?'-':'').toDec($rw['qty']*$rw['price'],$qtyDecsPrice);
+                
+                if ($rw['status']=='FILLED')
+                {
+                    if ($rw['side']=='SELL')
+                    {
+                        $qtyToken -= toDec($rw['qty'],$qtyDecsUnits);
+                        $qtyBase += toDec($rw['qty']*$rw['price'],$qtyDecsPrice);                    
+                    }
+                    else
+                    {
+                        $qtyToken += toDec($rw['qty'],$qtyDecsUnits);
+                        $qtyBase -= toDec($rw['qty']*$rw['price'],$qtyDecsPrice);                    
+                    }
+                    
+                }
+
                 if ($rw['status']=='NEW')
                     $row[] = 'PENDIENTE';
                 elseif ($rw['status']=='FILLED')
@@ -1984,6 +2003,8 @@ class BotController extends Controller
                     $class='text-danger';
                 $dg->addRow($row,$class,$height='15px');
             }
+            $footer = array('Totales','','','',toDec($qtyToken,$qtyDecsUnits),toDec($qtyBase,$qtyDecsPrice),'');
+            $dg->addFooter($footer);
             $arr['orders'] = $dg->get();
 
         }
