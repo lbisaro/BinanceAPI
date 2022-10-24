@@ -1891,7 +1891,7 @@ class BotController extends Controller
 
             if ($tokenPrice > 0)
             {
-                $data = array('Unidades en Billetera');
+                $data = array('Cantidad de '.$baseAsset);
                 if ($qtyTokenFree-$qtyTokenTotal == 0)
                 {
                     $data[] = $qtyTokenTotal;
@@ -1904,7 +1904,7 @@ class BotController extends Controller
                 }
                 $fc->addRow($data);
 
-                $data = array($quoteAsset,toDec($tokenPrice*$qtyTokenTotal));
+                $data = array($baseAsset.' en '.$quoteAsset,toDec($tokenPrice*$qtyTokenTotal));
                 $fc->addRow($data);
 
             }
@@ -2010,6 +2010,12 @@ class BotController extends Controller
         }
     
         $arr['lunabusdPrice'] = $tokenPrice;
+
+        if ($qtyToken!=0 or $qtyBase!=0)
+        {
+            $balance = $qtyToken*$tokenPrice+$qtyBase;
+            $fc->addRow(array('Balance en '.$quoteAsset,toDec($balance,$qtyDecsPrice)));
+        }
         $arr['info'] = $fc->get();
         $arr['hidden'] = '';
     
