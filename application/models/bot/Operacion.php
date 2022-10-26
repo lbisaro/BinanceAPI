@@ -413,6 +413,9 @@ class Operacion extends ModelDB
 
     function trySolveError()
     {
+        if ($this->data['stop'])
+            return;
+        
         //No fue posible crear la orden de venta luego de confirmar la compra
         if ($this->data['tipo'] != self::OP_TIPO_APLSHRT && $this->binStatus == '0100') 
         {
