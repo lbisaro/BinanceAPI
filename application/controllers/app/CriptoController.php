@@ -90,9 +90,12 @@ class CriptoController extends Controller
             $porcMinimoUsdEnBnb = 0.25;//%
             $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
             $dg->addHeader('Asset');
+            $dg->addHeader(' ','text-secondary',null,'center');
             $dg->addHeader('Total',null,null,'center');
+            $dg->addHeader(' ','text-secondary',null,'center');
             $dg->addHeader('Bloqueado',null,null,'center');
-            $dg->addHeader('Disponible',null,null,'center');
+            $dg->addHeader(' ','text-secondary',null,'center');
+            $dg->addHeader('Disponible ',null,null,'center');
             $balance=array();
             foreach ($account['balances'] as $rw)
             {
@@ -100,26 +103,42 @@ class CriptoController extends Controller
                 {
                     $rw['free'] = toDec($rw['free'],2);
                     $rw['locked'] = toDec($rw['locked'],2);
+
                     $rw['usd_flag'] = true;
                     $balance[$rw['asset']] = $rw;
                 }
             }
+            
+            $whereIn = '';
             foreach ($account['balances'] as $rw)
             {
                 if (!isset($balance[$rw['asset']]) && ( $rw['free'] > 0 || $rw['locked'] > 0 ) )
                 {
+                    $whereIn .= ($whereIn?',':'').'"'.$rw['asset'].'USDT'.'"'; 
+
                     $ticker = $rw['asset'].'USDT';
                     if (!isset($prices[$ticker]))
                         $ticker = $rw['asset'].'BUSD';
                     if (!isset($prices[$ticker]))
                         $ticker = $rw['asset'].'USDC';
 
+                    $rw['freeT'] = $rw['free']*1;
+                    $rw['lockedT'] = $rw['locked']*1;
                     $rw['free'] = toDec($rw['free']*$prices[$ticker]);
                     $rw['locked'] = toDec($rw['locked']*$prices[$ticker]);
+                    $rw['qty_decs'] = 2;
                     $balance[$rw['asset']] = $rw;
                     if ($rw['asset'] == 'BNB')
                         $ctrlBnb = $rw['free'];
                 }
+            }
+
+            //Buscando decimales de los tickers
+            $tck = new Ticker();
+            $tckDS = $tck->getDataSet('tickerid in('.$whereIn.')');
+            foreach($tckDS as $k => $v)
+            {
+                $balance[$v['base_asset']]['qty_decs'] = $v['qty_decs_units'];
             }
 
             $totTotal = 0;
@@ -128,14 +147,21 @@ class CriptoController extends Controller
             foreach ($balance as $rw)
             {
                 $total = $rw['free']+$rw['locked'];
+                $totalT = $rw['freeT']+$rw['lockedT'];
+
                 if ($total>0)
                 {
                     $locked = $rw['locked'];
+                    $lockedT = $rw['lockedT'];
                     $free = $rw['free'];
+                    $freeT = $rw['freeT'];
                     $row = array();
                     $row[] = ($rw['usd_flag']?'<strong>'.$rw['asset'].'</strong>':$rw['asset']);
+                    $row[] = ($totalT>0?'<small>'.toDec($totalT,$rw['qty_decs']).'</small>':'');
                     $row[] = ($total>0?$total:'');
+                    $row[] = ($lockedT>0?'<small>'.toDec($lockedT,$rw['qty_decs']).'</small>':'');
                     $row[] = ($locked>0?$locked:'');
+                    $row[] = ($freeT>0?'<small>'.toDec($freeT,$rw['qty_decs']).'</small>':'');
                     $row[] = ($free>0?$free:'');
                     $dg->addRow($row);
         
@@ -147,7 +173,7 @@ class CriptoController extends Controller
 
             $ctrlBilletera = $totTotal;
 
-            $dg->addFooter(array('Totales',$totTotal,$totLocked,$totFree));
+            $dg->addFooter(array('Total','',$totTotal,'','','',''));
 
             $arr['tab_billetera'] = $dg->get();
 
