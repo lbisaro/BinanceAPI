@@ -877,7 +877,7 @@ class BotController extends Controller
             $row[] = $curDate;
             foreach ($data['assets'] as $asset)
             {
-                if ($data[$curDate][$asset]!=0)
+                if (toDec($data[$curDate][$asset],$data['assets_decs'][$asset])!=0)
                     $row[] = toDec($data[$curDate][$asset],$data['assets_decs'][$asset]);
                 else
                     $row[] = '';
