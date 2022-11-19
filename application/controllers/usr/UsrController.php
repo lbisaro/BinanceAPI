@@ -1,6 +1,7 @@
 <?php
 include_once LIB_PATH."Controller.php";
 include_once LIB_PATH."Html.php";
+include_once LIB_PATH."HtmlTableDg.php";
 include_once MDL_PATH."usr/UsrUsuario.php";
 
 /**
@@ -55,5 +56,53 @@ class UsrController extends Controller
     
         $this->addView('usr/perfil',$arr);
     }
+
+
+    function usuarios($auth)
+    {
+        $this->addTitle('Usuarios');
+    
+        if (!$auth->isAdmin())
+        {
+            $this->addError('No esta autorizado a visualizar esta pagina.');
+            return null;
+        }
+    
+        $usr = new UsrUsuario();
+        $ds = $usr->getDataSet(null,'ayn');
+
+        $dg = new HtmlTableDg();
+        $dg->addHeader('Apellido y Nombre');
+        $dg->addHeader('Nombre de usuario');
+        $dg->addHeader('Usuario Activo');
+
+        if (!empty($ds))
+        {
+            foreach ($ds as $rw)
+            {
+                if (!$rw['block'])
+                    $blockBtn = '<button onclick="toogleBlock('.$rw['idusuario'].')" id="arBtn" class="btn btn-sm btn-success">
+                        <span class="glyphicon glyphicon-ok"></span>
+                        </button>';
+                else
+                    $blockBtn = '<button onclick="toogleBlock('.$rw['idusuario'].')" id="arBtn" class="btn btn-sm btn-danger">
+                        <span class="glyphicon glyphicon-ban-circle"></span>
+                        </button>';
+                $blockBtn = 
+                $row = array($rw['ayn'],
+                             $rw['username'],
+                             $blockBtn,
+                                );
+                $dg->addRow($row);
+            }
+        }
+    
+        $arr['data'] = $dg->get();
+        $arr['hidden'] = '';
+    
+        $this->addView('usr/usuarios',$arr);
+    }
+    
+    
 }
 ?>

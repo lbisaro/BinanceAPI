@@ -725,7 +725,7 @@ class Operacion extends ModelDB
 
     function getUsuariosActivos()
     {
-        $qry = 'SELECT DISTINCT idusuario FROM operacion';
+        $qry = 'SELECT DISTINCT idusuario FROM operacion WHERE block < 1';
         $stmt = $this->db->query($qry);
         $usuarios = array();
         while ($rw = $stmt->fetch())

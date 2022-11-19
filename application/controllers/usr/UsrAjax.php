@@ -118,5 +118,13 @@ class UsrAjax extends ControllerAjax
         
     }
 
+    function toogleBlock()
+    {
+        $usr = new UsrUsuario($_REQUEST['idusuario']);
+        $usr->toogleBlock();
+        $this->ajxRsp->redirect(Controller::getLink('Usr','Usr','usuarios'));
+        
+    }
+
 }
 ?>

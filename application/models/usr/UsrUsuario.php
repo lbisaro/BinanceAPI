@@ -1455,5 +1455,19 @@ class UsrUsuario extends Model
         return false;        
     }
 
+    function toogleBlock()
+    {
+        if ($this->data['idusuario'])
+        {
+            if ($this->data['block']>0)
+                $upd = 'UPDATE usuario SET block = 0 WHERE idusuario = '.$this->data['idusuario'];
+            else
+                $upd = 'UPDATE usuario SET block = 1 WHERE idusuario = '.$this->data['idusuario'];
+            $this->query($upd);
+            return true;
+        }
+        return false;
+    }
+
 }
 ?>
