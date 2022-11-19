@@ -1455,6 +1455,13 @@ class UsrUsuario extends Model
         return false;        
     }
 
+    function isActive()
+    {
+        if ($this->data['block'] > 0)
+            return false;
+        return true;        
+    }
+
     function toogleBlock()
     {
         if ($this->data['idusuario'])

@@ -25,6 +25,10 @@ class CriptoController extends Controller
         {
             $arr['data'] = '<div class="alert alert-danger">No se encuentra registro de asociacion de la cuenta con Binance</div>';
         }
+        elseif (!$auth->isActive()) 
+        {
+            $arr['data'] = '<div class="alert alert-danger">Cuenta bloqueada por error en API-KEY de la cuenta con Binance</div>';
+        }
         else
         {
             $api = new BinanceAPI($ak,$as);
