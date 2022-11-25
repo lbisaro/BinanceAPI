@@ -81,9 +81,9 @@
         <li class="nav-item menu-admin">
           <a class="nav-link rounded" href="test.test.home+"><span class="glyphicon glyphicon-th-list"></span> BackTesting</a>
         </li>        
-        <li class="nav-item">
+        <li class="nav-item menu-admin">
           <a class="nav-link rounded" href="usr.usr.usuarios+"><span class="glyphicon glyphicon-cog"></span> Usuarios</a>
-        </li>        
+        </li>         
         <li class="nav-item">
           <a class="nav-link rounded" href="usr.usr.perfil+"><span class="glyphicon glyphicon-user"></span> Cuenta</a>
         </li>

@@ -74,6 +74,7 @@ class UsrController extends Controller
         $dg = new HtmlTableDg();
         $dg->addHeader('Apellido y Nombre');
         $dg->addHeader('Nombre de usuario');
+        $dg->addHeader('Perfil');
         $dg->addHeader('Usuario Activo');
 
         if (!empty($ds))
@@ -91,6 +92,7 @@ class UsrController extends Controller
                 $blockBtn = 
                 $row = array($rw['ayn'],
                              $rw['username'],
+                             UsrUsuario::getTiposDeUsuario($rw['idperfil']),
                              $blockBtn,
                                 );
                 $dg->addRow($row);
