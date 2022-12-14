@@ -35,7 +35,7 @@ if (!empty($symbols))
     {
         $symbol = $rw['symbol'];
 
-        $apiInfo[$symbol]['qty_decs_units'] = intval($api->numberOfDecimals($apiRsp['symbols'][$symbol]['filters'][2]['minQty']));
+        $apiInfo[$symbol]['qty_decs_units'] = intval($api->numberOfDecimals($apiRsp['symbols'][$symbol]['filters'][1]['minQty']));
         $apiInfo[$symbol]['qty_decs_price'] = intval($api->numberOfDecimals($apiRsp['symbols'][$symbol]['filters'][0]['minPrice']));
         $apiInfo[$symbol]['quote_asset'] = $apiRsp['symbols'][$symbol]['quoteAsset'];
         $apiInfo[$symbol]['base_asset'] = $apiRsp['symbols'][$symbol]['baseAsset'];
