@@ -195,6 +195,8 @@ foreach ($operaciones as $operacion)
             $newPrice = toDec(($newUsd / $totUnitsBuyed),$symbolData['qtyDecsPrice']);
             $newQty = toDecDown($totUnitsBuyed,$symbolData['qtyDecs']);
 
+            echo $symbol.' qtyDecs: '.$symbolData['qtyDecs'].' qtyDecsPrice: '.$symbolData['qtyDecsPrice'];
+
             $msg = ' Sell -> Qty:'.$newQty.' Price:'.$newPrice.' USD:'.toDec($newPrice*$newQty).' +'.$porcentaje.'%';
             Operacion::logBot('u:'.$idusuario.' o:'.$idoperacion.' s:'.$symbol.' '.$msg);
 
