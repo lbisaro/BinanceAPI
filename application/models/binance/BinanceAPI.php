@@ -376,7 +376,7 @@ class BinanceAPI
     public function marketQuoteSell(string $symbol, $quantity, array $flags = [])
     {
         $flags['isQuoteOrder'] = true;
-        $c = $this->numberOfDecimals($this->exchangeInfo()['symbols'][$symbol]['filters'][2]['minQty']);
+        $c = $this->numberOfDecimals($this->exchangeInfo()['symbols'][$symbol]['filters'][1]['minQty']);
         $quantity = $this->floorDecimal($quantity, $c);
 
         return $this->order("SELL", $symbol, $quantity, 0, "MARKET", $flags);
@@ -412,7 +412,7 @@ class BinanceAPI
      */
     public function marketSell(string $symbol, $quantity, array $flags = [])
     {
-        $c = $this->numberOfDecimals($this->exchangeInfo()['symbols'][$symbol]['filters'][2]['minQty']);
+        $c = $this->numberOfDecimals($this->exchangeInfo()['symbols'][$symbol]['filters'][1]['minQty']);
         $quantity = $this->floorDecimal($quantity, $c);
 
         return $this->order("SELL", $symbol, $quantity, 0, "MARKET", $flags);
@@ -3038,7 +3038,7 @@ class BinanceAPI
             $data['symbol'] = $symbol;
             $data['price'] = $price;
             $exchangeInfo = $this->exchangeInfo($symbol);
-            $data['qtyDecs'] = intval($this->numberOfDecimals($exchangeInfo['symbols'][$symbol]['filters'][2]['minQty']));
+            $data['qtyDecs'] = intval($this->numberOfDecimals($exchangeInfo['symbols'][$symbol]['filters'][1]['minQty']));
             $data['qtyDecsPrice'] = intval($this->numberOfDecimals($exchangeInfo['symbols'][$symbol]['filters'][0]['minPrice']));
             $data['quoteAsset'] = $exchangeInfo['symbols'][$symbol]['quoteAsset'];
             $data['baseAsset']  = $exchangeInfo['symbols'][$symbol]['baseAsset'];
