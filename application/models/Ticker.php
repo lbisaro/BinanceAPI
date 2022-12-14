@@ -668,7 +668,7 @@ class Ticker extends ModelDB
         elseif ($price>0)
         {
             $exchangeInfo = $this->exchangeInfo($symbol);
-            $data['qtyDecs'] = intval($this->numberOfDecimals($exchangeInfo['symbols'][$symbol]['filters'][2]['minQty']));
+            $data['qtyDecs'] = intval($this->numberOfDecimals($exchangeInfo['symbols'][$symbol]['filters'][1]['minQty']));
             $data['qtyDecsPrice'] = intval($this->numberOfDecimals($exchangeInfo['symbols'][$symbol]['filters'][0]['minPrice']));
             $data['qtyDecsQuote'] = $this->presetDecs[$exchangeInfo['symbols'][$symbol]['quoteAsset']];
             $data['quoteAsset'] = $exchangeInfo['symbols'][$symbol]['quoteAsset'];
