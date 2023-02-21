@@ -88,7 +88,7 @@ class BsbotController extends Controller
             $diaSemana = date('N',strtotime(strToDate($fecha)));
             $dia = $dias[$diaSemana].' '.date('d/m',strtotime(strToDate($fecha)));
             $className = (date('d/m/Y')==$fecha?'text-primary font-weight-bold':'text-secondary font-weight-normal');
-            $row[$diaRef] = '<div class="'.$className.'">'.substr($fecha,0,5).'</div>'.($importe>0?'<b>$ '.toDec($importe).'</b>':'&nbsp;');
+            $row[$diaRef] = '<div class="'.$className.'">'.substr($fecha,0,5).'</div>'.($importe>0?'<b>'.toDec($importe).'</b>':'&nbsp;');
 
             if ($diaRef == 7)
             {
