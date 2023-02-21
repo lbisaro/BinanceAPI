@@ -1,6 +1,6 @@
 <div class="container">
-    <h2 class="text-info">BSBots Activos</h2>
-    <table class="table table-hover table-sm" >
+    <h4 class="text-info">BSBots Activos</h4>
+    <table class="DG table table-hover table-sm" >
         <thead>
             <tr>
                 <th>Fecha Compra</th>
@@ -43,10 +43,7 @@
     </table>
 </div>
 
-<div class="container">
-    <h2 class="text-info">Pagos</h2>
-    {{pagos}}
-</div>
+{{pagos}}
 
 <script language="javascript" >
 

@@ -18,9 +18,11 @@ class BsbotController extends Controller
 
         $ds = $bot->getAll();
 
-        //Rango de pagos proximos 15 dias
+        //Rango de pagos proximos 64 dias
+        $diaHoy = date('N');
+        $iStart = -$diaHoy;
         $rango = array();
-        for ($i = 0; $i<=64 ; $i++)
+        for ($i = $iStart; $i<=64 ; $i++)
         {
             if ($i<0)
                 $fechaRef = date('d/m/Y',strtotime($i.' days'));
@@ -69,19 +71,30 @@ class BsbotController extends Controller
         $dias[6] = 'Sab';
         $dias[7] = 'Dom';
 
-        $dg = new HtmlTableDg(null,null,'table-hover table-sm');
-        $dg->addHeader('Fecha');
-        $dg->addHeader('Importe BSBOT');
+        $dg = new HtmlTableDg(null,'100%','table-bordered table-hover table-sm');
+        $dg->setCaption('Proximos pagos');
+        foreach ($dias as $dia)
+        {
+            $dg->addHeader($dia,null,null,'center');
+        }
+        
+        $diaRef = 1;
+        $row = array();
         foreach ($pagos as $fecha=>$importe)
         {
-            $row = array();
             $diaSemana = date('N',strtotime(strToDate($fecha)));
             $dia = $dias[$diaSemana].' '.date('d/m',strtotime(strToDate($fecha)));
            
-            $className = ($fecha == date('d/m/Y') ? 'resaltado' : '' );
+            $row[$diaRef] = $fecha.'<br>'.($importe>0?'<b>$ '.toDec($importe).'</b>':'&nbsp;');
 
-            if ($importe != 0)
-                $dg->addRow(array($dia,toDec($importe)),$className);
+            if ($diaRef == 7)
+            {
+                $dg->addRow($row);
+                $row = array();
+                $diaRef = 0;
+            }
+
+            $diaRef++;
         }
         
         $arr['pagos'] = $dg->get();
