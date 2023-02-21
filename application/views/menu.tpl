@@ -88,6 +88,9 @@
           <a class="nav-link rounded" href="usr.usr.perfil+"><span class="glyphicon glyphicon-user"></span> Cuenta</a>
         </li>
         <li class="nav-item">
+          <a class="nav-link rounded" href="bsbot.bsbot.home+"><span class="glyphicon glyphicon glyphicon-tasks"></span> BSBot</a>
+        </li>
+        <li class="nav-item">
           <a class="nav-link rounded" href="usr.usr.logout+"><span class="glyphicon glyphicon-log-out"></span> Salir</a>
         </li>
     </ul>
