@@ -18,6 +18,14 @@ class BsbotController extends Controller
 
         $ds = $bot->getAll();
 
+        $dias[1] = 'Lunes';
+        $dias[2] = 'Martes';
+        $dias[3] = 'Miercoles';
+        $dias[4] = 'Jueves';
+        $dias[5] = 'Viernes';
+        $dias[6] = 'Sabado';
+        $dias[7] = 'Domingo';
+
         //Rango de pagos proximos 64 dias
         $diaHoy = date('N');
         $iStart = -$diaHoy;
@@ -41,8 +49,10 @@ class BsbotController extends Controller
             $arr['bots'] = '';
             foreach ($ds as $id => $rw)
             {
+                $diaSemana = date('N',strtotime(strToDate($rw['fecha'])));
+
                 $arr['bots'] .= '<tr>';
-                $arr['bots'] .= '<td>'.$rw['fecha'].'</td>';
+                $arr['bots'] .= '<td>'.$dias[$diaSemana].' '.$rw['fecha'].'</td>';
                 $arr['bots'] .= '<td>'.$rw['bot']['nombre'].'</td>';
                 $arr['bots'] .= '<td>'.$rw['qty'].'</td>';
                 $arr['bots'] .= '<td>'.$rw['estado'].'</td>';
@@ -63,13 +73,6 @@ class BsbotController extends Controller
             
         }
 
-        $dias[1] = 'Lun';
-        $dias[2] = 'Mar';
-        $dias[3] = 'Mie';
-        $dias[4] = 'Jue';
-        $dias[5] = 'Vie';
-        $dias[6] = 'Sab';
-        $dias[7] = 'Dom';
 
         $dg = new HtmlTableDg(null,'100%','table-bordered table-hover table-sm');
         $dg->setCaption('Proximos pagos');
@@ -84,8 +87,8 @@ class BsbotController extends Controller
         {
             $diaSemana = date('N',strtotime(strToDate($fecha)));
             $dia = $dias[$diaSemana].' '.date('d/m',strtotime(strToDate($fecha)));
-           
-            $row[$diaRef] = $fecha.'<br>'.($importe>0?'<b>$ '.toDec($importe).'</b>':'&nbsp;');
+            $className = (date('d/m/Y')==$fecha?'text-primary font-weight-bold':'text-secondary font-weight-normal');
+            $row[$diaRef] = '<div class="'.$className.'">'.substr($fecha,0,5).'</div>'.($importe>0?'<b>$ '.toDec($importe).'</b>':'&nbsp;');
 
             if ($diaRef == 7)
             {
