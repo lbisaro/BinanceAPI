@@ -8,5 +8,4 @@ test_log/statusScalper.log
 vaciar_tabla.php
 crontab/crontab_1m.sh
 log/
-
-crontab/crontab_1m.sh
+json.data/
