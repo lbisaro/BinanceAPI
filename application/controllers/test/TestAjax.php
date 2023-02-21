@@ -24,7 +24,7 @@ class TestAjax extends ControllerAjax
 
         $log = '<code class="text-secondary">'.date('Y-m-d H:i:s').' - Update '.$symbol.' - CantidaQty: '.$status['qtyKlines'].' - Last: '.$status['last'].'</code><br/>';
         $this->ajxRsp->prepend('log','innerHTML',$log);
-
+        sleep(1);
         $this->ajxRsp->script('update()');
 
     }
