@@ -28,9 +28,9 @@ class BsbotController extends Controller
 
         //Rango de pagos proximos 64 dias
         $diaHoy = date('N');
-        $iStart = -$diaHoy;
+        $iStart = -$diaHoy+1;
         $rango = array();
-        for ($i = $iStart; $i<=64 ; $i++)
+        for ($i = $iStart; $i<=71 ; $i++)
         {
             if ($i<0)
                 $fechaRef = date('d/m/Y',strtotime($i.' days'));
