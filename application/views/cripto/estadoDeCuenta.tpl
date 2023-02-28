@@ -8,7 +8,7 @@
 {{data}}
 <div class="container">
     <h4 class="info">
-        Total USD en la billetera: <b>{{totalUSD}}</b>
+        Billetera: <b>USD {{totalUSD}}</b>
     </h4>
 </div>
 </div>
