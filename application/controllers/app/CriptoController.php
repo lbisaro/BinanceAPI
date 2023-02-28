@@ -180,6 +180,7 @@ class CriptoController extends Controller
             $dg->addFooter(array('Total','',$totTotal,'','','',''));
 
             $arr['tab_billetera'] = $dg->get();
+            $arr['totalUSD'] = $totTotal;
 
 
             //Gestion del capital 

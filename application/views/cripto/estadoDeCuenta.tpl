@@ -6,6 +6,11 @@
 <div class="container">
 {{alertas}}
 {{data}}
+<div class="container">
+    <h4 class="info">
+        Total USD en la billetera: <b>{{totalUSD}}</b>
+    </h4>
+</div>
 </div>
 <div class="container">
   <ul class="nav nav-tabs">
