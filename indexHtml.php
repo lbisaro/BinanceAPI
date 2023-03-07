@@ -46,11 +46,7 @@ $isLogScrn = false;
 if (strtolower($moduleName.$controllerName.$actionName) == "usr"."usrcontroller"."login")
     $isLogScrn = true;
 
-if (!$isLogScrn)
-{
-    $controller->addLinkJs('ajaxSessionTimeout');
-}
-else
+if ($isLogScrn)
 {
     $controller->addLinkCss('cripto_login');
     $controller->addOnloadJs("$('body').css('background','#fff');");
