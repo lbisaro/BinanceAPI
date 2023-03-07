@@ -9,11 +9,11 @@ include_once("config.php");
 include_once(LIB_PATH."functions.php");
 include_once(LIB_PATH."Sql.php");
 
-include_once(CTRL_PATH."_lib/SessionTimeoutAjax.php");
+//include_once(CTRL_PATH."_lib/SessionTimeoutAjax.php");
 
 include_once(MDL_PATH."usr/UsrUsuario.php");
 
-resetTimeDebug();
+//resetTimeDebug();
 
 Sql::Connect(DB_HOST,DB_USER,DB_PASSWORD,DB_NAME);
 
@@ -55,10 +55,10 @@ if (strtolower($moduleName.$controllerName.$actionName) != strtolower('UsrUsrAja
         $controllerName = "Usr";
         $actionName     = "login";
     }
-    else
-    {
-        SessionTimeoutAjax::restart();
-    }
+    //else
+    //{
+    //    SessionTimeoutAjax::restart();
+    //}
 }
 
 if (substr($controllerName,strlen($controllerName)-3,3) == 'Pdf')
