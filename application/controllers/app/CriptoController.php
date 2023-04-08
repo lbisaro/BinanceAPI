@@ -309,6 +309,12 @@ class CriptoController extends Controller
         
 
         $arr['hidden'] = '';
+
+        $activeTab = $auth->getConfig('cripto.estadoDeCuenta.tab');
+        if ($activeTab)
+            $arr['activeTab'] = $activeTab;
+        else
+            $arr['activeTab'] = 'compras';
     
         $this->addView('cripto/estadoDeCuenta',$arr);
     }

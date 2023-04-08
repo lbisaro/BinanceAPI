@@ -126,5 +126,14 @@ class UsrAjax extends ControllerAjax
         
     }
 
+    function setConfig()
+    {
+        $set = $_REQUEST['set'];
+        $str = $_REQUEST['str'];
+        $this->ajxRsp->setEchoOut(false);
+        $auth = UsrUsuario::getAuthInstance();
+        $auth->setConfig($set, $str);
+    }
+
 }
 ?>

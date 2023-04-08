@@ -15,13 +15,13 @@
 <div class="container">
   <ul class="nav nav-tabs">
     <li class="nav-item" id="tab_compras">
-      <a class="nav-link" href="#" onclick="activarTab('compras')">Estado de Compras</a>
+      <a class="nav-link" href="#" onclick="activarTab('compras',true)">Estado de Compras</a>
     </li>
     <li class="nav-item" id="tab_capitalDisponible">
-      <a class="nav-link" href="#" onclick="activarTab('capitalDisponible')">Gestion del capital</a>
+      <a class="nav-link" href="#" onclick="activarTab('capitalDisponible',true)">Gestion del capital</a>
     </li>
     <li class="nav-item" id="tab_billetera">
-      <a class="nav-link" href="#" onclick="activarTab('billetera')">Disposicion de la Billetera</a>
+      <a class="nav-link" href="#" onclick="activarTab('billetera',true)">Disposicion de la Billetera</a>
     </li>
     <!--
     <li class="nav-item">
@@ -46,18 +46,20 @@
 <script type="text/javascript">
     
     $(document).ready( function () {
-        activarTab('compras');
+        activarTab('{{activeTab}}',false);
         $('.nav-tabs a').click(function(event) {
           event.preventDefault();
         });
     });
 
-    function activarTab(id)
+    function activarTab(id,update)
     {
         $('.nav-tabs a').removeClass('active');
         $('.tabs').hide();
         $('#'+id).show();
         $('#tab_'+id+' a').addClass('active');
+        if (update)
+            CtrlAjax.sendCtrl("usr","usr","setConfig","set=cripto.estadoDeCuenta.tab&str="+id);
     }
 
 
