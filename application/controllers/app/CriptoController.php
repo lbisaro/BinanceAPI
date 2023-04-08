@@ -194,9 +194,9 @@ class CriptoController extends Controller
 
             $fc = new HtmlTableFc();
             $fc->setCaption('Resumen de distribucion');
-            $fc->addRow(array('USD',toDec($resumen['USD']),toDec(($resumen['USD']/$totTotal)*100).'%'));
-            $fc->addRow(array('BTC + ETC + BNB',toDec($resumen['Alt1']),toDec(($resumen['Alt1']/$totTotal)*100).'%'));
-            $fc->addRow(array('Altcoins',toDec($resumen['Alt2']),toDec(($resumen['Alt2']/$totTotal)*100).'%'));
+            $fc->addRow(array('Estable Coins','USD '.toDec($resumen['USD']),toDec(($resumen['USD']/$totTotal)*100).'%'));
+            $fc->addRow(array('BTC + ETC + BNB','USD '.toDec($resumen['Alt1']),toDec(($resumen['Alt1']/$totTotal)*100).'%'));
+            $fc->addRow(array('Alt Coins','USD '.toDec($resumen['Alt2']),toDec(($resumen['Alt2']/$totTotal)*100).'%'));
 
 
             $arr['tab_billetera'] = $fc->get().$dg->get();
