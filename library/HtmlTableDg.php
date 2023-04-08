@@ -177,7 +177,7 @@ class HtmlTableDg
 
         $caption = '';
         if ($this->caption)
-            $caption = '<h4 class="text-info table_dg_caption">'.$this->caption.'</h2>';
+            $caption = '<h4 class="text-info table_dg_caption">'.$this->caption.'</h4>';
 
         $rows = '';
         $footer = '';

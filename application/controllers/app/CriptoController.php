@@ -2,6 +2,7 @@
 include_once LIB_PATH."Controller.php";
 include_once LIB_PATH."Html.php";
 include_once LIB_PATH."HtmlTableDg.php";
+include_once LIB_PATH."HtmlTableFc.php";
 include_once MDL_PATH."Ticker.php";
 include_once MDL_PATH."binance/BinanceAPI.php";
 include_once MDL_PATH."bot/Operacion.php";
@@ -148,6 +149,11 @@ class CriptoController extends Controller
             $totTotal = 0;
             $totLocked = 0;
             $totFree = 0;
+            $resumen = array();
+            $resumen['USD'] = 0;
+            $resumen['Alt1'] = 0;
+            $resumen['Alt2'] = 0;
+
             foreach ($balance as $rw)
             {
                 $total = $rw['free']+$rw['locked'];
@@ -172,6 +178,13 @@ class CriptoController extends Controller
                     $totTotal += $total;
                     $totLocked += $locked;
                     $totFree += $free;
+
+                    if (in_array($rw['asset'], array('USDT','BUSD','USDC')))
+                        $resumen['USD'] += $total;
+                    elseif (in_array($rw['asset'], array('BTC','BNB','ETH')))
+                        $resumen['Alt1'] += $total;
+                    else
+                        $resumen['Alt2'] += $total;
                 }
             }
 
@@ -179,7 +192,14 @@ class CriptoController extends Controller
 
             $dg->addFooter(array('Total','',$totTotal,'','','',''));
 
-            $arr['tab_billetera'] = $dg->get();
+            $fc = new HtmlTableFc();
+            $fc->setCaption('Resumen de distribucion');
+            $fc->addRow(array('USD',toDec($resumen['USD']),toDec(($resumen['USD']/$totTotal)*100).'%'));
+            $fc->addRow(array('BTC + ETC + BNB',toDec($resumen['Alt1']),toDec(($resumen['Alt1']/$totTotal)*100).'%'));
+            $fc->addRow(array('Altcoins',toDec($resumen['Alt2']),toDec(($resumen['Alt2']/$totTotal)*100).'%'));
+
+
+            $arr['tab_billetera'] = $dg->get().$fc->get();
             $arr['totalUSD'] = $totTotal;
 
 
