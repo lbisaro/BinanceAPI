@@ -199,7 +199,7 @@ class CriptoController extends Controller
             $fc->addRow(array('Altcoins',toDec($resumen['Alt2']),toDec(($resumen['Alt2']/$totTotal)*100).'%'));
 
 
-            $arr['tab_billetera'] = $dg->get().$fc->get();
+            $arr['tab_billetera'] = $fc->get().$dg->get();
             $arr['totalUSD'] = $totTotal;
 
 
