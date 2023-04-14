@@ -194,7 +194,7 @@ class CriptoController extends Controller
 
             $fc = new HtmlTableFc();
             $fc->setCaption('Resumen de distribucion');
-            $fc->addRow(array('Estable Coins (USDT + BUSD + USDC)','USD '.toDec($resumen['USD']),toDec(($resumen['USD']/$totTotal)*100).'%'));
+            $fc->addRow(array('USDT + BUSD + USDC','USD '.toDec($resumen['USD']),toDec(($resumen['USD']/$totTotal)*100).'%'));
             $fc->addRow(array('BTC + ETH + BNB','USD '.toDec($resumen['Alt1']),toDec(($resumen['Alt1']/$totTotal)*100).'%'));
             $fc->addRow(array('Alt Coins','USD '.toDec($resumen['Alt2']),toDec(($resumen['Alt2']/$totTotal)*100).'%'));
 
