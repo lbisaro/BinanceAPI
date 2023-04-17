@@ -1,6 +1,7 @@
 <?php
 include_once MDL_PATH."binance/BinanceAPI.php";
 include_once MDL_PATH."bot/Operacion.php";
+include_once MDL_PATH."binance/Wallet.php";
 
 if (!Operacion::lockProcess('Crontab::BOT()'))
 {
@@ -64,6 +65,7 @@ foreach ($usuarios as $idusuario => $usuarioData)
             $binanceOpenOrders[$order['orderId']] = $order['status'];
         }
         
+
         //Operaciones de APALANCAMIENTO ESTANDARD
         $tipo = Operacion::OP_TIPO_APL;
         //echo "\n".date('d/m/Y H:i:s').' '.$usr->get('username')." ".$opr->getTipoOperacion($tipo);
@@ -79,6 +81,10 @@ foreach ($usuarios as $idusuario => $usuarioData)
         $tipo = Operacion::OP_TIPO_APLSHRT;
         //echo "\n".date('d/m/Y H:i:s').' '.$usr->get('username')." ".$opr->getTipoOperacion($tipo);
         include 'crontab_bot_tipo_2.php';
+        
+
+        //Actualizar Billetera
+        include 'crontab_update_wallet.php';
 
 
     } catch (Throwable $e) {
