@@ -3,6 +3,7 @@ include_once LIB_PATH."Controller.php";
 include_once LIB_PATH."ControllerAjax.php";
 include_once LIB_PATH."HtmlTableDg.php";
 include_once MDL_PATH."Ticker.php";
+include_once MDL_PATH."binance/Wallet.php";
 
 /**
  * CriptoAjax
@@ -233,5 +234,27 @@ class CriptoAjax extends ControllerAjax
         $this->ajxRsp->assign('oprTable','innerHTML',$html);
         //$this->ajxRsp->script("console.log('multCompras: ".$ret['multCompras']."');");
 
+    }
+
+    function readWallet()
+    {
+        $this->ajxRsp->setEchoOut(true);
+
+        $auth = UsrUsuario::getAuthInstance();
+        $idusuario = $auth->get('idusuario');
+        $wal = new Wallet($api=null,$idusuario);
+        $values = $wal->get();
+
+        foreach ($values as $rw)
+        {
+            $ds[] = array('date'=>$rw['date'],
+                          'value'=>toDec($rw['close'],2),
+                          'open'=>toDec($rw['open'],2),
+                          'low'=>toDec($rw['low'],2),
+                          'high'=>toDec($rw['high'],2)
+                          );
+            
+        }
+        echo json_encode($ds);        
     }
 }

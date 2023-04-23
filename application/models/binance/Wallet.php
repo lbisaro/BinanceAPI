@@ -8,7 +8,7 @@ class Wallet
     protected $api;
     protected $idusuario;
 
-    function __Construct($api,$idusuario)
+    function __Construct($api=null,$idusuario)
     {
         $this->db = DB::getInstance();
         $this->errLog = new ErrorLog();
@@ -19,6 +19,8 @@ class Wallet
 
     function update()
     {
+        if (!$this->api)
+            return false;
         $prices = $this->api->prices();
         $account = $this->api->account();
 
@@ -91,8 +93,13 @@ class Wallet
                 $this->db->query($upd);
             }
         }
+    }
 
-
+    function get()
+    {
+        $qry = 'SELECT * FROM wallet WHERE idusuario = '.$this->idusuario.' ORDER BY date';
+        $stmt = $this->db->query($qry);
+        return $stmt->fetchAll();
     }
 
 }
