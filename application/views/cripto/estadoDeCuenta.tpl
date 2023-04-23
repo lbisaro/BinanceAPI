@@ -105,7 +105,6 @@
                     data[i].high = data[i].high*1;
                     data[i].low = data[i].low*1;
                 }
-                console.log(data);
                 
                 am5.ready(function() 
                 {
@@ -146,6 +145,7 @@
                         maxDeviation:1,
                         renderer: am5xy.AxisRendererY.new(root, {pan:"zoom"})
                       })
+
                     );
 
                     var color = root.interfaceColors.get("background");
@@ -159,7 +159,7 @@
                         fill: color,
                         calculateAggregates: true,
                         stroke: color,
-                        name: "Billetera diaria (USD)",
+                        name: "USD",
                         xAxis: xAxis,
                         yAxis: yAxis,
                         valueYField: "value",
@@ -174,10 +174,6 @@
                         legendValueText:
                           "Apertura: {openValueY} Min: {lowValueY} Max: {highValueY} Cierre: {valueY}",
                         legendRangeValueText: "{valueYClose}",
-                        //tooltip: am5.Tooltip.new(root, {
-                        //  pointerOrientation: "horizontal",
-                        //  labelText: "open: {openValueY}\nlow: {lowValueY}\nhigh: {highValueY}\nclose: {valueY}"
-                        //})
                       })
                     );
                     
@@ -195,42 +191,6 @@
                     // https://www.amcharts.com/docs/v5/charts/xy-chart/axes/#Stacked_axes
                     chart.leftAxesContainer.set("layout", root.verticalLayout);
 
-                    // Add scrollbar
-                    // https://www.amcharts.com/docs/v5/charts/xy-chart/scrollbars/
-                    /*
-                    var scrollbar = am5xy.XYChartScrollbar.new(root, {
-                      orientation: "horizontal",
-                      height: 50
-                    });
-                    chart.set("scrollbarX", scrollbar);
-
-                    var sbxAxis = scrollbar.chart.xAxes.push(
-                      am5xy.DateAxis.new(root, {
-                        groupData: true,
-                        groupIntervals: [{ timeUnit: "week", count: 1 }],
-                        baseInterval: { timeUnit: "day", count: 1 },
-                        renderer: am5xy.AxisRendererX.new(root, {
-                          opposite: false,
-                          strokeOpacity: 0
-                        })
-                      })
-                    );
-
-                    var sbyAxis = scrollbar.chart.yAxes.push(
-                      am5xy.ValueAxis.new(root, {
-                        renderer: am5xy.AxisRendererY.new(root, {})
-                      })
-                    );
-
-                    var sbseries = scrollbar.chart.series.push(
-                      am5xy.LineSeries.new(root, {
-                        xAxis: sbxAxis,
-                        yAxis: sbyAxis,
-                        valueYField: "value",
-                        valueXField: "date"
-                      })
-                    );
-                    */
 
                     // Add legend
                     // https://www.amcharts.com/docs/v5/charts/xy-chart/legend-xy-series/
@@ -251,8 +211,7 @@
 
                     // set data
                     series.data.setAll(data);
-                    sbseries.data.setAll(data);
-
+                    
                     // Make stuff animate on load
                     // https://www.amcharts.com/docs/v5/concepts/animations/
                     series.appear(1000);
