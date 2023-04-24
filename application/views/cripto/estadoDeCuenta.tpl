@@ -99,7 +99,9 @@
             {
                 for (var i = 0; i < data.length; i++)
                 {
-                    data[i].date = Date.parse(data[i].date);
+                    var datetime = new Date(data[i].date);
+                    datetime.setDate(datetime.getDate() +1);
+                    data[i].date = datetime.getTime()+1000;
                     data[i].value = data[i].value*1;
                     data[i].open = data[i].open*1;
                     data[i].high = data[i].high*1;
@@ -143,7 +145,8 @@
                     var yAxis = chart.yAxes.push(
                       am5xy.ValueAxis.new(root, {
                         maxDeviation:1,
-                        renderer: am5xy.AxisRendererY.new(root, {pan:"zoom"})
+                        renderer: am5xy.AxisRendererY.new(root, {pan:"zoom"}),
+                        tooltip: am5.Tooltip.new(root, {})
                       })
 
                     );
