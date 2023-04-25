@@ -30,8 +30,23 @@ $auth = UsrUsuario::getAuthInstance();
 
 //Registra en el log uso del sistema por Usuario
 if ($auth)
+{
     $auth->saveLog();
+}
+elseif ($_COOKIE['UID'])
+{
+    UsrUsuario::setAuthInternalInstance($_COOKIE['UID']);
+    $auth = UsrUsuario::getAuthInstance(); 
+    if ($auth->get('idperfil') < UsrUsuario::PERFIL_CNS)
+    {
+        unset($auth); //La cuenta de usuario se encuentra inhabilitada.
+    }
+    else
+    {
+        $auth->registrarAcceso();
+    }
 
+}
 
 
 if (strtolower($moduleName.$controllerName.$actionName) != strtolower('UsrUsrAjaxlogin'))

@@ -9,7 +9,7 @@ class UsrAjax extends ControllerAjax
     {
         $user = $_REQUEST['login_username'];
         $pass = $_REQUEST['login_password'];
-
+        setcookie('UID');
         if (!$user || !$pass)
         {
             if (!$user)
@@ -45,6 +45,7 @@ class UsrAjax extends ControllerAjax
         else
         {
             $auth->registrarAcceso();
+            setcookie('UID',$auth->get('idusuario'));
             if (isset($_SESSION['cachedRequest']) && empty($_SESSION['cachedRequest']['post']))
             {
                 $mod  = $_SESSION['cachedRequest']['moduleName'];

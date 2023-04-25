@@ -30,6 +30,7 @@ class UsrController extends Controller
     {
         session_destroy();
         UsrUsuario::killAuthInstance();
+        setcookie('UID');
         header ("Location: .");
         exit;
     }
