@@ -1467,7 +1467,7 @@ class BotController extends Controller
             $auditBot[$v['orderId']] = $v;
         }
         if (!$lastComplete)
-            $lastComplete = '2021-06-01 00:00:00';
+            $lastComplete = '2023-01-01 00:00:00';
 
         $ak = $auth->getConfig('bncak');
         $as = $auth->getConfig('bncas');
