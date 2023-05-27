@@ -434,18 +434,19 @@ class BotController extends Controller
                     $pnlOp['quoteFull'] += $pnlOp['base']*$symbolPrice;
                     $strGanancia .= ' + '.$pnlOp['base_asset'].' '.toDec($pnlOp['base'],$pnlOp['base_decs']).'';
                 }
+                if ($capitalReal>0)
+                {
+                    $arr['pnlAbiertas'] = $pnlOp['quote_asset'].' '.toDec($pnlAbiertas,$pnlOp['quote_decs']);
+                    $arr['pnlAbiertas'] .= '<br>'.toDec(($pnlAbiertas/$capitalReal)*100).'%';
 
-                $arr['pnlAbiertas'] = $pnlOp['quote_asset'].' '.toDec($pnlAbiertas,$pnlOp['quote_decs']);
-                $arr['pnlAbiertas'] .= '<br>'.toDec(($pnlAbiertas/$capitalReal)*100).'%';
-
-                $arr['pnlCompletas'] = $pnlOp['quote_asset'].' '.toDec($pnlOp['quoteFull'],$pnlOp['quote_decs']);
-                $arr['pnlCompletas'] .= '<br>'.toDec(($pnlOp['quoteFull']/$capitalReal)*100).'%';
-                if ($pnlOp['base'] != 0)
-                    $arr['pnlCompletas'] .= '<br><small><i class="text-secondary">'.$strGanancia.'</i></small>';
-                
-                $arr['pnlGeneral'] = $pnlOp['quote_asset'].' '.toDec($pnlOp['quoteFull']+$pnlAbiertas,$pnlOp['quote_decs']);;
-                $arr['pnlGeneral'] .= '<br>'.toDec((($pnlOp['quoteFull']+$pnlAbiertas)/$capitalReal)*100).'%';
-
+                    $arr['pnlCompletas'] = $pnlOp['quote_asset'].' '.toDec($pnlOp['quoteFull'],$pnlOp['quote_decs']);
+                    $arr['pnlCompletas'] .= '<br>'.toDec(($pnlOp['quoteFull']/$capitalReal)*100).'%';
+                    if ($pnlOp['base'] != 0)
+                        $arr['pnlCompletas'] .= '<br><small><i class="text-secondary">'.$strGanancia.'</i></small>';
+                    
+                    $arr['pnlGeneral'] = $pnlOp['quote_asset'].' '.toDec($pnlOp['quoteFull']+$pnlAbiertas,$pnlOp['quote_decs']);;
+                    $arr['pnlGeneral'] .= '<br>'.toDec((($pnlOp['quoteFull']+$pnlAbiertas)/$capitalReal)*100).'%';
+                }
             }
             else
             {
@@ -1541,7 +1542,9 @@ class BotController extends Controller
         $dg->addHeader('BNC status');
         $dg->addHeader('Fecha');
         $dg->addHeader('BOT');
+        $dg->addHeader('Check');
         $dg->addHeader('SQL');
+        $inputs = '<input type="hidden" id="idoperacion" value="'.$idoperacion.'">';
 
         foreach ($audit as $rw)
         {
@@ -1554,6 +1557,10 @@ class BotController extends Controller
             $row[] = $rw['status'];
             $row[] = $rw['datetime'];
             $row[] = ($rw['bot']?'OK':'Falta');
+            if ($rw['bot'])
+                $row[] = '&nbsp;';
+            else
+                $row[] = '<input type="checkbox" id="chk_'.$rw['orderId'].'" onclick="refresh();" />';
 
             $sql='';
             if (!$rw['bot'])
@@ -1561,30 +1568,28 @@ class BotController extends Controller
                 //Preparando SQL
                 $side = ($rw['side']=='BUY'?'0':'1');
                 $status = ($rw['status']=='FILLED'?'10':'0');
-                if ($rw['status']=='NEW')
-                {
-                    $sql = "INSERT INTO operacion_orden (idoperacion,side,status,origQty,price,orderId,updated) VALUES ".
-                            "(".$idoperacion.",".$side.",".$status.",".$rw['origQty'].",".$rw['price'].",'".$rw['orderId']."','".$rw['datetime']."');<br>";
-                }
-                else
-                {
-                    $sql = "INSERT INTO operacion_orden (idoperacion,side,status,origQty,price,orderId,updated,completed,pnlDate) VALUES ".
-                            "(".$idoperacion.",".$side.",".$status.",".$rw['origQty'].",".$rw['price'].",'".$rw['orderId']."','".$rw['datetime']."',1,'".date('Y-m-d H:i:s')."');<br>";
-                }
+
+                $inputs .= "\n".'<input type="hidden" id="side_'.$rw['orderId'].'" value="'.$side.'">';
+                $inputs .=      '<input type="hidden" id="status_'.$rw['orderId'].'" value="'.$status.'">';
+                $inputs .=      '<input type="hidden" id="origQty_'.$rw['orderId'].'" value="'.$rw['origQty'].'">';
+                $inputs .=      '<input type="hidden" id="price_'.$rw['orderId'].'" value="'.$rw['price'].'">';
+                $inputs .=      '<input type="hidden" id="orderId_'.$rw['orderId'].'" value="'.$rw['orderId'].'">';
+                $inputs .=      '<input type="hidden" id="datetime_'.$rw['orderId'].'" value="'.$rw['datetime'].'">';
             }
-            $row[] = $sql;
+            $row[] = '';
             $class='';
             if (!$rw['bot'] && $rw['status']=='NEW')
                 $class='text-success';
             elseif (!$rw['bot'] && $rw['status']!='NEW')
                 $class='text-primary';
-            $dg->addRow($row,$class);
+            $dg->addRow($row,$class,$height='25px',$valign='middle',$id="tr_".$rw['orderId']);
         }
         
         $arr['data'] = $dg->get();
+        $arr['data'] .= $inputs;
         $arr['hidden'] = '';
     
-        $this->addView('ver',$arr);
+        $this->addView('bot/auditarOrdenes',$arr);
     }
     
     

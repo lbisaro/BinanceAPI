@@ -2,6 +2,7 @@
 include_once LIB_PATH."Controller.php";
 include_once LIB_PATH."ControllerAjax.php";
 include_once LIB_PATH."HtmlTableDg.php";
+include_once LIB_PATH."DB.php";
 include_once MDL_PATH."binance/BinanceAPI.php";
 include_once MDL_PATH."Ticker.php";
 include_once MDL_PATH."bot/Test.php";
@@ -780,6 +781,57 @@ class BotAjax extends ControllerAjax
         else
         {
             $this->ajxRsp->redirect('app.bot.apagarBot+id='.$opr->get('idoperacion'));
+        }
+
+    }
+
+    function auditarOrdenesMakeSql()
+    {
+        $typeOrder = $_REQUEST['typeOrder'];
+        $idoperacion = $_REQUEST['idoperacion'];
+        $ejecutar = $_REQUEST['execute'];
+        $qry = array();
+        foreach ($_REQUEST as $id=>$value)
+        {
+            if (substr($id,0,8) == 'orderId_')
+            {
+                $orderId = substr($id,8);
+                $side = $_REQUEST['side_'.$orderId];
+                $status = $_REQUEST['status_'.$orderId];
+                $origQty = $_REQUEST['origQty_'.$orderId];
+                $price = $_REQUEST['price_'.$orderId];
+                $datetime = $_REQUEST['datetime_'.$orderId];
+                $sql = '';
+                if ($_REQUEST['chk_'.$orderId])
+                {
+                    if ($typeOrder=='1')
+                    {
+                        $sql = "INSERT INTO operacion_orden (idoperacion,side,status,origQty,price,orderId,updated) VALUES ".
+                                "(".$idoperacion.",".$side.",".$status.",".$origQty.",".$price.",'".$orderId."','".$datetime."');";
+                    }
+                    else
+                    {
+                        $sql = "INSERT INTO operacion_orden (idoperacion,side,status,origQty,price,orderId,updated,completed,pnlDate) VALUES ".
+                                "(".$idoperacion.",".$side.",".$status.",".$origQty.",".$price.",'".$orderId."','".$datetime."',1,'".date('Y-m-d H:i:s')."');";
+                    }
+                    $qry[] = $sql;
+                }
+                if ($ejecutar)
+                {
+                    $db = DB::getInstance();
+                    foreach ($qry as $ins)
+                    {
+                        $db->query($ins);
+                    }
+                    $this->ajxRsp->redirect('app.bot.auditarOrdenes+id='.$idoperacion);
+                }
+                else
+                {
+                    $this->ajxRsp->assign('tr_'.$orderId.'_10','innerHTML',$sql);
+                    if (!empty($qry))
+                        $this->ajxRsp->script("$('#btn_ejecutar').show();");
+                }
+            }
         }
 
     }
