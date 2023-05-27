@@ -194,8 +194,11 @@ class AjaxResponse
                 $msgs[] = $msg;
         else
             $msgs[] = $data;
+
         foreach ($msgs as $msg)
+        {
             $this->script("console.log('".$msg."');");
+        }
     }
 }
 ?>
