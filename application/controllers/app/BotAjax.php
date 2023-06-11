@@ -790,9 +790,10 @@ class BotAjax extends ControllerAjax
         $typeOrder = $_REQUEST['typeOrder'];
         $idoperacion = $_REQUEST['idoperacion'];
         $ejecutar = $_REQUEST['execute'];
-        $qry = array();
+        
         foreach ($_REQUEST as $id=>$value)
         {
+            $qry = array();
             if (substr($id,0,8) == 'orderId_')
             {
                 $orderId = substr($id,8);
