@@ -1180,7 +1180,10 @@ class Operacion extends ModelDB
                 $data[$id]['realQuote'] = $data[$id]['quote'];
                 if ($data[$id]['base'] != 0)
                     $data[$id]['realQuote'] += $data[$id]['base']*$prices[$rw['symbol']];
-                $data[$id]['porc_ganancia'] = toDec(($data[$id]['realQuote']/$data[$id]['realCapital'])*100);
+                if ($data[$id]['realCapital']>0)
+                    $data[$id]['porc_ganancia'] = toDec(($data[$id]['realQuote']/$data[$id]['realCapital'])*100);
+                else
+                    $data[$id]['porc_ganancia'] = toDec(0);
             }
             else
             {

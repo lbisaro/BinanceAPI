@@ -244,16 +244,19 @@ class CriptoAjax extends ControllerAjax
         $idusuario = $auth->get('idusuario');
         $wal = new Wallet($api=null,$idusuario);
         $values = $wal->get();
-
-        foreach ($values as $rw)
+        $ds = array();
+        if (!empty($values))
         {
-            $ds[] = array('date'=>$rw['date'],
-                          'value'=>toDec($rw['close'],2),
-                          'open'=>toDec($rw['open'],2),
-                          'low'=>toDec($rw['low'],2),
-                          'high'=>toDec($rw['high'],2)
-                          );
-            
+            foreach ($values as $rw)
+            {
+                $ds[] = array('date'=>$rw['date'],
+                              'value'=>toDec($rw['close'],2),
+                              'open'=>toDec($rw['open'],2),
+                              'low'=>toDec($rw['low'],2),
+                              'high'=>toDec($rw['high'],2)
+                              );
+                
+            }
         }
         echo json_encode($ds);        
     }

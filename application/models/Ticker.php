@@ -90,8 +90,7 @@ class Ticker extends ModelDB
 
         //Verificando el ticker en Binance
         $api = new BinanceAPI(); 
-        $opr = new Operacion();
-
+        
         $symbolData = $api->getSymbolData($this->data['tickerid']);
         $this->data['qty_decs_units'] = $symbolData['qtyDecs'];
         $this->data['qty_decs_price'] = $symbolData['qtyDecsPrice'];
