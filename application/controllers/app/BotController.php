@@ -41,8 +41,8 @@ class BotController extends Controller
                 $row[] = '<span class="'.$rw['strEstadoClass'].'">'.$rw['strEstado'].'</span>';
                 $dg->addRow($row);
             }
+            $arr['lista'] = $dg->get();
         }
-        $arr['lista'] = $dg->get();
 
         $opr = new Operacion();
         $ds = $opr->getDataset('idusuario = '.$auth->get('idusuario'),'stop, auto_restart DESC, symbol');
