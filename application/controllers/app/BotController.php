@@ -5,6 +5,7 @@ include_once LIB_PATH."HtmlTableDg.php";
 include_once LIB_PATH."HtmlTableFc.php";
 include_once MDL_PATH."Ticker.php";
 include_once MDL_PATH."bot/Operacion.php";
+include_once MDL_PATH."bot/BotSW.php";
 include_once MDL_PATH."binance/BinanceAPI.php";
 
 /**
@@ -18,10 +19,36 @@ class BotController extends Controller
     {
         $this->addTitle('Bot');
 
+        $bot = new BotSW();
+        $ds = $bot->getActivos();
+        if (!empty($ds))
+        {
+            $dg = new HtmlTableDg(null,null,'table table-hover table-striped');
+            $dg->setCaption('Bots - Smart Wallet');
+            $dg->addHeader('Titulo');
+            $dg->addHeader('StableCoin',null,null,'center');
+            $dg->addHeader('Assets',null,null,'center');
+            $dg->addHeader('Capital USD',null,null,'center');
+            $dg->addHeader('Estado',null,null,'center');
+            
+            foreach ($ds as $rw)
+            {
+                $row = array();
+                $row[] = '<a href="'.Controller::getLink('app','botSW','ver','id='.$rw['idbotsw']).'" >'.$rw['titulo'].'</a>';
+                $row[] = $rw['strEstables'];
+                $row[] = $rw['strMonedas'];
+                $row[] = toDec($rw['capital']);
+                $row[] = '<span class="'.$rw['strEstadoClass'].'">'.$rw['strEstado'].'</span>';
+                $dg->addRow($row);
+            }
+        }
+        $arr['lista'] = $dg->get();
+
         $opr = new Operacion();
         $ds = $opr->getDataset('idusuario = '.$auth->get('idusuario'),'stop, auto_restart DESC, symbol');
         
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped');
+        $dg->setCaption('Bots - Apalancamiento');
         $dg->addHeader('Bot');
         $dg->addHeader('Capital',null,null,'center');
         $dg->addHeader('Compra inicial',null,null,'center');
@@ -96,7 +123,7 @@ class BotController extends Controller
             foreach ($rowsInactivas as $rw)
                 $dg->addRow($rw['data'],$rw['class']);
      
-        $arr['lista'] = $dg->get();
+        $arr['lista'] .= $dg->get();
         if ($operacionesStop>0)
             $arr['lista'] .= '<button id="toogleStopped" class="btn btn-secondary btn-block btn-sm" onclick="toogleStopOp();">Mostrar Bots apagados</button>';
         $arr['hidden'] = '';

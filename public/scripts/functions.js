@@ -1351,9 +1351,11 @@ function getVar(name)
     return(return_value);
 }
 
-function toDec(x)
+function toDec(x,n)
 {
-    return format_number(x,2);
+    if (!n)
+        n=2;
+    return format_number(x,n);
 }
 
 function format_number(x,n)

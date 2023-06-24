@@ -1344,3 +1344,12 @@ function getIPClient()
         return $_SERVER["REMOTE_ADDR"];
     }
 }
+
+function coloredNum($num)
+{
+    if ($num>0)
+        return '<span class="text-success">+'.$num."</span>";
+    elseif ($num<0)
+        return '<span class="text-danger">'.$num."</span>";
+    return '<span></span>';
+}

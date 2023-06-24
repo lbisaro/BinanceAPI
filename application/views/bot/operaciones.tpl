@@ -1,5 +1,8 @@
 <div class="container">
     <ul class="nav justify-content-end ">
+      <li class="nav-item menu-admin">
+        <a href="app.botSW.crear+" class="nav-link " >Nuevo <b class="text-info">Smart Wallet</b></a>
+      </li>
       <li class="nav-item">
         <a href="app.bot.crearOperacion+" class="nav-link " >Nueva <b>Operacion Estandard</b></a>
       </li>

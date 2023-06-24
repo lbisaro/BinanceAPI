@@ -16,20 +16,72 @@ class TestController extends Controller
     {
         $this->addTitle('BackTesting - Home');
         $this->addOnloadJs("goTo('".Controller::getLink('test','test','testEstrategias')."');");
-        /*
-        if ($auth->get('idperfil') != UsrUsuario::PERFIL_ADM)
-        {
-            $this->addOnloadJs("goTo('".Controller::getLink('test','test','testEstrategias')."');");
-        }
-        else
-        {
-            $arr['data'] = '';
-            $arr['hidden'] = '';
-        
-            $this->addView('test/home',$arr);
-        }
-        */
     }
+
+
+    function polyfit($auth)
+    {
+        $this->addTitle('PolyFit');
+    
+        include_once LIB_PATH."PolyFit.php";
+
+        $x = [0, 1, 2, 3, 4, 5];
+        //$y = [1, 3, 2, 5, 7, 8];
+
+        //2x+3
+        foreach($x as $k => $v)
+            $y[$k] = 2*$v + 5;
+        
+        //2x+3 con ruido
+        foreach($x as $k => $v)
+            $y[$k] = $v*$v + 2*$v + 5 + rand(-1.7,1.8);
+        
+
+
+        // Fit a polynomial of degree 2 to the data
+        $linearRegression = new PolyFit();
+        $linearRegression->train($x, $y);
+        $rlp = $linearRegression->getRegressionLinePoints();
+        $dfrl = $linearRegression->getDifferencesFromRegressionLine();
+        $cs = $linearRegression->getCumulativeSumOfDifferencesFromRegressionLine();
+
+        
+        
+        $dg = new HtmlTableDg();
+        $dg->addHeader('X');
+        $dg->addHeader('Y');
+        $dg->addHeader('Reg X');
+        $dg->addHeader('Reg Y');
+        $dg->addHeader('Diff From Reg Line');
+        $dg->addHeader('Cumm Sum');
+        
+        foreach ($x as $k => $v)
+        {
+            $row = array($x[$k],
+                         $y[$k],   
+                         $rlp[$k]->getX(),   
+                         $rlp[$k]->getY(),
+                         $dfrl[$k],
+                         $cs[$k] 
+                        );
+            $dg->addRow($row);
+        }
+
+
+    
+        $arr['data'] .= '<p>Ordenada al origen: ' . $linearRegression->getIntercept() .'</p>';
+        $arr['data'] .= '<p>Pendiente: ' . $linearRegression->getSlope() .'</p>';
+        $arr['data'] .= '<p>Funcion: ' . $linearRegression->getSlope() .'x + '.$linearRegression->getIntercept().'</p>';
+        $arr['data'] .= '<p>R-Squared: ' . $linearRegression->getRSquared().'</p>';
+
+
+        $arr['data'] .= $dg->get();
+        $arr['hidden'] = '';
+    
+        $this->addView('ver',$arr);
+    }
+    
+    
     
     
     function updateKlines_1m($auth)
@@ -208,4 +260,6 @@ class TestController extends Controller
     
         $this->addView('ver',$arr);
     }
+   
+    
 }
