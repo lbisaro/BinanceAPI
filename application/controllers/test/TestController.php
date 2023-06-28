@@ -159,7 +159,7 @@ class TestController extends Controller
             $start=date('Y-m-d',strtotime($start.' +1 month')).' 00:00';
         }
         $arr['rangoFechas'][] = '<OPTION SELECTED value="'.date('Y-m-d',strtotime('-90 days')).' 00:00" >Ultimos 90 dias</OPTION>';
-        $arr['rangoFechas'][] = '<OPTION value="2023-05-13 00:00" >Inicio USDTARS Mayo</OPTION>';
+        $arr['rangoFechas'][] = '<OPTION value="2023-04-29 00:00" >Inicio USDTARS</OPTION>';
 
         $arr['resultado'] = 'Completar los campos y hacer clic en el boton Analizar';
         $arr['hidden'] = '';

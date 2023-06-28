@@ -243,7 +243,7 @@
         if (estrategia == 'bot_ars')
         {
             $('.capital_symbol').html('ARS');
-            $('#from option[value="2023-05-13 00:00"]').attr('selected',true);
+            $('#from option[value="2023-04-29 00:00"]').attr('selected',true);
             $('#quoteInicial').val('510000.00');
             $('#compraInicial').val('160000.00');
             $('#multiplicadorCompra').val(1.0);
