@@ -54,9 +54,9 @@
 			<label for="quoteInicial">Capital Inicial</label>
 			<div class="input-group">
 				<div class="input-group-prepend">
-					<div class="input-group-text capital_symbol">QUOTE</div>
+					<div class="input-group-text capital_symbol">USDT</div>
 				</div>
-				<input type="text" class="form-control" id="quoteInicial" value="" placeholder="0.000">
+				<input type="text" class="form-control" id="quoteInicial" value="" placeholder="0.000" onchange="refreshPalancas()">
 			</div>
 		  </div>
 
@@ -67,9 +67,9 @@
 			<label for="quoteInicial">Compra Inicial</label>
 			<div class="input-group">
 				<div class="input-group-prepend">
-					<div class="input-group-text capital_symbol">QUOTE</div>
+					<div class="input-group-text capital_symbol">USDT</div>
 				</div>
-				<input type="text" class="form-control" id="compraInicial" value="" placeholder="0.000">
+				<input type="text" class="form-control" id="compraInicial" value="" placeholder="0.000" onchange="refreshPalancas()">
 			</div>
 		  </div>
 
@@ -94,7 +94,12 @@
 
 		  <div class="form-group">
 			<label for="multiplicadorCompra">Multiplicador Compras</label>
-			<input type="text" class="form-control" id="multiplicadorCompra"  value="" placeholder="Recomendado 1.05 a 2.00">
+            <div class="input-group">
+			   <input type="text" class="form-control" id="multiplicadorCompra"  value="" placeholder="Recomendado 1.05 a 2.00" onchange="refreshPalancas()">
+                  <div class="input-group-prepend">
+                    <div class="input-group-text " id="palancas">x0</div>
+                  </div>
+            </div>
 		  </div>
 
 		</div>
@@ -139,7 +144,6 @@
                 <div class="input-group-text">%</div>
               </div>
             </div>
-
 		  </div>
 
 		</div>
@@ -157,6 +161,11 @@
           </div>
         </div>
         
+    </div>
+    <div class="row">
+        <div class="col">
+            <small id="strCompras" class="text-secondary"></small>
+        </div>
     </div>
 	<div class="row">
 		<div class="col">
@@ -207,6 +216,7 @@
 
         setDefaultValues();
         refreshForm();
+        refreshPalancas();
 	});
 
     function refreshForm()
@@ -244,8 +254,8 @@
         {
             $('.capital_symbol').html('ARS');
             $('#from option[value="2023-04-29 00:00"]').attr('selected',true);
-            $('#quoteInicial').val('510000.00');
-            $('#compraInicial').val('160000.00');
+            $('#quoteInicial').val('500000.00');
+            $('#compraInicial').val('165000.00');
             $('#multiplicadorCompra').val(1.0);
             $('#multiplicadorPorc').val(1.0);
             $('#porcVentaUp').val(1.5);
@@ -254,22 +264,55 @@
         }
         else
         {
-            $('.capital_symbol').html('QUOTE');
+            $('.capital_symbol').html('USDT');
 
         }
+        refreshPalancas();
+
+    }
+
+    function refreshPalancas()
+    {
+        var capital = $('#quoteInicial').val()*1;
+        var compraInicial = $('#compraInicial').val()*1;
+        var multip = $('#multiplicadorCompra').val()*1;
+        var total = 0;
+        var pretotal = 0;
+        var palancas = 0;
+        var compra = compraInicial;
+        $('#strCompras').html('Detalle de compras: &nbsp; &nbsp; &nbsp; &nbsp; ');
+        while (total <= capital )
+        {
+            
+            if ((total + compra) <= capital)
+            {
+                palancas = palancas + 1;
+                $('#strCompras').append('#'+palancas+' '+toDec(compra)+' &nbsp; &nbsp; &nbsp; &nbsp; ');
+            }
+            else
+            {
+                //$('#strCompras').append('<span class="text-danger">#Siguiente '+toDec(compra)+' &nbsp; &nbsp; &nbsp; &nbsp; </span>');
+                $('#strCompras').append(' | &nbsp; &nbsp; &nbsp; &nbsp; Total compras <b>'+toDec(total)+'</b>');
+            }
+            total = total + compra;
+            compra = compra * multip;
+
+        }
+        
+        $('#palancas').html('x'+palancas);
 
     }
 
     function setDefaultValues()
     {
-        $('#quoteInicial').val('1010.00');
+        $('#quoteInicial').val('1000.00');
         $('#compraInicial').val('50.00');
         $('#multiplicadorCompra').val('1.5');
         $('#multiplicadorPorc').val('3.0');
         $('#porcVentaUp').val('2.5');
         $('#porcVentaDown').val('1.15');
         if (SERVER_ENTORNO == 'Test')
-            $('#symbol option[value="MATICQUOTE"]').attr('selected',true);
+            $('#symbol option[value="MATICUSDT"]').attr('selected',true);
 
     }
 

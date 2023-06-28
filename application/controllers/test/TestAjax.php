@@ -49,7 +49,7 @@ class TestAjax extends ControllerAjax
         $test = new Test();
 
         $symbol = $_REQUEST['symbol'];
-        $quoteInicial = $_REQUEST['quoteInicial'];
+        $quoteInicial = $_REQUEST['quoteInicial']*1.02;
         $compraInicial = $_REQUEST['compraInicial'];
 
         $err=0;
