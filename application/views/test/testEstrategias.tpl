@@ -28,6 +28,7 @@
                 <select id="estrategia" class="form-control" onchange="refreshForm();">
                     <option value="0">Seleccionar</option>
                     <option value="apalancamiento" SELECTED>Apalancamiento</option>
+                    <option value="bot_ars">Bot USDT/ARS</option>
                     <option value="bot_auto">Bot Auto</option>
                     <!--<option value="at" >Analisis Tecnico</option>-->
                 </select>
@@ -50,12 +51,12 @@
 		<div class="col">
 
 		  <div class="form-group">
-			<label for="usdInicial">Cantidad de USD Billetera</label>
+			<label for="quoteInicial">Capital Inicial</label>
 			<div class="input-group">
 				<div class="input-group-prepend">
-					<div class="input-group-text">USD</div>
+					<div class="input-group-text capital_symbol">QUOTE</div>
 				</div>
-				<input type="text" class="form-control" id="usdInicial" value="" placeholder="0.000">
+				<input type="text" class="form-control" id="quoteInicial" value="" placeholder="0.000">
 			</div>
 		  </div>
 
@@ -63,10 +64,10 @@
 		<div class="col">
 
 		  <div class="form-group">
-			<label for="usdInicial">Compra Inicial</label>
+			<label for="quoteInicial">Compra Inicial</label>
 			<div class="input-group">
 				<div class="input-group-prepend">
-					<div class="input-group-text">USD</div>
+					<div class="input-group-text capital_symbol">QUOTE</div>
 				</div>
 				<input type="text" class="form-control" id="compraInicial" value="" placeholder="0.000">
 			</div>
@@ -221,6 +222,13 @@
             $('#multiplicadorPorc').parent().parent().hide();
             $('#incremental').parent().parent().hide();
         }
+        else if (estrategia == 'bot_ars')
+        {
+            $('#symbol').append('<option value="USDTARS" >USDTARS</option>');
+            $('#multiplicadorCompra').parent().parent().show();
+            $('#multiplicadorPorc').parent().parent().show();
+            $('#incremental').parent().parent().show();
+        }
         else
         {
             if (symbols.length>0)
@@ -232,18 +240,36 @@
             $('#incremental').parent().parent().show();
         }
 
+        if (estrategia == 'bot_ars')
+        {
+            $('.capital_symbol').html('ARS');
+            $('#from option[value="2023-05-13 00:00"]').attr('selected',true);
+            $('#quoteInicial').val('510000.00');
+            $('#compraInicial').val('160000.00');
+            $('#multiplicadorCompra').val(1.0);
+            $('#multiplicadorPorc').val(1.0);
+            $('#porcVentaUp').val(1.5);
+            $('#porcVentaDown').val(1.5);
+            $('#incremental option[value="0"]').attr('selected',true);     
+        }
+        else
+        {
+            $('.capital_symbol').html('QUOTE');
+
+        }
+
     }
 
     function setDefaultValues()
     {
-        $('#usdInicial').val('1010.00');
+        $('#quoteInicial').val('1010.00');
         $('#compraInicial').val('50.00');
         $('#multiplicadorCompra').val('1.5');
         $('#multiplicadorPorc').val('3.0');
         $('#porcVentaUp').val('2.5');
         $('#porcVentaDown').val('1.15');
         if (SERVER_ENTORNO == 'Test')
-            $('#symbol option[value="MATICUSDT"]').attr('selected',true);
+            $('#symbol option[value="MATICQUOTE"]').attr('selected',true);
 
     }
 
@@ -284,15 +310,15 @@
 
                 var valueAxisPrice = chart.yAxes.push(new am4charts.ValueAxis());
                     valueAxisPrice.dataFields.category = "price";
-                    valueAxisPrice.title.text = "Precio USDT";
+                    valueAxisPrice.title.text = "Precio QUOTE";
                     valueAxisPrice.title.fontWeight = "bold";
                     valueAxisPrice.renderer.grid.template.disabled = true;
 
-                var valueAxisUSD = chart.yAxes.push(new am4charts.ValueAxis());
-                    valueAxisUSD.dataFields.category = "usd";
-                    valueAxisUSD.renderer.labels.template.disabled = true;
-                    valueAxisUSD.renderer.opposite = true;   //Muestra la escala del lado opuesto  
-                    valueAxisUSD.cursorTooltipEnabled = false;
+                var valueAxisQUOTE = chart.yAxes.push(new am4charts.ValueAxis());
+                    valueAxisQUOTE.dataFields.category = "quote";
+                    valueAxisQUOTE.renderer.labels.template.disabled = true;
+                    valueAxisQUOTE.renderer.opposite = true;   //Muestra la escala del lado opuesto  
+                    valueAxisQUOTE.cursorTooltipEnabled = false;
 
                 chart.cursor = new am4charts.XYCursor();
                 chart.cursor.xAxis = dateAxis;

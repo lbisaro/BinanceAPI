@@ -158,7 +158,8 @@ class TestController extends Controller
             $arr['rangoFechas'][] = '<OPTION value="'.$start.'" >'.$strRango.'</OPTION>';
             $start=date('Y-m-d',strtotime($start.' +1 month')).' 00:00';
         }
-        $arr['rangoFechas'][] = '<OPTION value="'.date('Y-m-d',strtotime('-90 days')).' 00:00" >Ultimos 90 dias</OPTION>';
+        $arr['rangoFechas'][] = '<OPTION SELECTED value="'.date('Y-m-d',strtotime('-90 days')).' 00:00" >Ultimos 90 dias</OPTION>';
+        $arr['rangoFechas'][] = '<OPTION value="2023-05-13 00:00" >Inicio USDTARS Mayo</OPTION>';
 
         $arr['resultado'] = 'Completar los campos y hacer clic en el boton Analizar';
         $arr['hidden'] = '';

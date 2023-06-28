@@ -12,9 +12,9 @@ class Test
     //Fecha de inicio de Klines para descarga de datos
     public $startKlines = '2021-06-01 00:00:00';
 
-    protected $usdInicial = 0.0;
+    protected $quoteInicial = 0.0;
     protected $billetera = 0.0;
-    protected $qtyUsd = 0.0;
+    protected $qtyQuote = 0.0;
     protected $qtyToken = 0.0;
     protected $totalComprado = 0.0;
     protected $pnlInfo = array();
@@ -186,13 +186,13 @@ class Test
         return $klines;
     }
 
-    function testAT($symbol,$usdInicial,$compraInicial,$prms)
+    function testAT($symbol,$quoteInicial,$compraInicial,$prms)
     {
         $tck = new Ticker();
         $aTec = array(); //Analisis tecnico
 
-        $this->usdInicial = $usdInicial;
-        $this->qtyUsd = $this->usdInicial;
+        $this->quoteInicial = $quoteInicial;
+        $this->qtyQuote = $this->quoteInicial;
         $this->qtyToken = 0.0;
         $this->totalComprado = 0.0;
 
@@ -275,12 +275,12 @@ class Test
             $hour = substr($datetime,0,13).':00';
             if (!isset($hours[$hour]))
             {
-                $hours[$hour]['qtyUsd'] = 0;
-                $hours[$hour]['qtyTokenInUsd'] = 0;
+                $hours[$hour]['qtyQuote'] = 0;
+                $hours[$hour]['qtyTokenInQuote'] = 0;
             }
 
-            $hours[$hour]['qtyUsd'] = toDec($this->qtyUsd);
-            $hours[$hour]['qtyTokenInUsd'] = toDec($this->qtyToken*$tokenPrice);
+            $hours[$hour]['qtyQuote'] = toDec($this->qtyQuote);
+            $hours[$hour]['qtyTokenInQuote'] = toDec($this->qtyToken*$tokenPrice);
             $hours[$hour]['tokenPrice'] = $tokenPrice;
 
             //Analisis tecnico de 1 hora
@@ -290,11 +290,11 @@ class Test
 
 
 
-        $balance = toDec($this->qtyUsd + $this->qtyToken * $close,2);
+        $balance = toDec($this->qtyQuote + $this->qtyToken * $close,2);
         $comisiones = toDec($comisiones,2);
         $balanceFinal = toDec($balance - $comisiones,2);
-        $porcentajeGanancia = toDec((($balanceFinal-$this->usdInicial)*100)/$this->usdInicial,2);
-        $results['SaldoInicial'] = $usdInicial;
+        $porcentajeGanancia = toDec((($balanceFinal-$this->quoteInicial)*100)/$this->quoteInicial,2);
+        $results['SaldoInicial'] = $quoteInicial;
         $results['Balance'] =       $balance;
         $results['Comisiones'] =    $comisiones;
         $results['BalanceFinal'] = $balanceFinal;
@@ -313,14 +313,14 @@ class Test
 
     }
 
-    function testApalancamiento($symbol,$usdInicial,$compraInicial,$prms)
+    function testApalancamiento($symbol,$quoteInicial,$compraInicial,$prms)
     {
         $tck = new Ticker();
         $aTec = array(); //Analisis tecnico
 
-        $this->usdInicial = $usdInicial;
-        $this->billetera = $usdInicial;
-        $this->qtyUsd = $this->usdInicial;
+        $this->quoteInicial = $quoteInicial;
+        $this->billetera = $quoteInicial;
+        $this->qtyQuote = $this->quoteInicial;
         $this->qtyToken = 0.0;
 
         $multiplicadorCompra = $prms['multiplicadorCompra'];
@@ -407,8 +407,8 @@ class Test
             $hour = substr($datetime,0,10);
             if (!isset($hours[$hour]))
             {
-                $hours[$hour]['qtyUsd'] = 0;
-                $hours[$hour]['qtyTokenInUsd'] = 0;
+                $hours[$hour]['qtyQuote'] = 0;
+                $hours[$hour]['qtyTokenInQuote'] = 0;
  
                 $hours[$hour]['open'] = $open;
                 $hours[$hour]['close'] = $close;
@@ -426,14 +426,14 @@ class Test
             {
 
                 $price = $close;
-                $usd = round($compraInicial,2);
-                $qty = round($usd/$price,$this->tokenDecUnits);
-                if ($usd = $this->compra($qty,$price))
+                $quote = round($compraInicial,2);
+                $qty = round($quote/$price,$this->tokenDecUnits);
+                if ($quote = $this->compra($qty,$price))
                 {
-                    $ultimaCompra = $usd;
+                    $ultimaCompra = $quote;
                     $compraNum++;
-                    $totalCompra += $usd;
-                    $comision = $usd * ($this->comisionBinance / 100);
+                    $totalCompra += $quote;
+                    $comision = $quote * ($this->comisionBinance / 100);
                     $comisiones += $comision;
             
                     $porcCompra = ($multiplicadorPorc * ($incremental?$compraNum:1));
@@ -447,8 +447,8 @@ class Test
                                       'operacion'=>$operacion,
                                       'origQty'=>$qty,
                                       'price'=>$price,
-                                      'usd'=>$usd,
-                                      'qtyUsd'=>$this->qtyUsd,
+                                      'quote'=>$quote,
+                                      'qtyQuote'=>$this->qtyQuote,
                                       'qtyToken'=>$this->qtyToken,
                                       'compraNum'=>$compraNum,
                                       'operaciones'=>$operaciones,
@@ -469,8 +469,8 @@ class Test
                                       'operacion'=>$operacion,
                                       'origQty'=>$qty,
                                       'price'=>$price,
-                                      'usd'=>$price*$qty,
-                                      'qtyUsd'=>$this->qtyUsd,
+                                      'quote'=>$price*$qty,
+                                      'qtyQuote'=>$this->qtyQuote,
                                       'qtyToken'=>$this->qtyToken,
                                       'compraNum'=>$compraNum,
                                       'operaciones'=>$operaciones,
@@ -487,22 +487,22 @@ class Test
                 if ($ordenCompra<$high && $ordenCompra>$low) #Ejecuta orden de compra
                 {
                     $price = round($ordenCompra,$this->tokenDecPrice);
-                    $usd = round($ultimaCompra * $multiplicadorCompra,2);
-                    $qty = round($usd/$price,$this->tokenDecUnits);
-                    if ($usd = $this->compra($qty,$price))
+                    $quote = round($ultimaCompra * $multiplicadorCompra,2);
+                    $qty = round($quote/$price,$this->tokenDecUnits);
+                    if ($quote = $this->compra($qty,$price))
                     {
-                        $ultimaCompra = $usd;
+                        $ultimaCompra = $quote;
                         $compraNum++;
                         if ($compraNum>$maxCompraNum)
                             $maxCompraNum = $compraNum;
-                        $totalCompra += $usd;
-                        $comision = $usd * ($this->comisionBinance / 100);
+                        $totalCompra += $quote;
+                        $comision = $quote * ($this->comisionBinance / 100);
                         $comisiones += $comision;
             
                         $porcCompra = ($multiplicadorPorc * ($incremental?$compraNum:1));
                         $ordenCompra = round($price * (1 - $porcCompra ) ,$this->tokenDecPrice);
-                        $usdAVender  = round($totalCompra * (1 + $porcVentaDown ),2);
-                        $ordenVenta  = round($usdAVender/$this->qtyToken,$this->tokenDecPrice);
+                        $quoteAVender  = round($totalCompra * (1 + $porcVentaDown ),2);
+                        $ordenVenta  = round($quoteAVender/$this->qtyToken,$this->tokenDecPrice);
                         $orders[] = array('datetime'=>$datetime,
                                           'side'=>'BUY',
                                           'ordenCompra'=>$ordenCompra,
@@ -511,8 +511,8 @@ class Test
                                           'porcCompra' =>$acumPorcCompra,
                                           'origQty'=>$qty,
                                           'price'=>$price,
-                                          'usd'=>$usd,
-                                          'qtyUsd'=>$this->qtyUsd,
+                                          'quote'=>$quote,
+                                          'qtyQuote'=>$this->qtyQuote,
                                           'qtyToken'=>$this->qtyToken,
                                           'compraNum'=>$compraNum,
                                           'operaciones'=>$operaciones,
@@ -533,8 +533,8 @@ class Test
                                         'operacion'=>$operacion,
                                         'origQty'=>$qty,
                                         'price'=>$price,
-                                        'usd'=>$price*$qty,
-                                        'qtyUsd'=>$this->qtyUsd,
+                                        'quote'=>$price*$qty,
+                                        'qtyQuote'=>$this->qtyQuote,
                                         'qtyToken'=>$this->qtyToken,
                                         'compraNum'=>$compraNum,
                                         'operaciones'=>$operaciones,
@@ -549,7 +549,7 @@ class Test
                 {
                     $qty = round($this->qtyToken,$this->tokenDecUnits);
                     $price = round($ordenVenta,$this->tokenDecPrice);
-                    if ($usd = $this->venta($qty,$price))
+                    if ($quote = $this->venta($qty,$price))
                     {
                         $ultimaCompra = 0.0;
                         $ordenCompra = 0.0;
@@ -557,7 +557,7 @@ class Test
                         $totalCompra = 0.0;
                         $compraNum = 0;
                         $operaciones++;
-                        $comision = $usd * ($this->comisionBinance / 100);
+                        $comision = $quote * ($this->comisionBinance / 100);
                         $comisiones += $comision;
                         $orders[] = array('datetime'=>$datetime,
                                           'updated'=>$datetime,
@@ -566,8 +566,8 @@ class Test
                                           'ordenVenta'=>$ordenVenta,
                                           'origQty'=>$qty,
                                           'price'=>$price,
-                                          'usd'=>$usd,
-                                          'qtyUsd'=>$this->qtyUsd,
+                                          'quote'=>$quote,
+                                          'qtyQuote'=>$this->qtyQuote,
                                           'qtyToken'=>$this->qtyToken,
                                           'compraNum'=>$compraNum,
                                           'operaciones'=>$operaciones,
@@ -582,19 +582,19 @@ class Test
                     }
                 }
             }
-            $hours[$hour]['qtyUsd'] = toDec($this->qtyUsd);
-            $hours[$hour]['qtyTokenInUsd'] = toDec($this->qtyToken*$tokenPrice);
+            $hours[$hour]['qtyQuote'] = toDec($this->qtyQuote);
+            $hours[$hour]['qtyTokenInQuote'] = toDec($this->qtyToken*$tokenPrice);
             $hours[$hour]['tokenPrice'] = $tokenPrice;
 
         }
 
         $this->calcularPnl($orders);
 
-        $balance = toDec($this->qtyUsd + $this->qtyToken * $close,2);
+        $balance = toDec($this->qtyQuote + $this->qtyToken * $close,2);
         $comisiones = toDec($comisiones,2);
         $balanceFinal = toDec($balance - $comisiones,2);
-        $porcentajeGanancia = toDec((($balanceFinal-$this->usdInicial)*100)/$this->usdInicial,2);
-        $results['saldoInicial'] = $usdInicial;
+        $porcentajeGanancia = toDec((($balanceFinal-$this->quoteInicial)*100)/$this->quoteInicial,2);
+        $results['saldoInicial'] = $quoteInicial;
         $results['symbol'] = $symbol;
         $results['interval'] = '1h';
         $results['balance'] =       $balance;
@@ -618,7 +618,7 @@ class Test
     function testBotAuto($symbol,$capital,$compraInicial,$prms)
     {
         $this->capital = $capital;
-        $this->qtyUsd = $this->capital;
+        $this->qtyQuote = $this->capital;
         $this->compraInicial = $compraInicial;
         $this->qtyToken = 0.0;
         $this->totalComprado = 0.0;
@@ -643,7 +643,7 @@ class Test
         
         $bot['orders'] = array(); //Ordenes en curso
         
-        if ($api->start($symbol,$this->qtyUsd,$this->qtyToken,$from,$to))
+        if ($api->start($symbol,$this->qtyQuote,$this->qtyToken,$from,$to))
         {
             $symbolData = $api->getSymbolData($symbol);
             $qtyDecsUnits = $symbolData['qty_decs_units'];
@@ -670,8 +670,8 @@ class Test
                 //$hour = substr($datetime,0,10);
                 if (!isset($hours[$hour]))
                 {
-                    $hours[$hour]['qtyUsd'] = 0;
-                    $hours[$hour]['qtyTokenInUsd'] = 0;
+                    $hours[$hour]['qtyQuote'] = 0;
+                    $hours[$hour]['qtyTokenInQuote'] = 0;
 
                     $hours[$hour]['open'] = $kline['open'];
                     $hours[$hour]['close'] = $kline['close'];
@@ -785,18 +785,18 @@ class Test
 
                             // Crea nueva Venta
                             $buyedUnits = 0;
-                            $buyedUsd = 0;
+                            $buyedQuote = 0;
                             foreach ($bot['orders'] as $order)
                             {
                                 if ($order['status']=='FILLED' && $order['side']=='BUY')
                                 {
                                     $buyedUnits += $order['origQty'];
-                                    $buyedUsd += ($order['origQty']*$order['price']);
+                                    $buyedQuote += ($order['origQty']*$order['price']);
                                 }
                             }
                             $qty = toDec($buyedUnits,$qtyDecsUnits);
-                            $usd = toDec($buyedUsd * (1+$porcVentaDown));
-                            $price = toDec($usd/$qty,$qtyDecsPrice);
+                            $quote = toDec($buyedQuote * (1+$porcVentaDown));
+                            $price = toDec($quote/$qty,$qtyDecsPrice);
                             $newOrder = $api->sell($symbol, $qty, $price);
                             $bot['orders'][$newOrder['orderId']] = $newOrder;   
 
@@ -855,7 +855,7 @@ class Test
                     if (!empty($opr['palancas']['price']))
                     {
                         $qty = toDec($compraInicial/$precioActual,$qtyDecsUnits);
-                        $usd = toDec($qty*$precioActual);
+                        $quote = toDec($qty*$precioActual);
                         $newOrder = $api->marketBuy($symbol, $qty);
                         $hours[$hour]['buy'] = $newOrder['price'];
                         while ($newOrder['status']!='FILLED')
@@ -867,26 +867,26 @@ class Test
                         foreach ($opr['palancas']['price'] as $compraNum => $price)
                         {
                             $price = toDec($price,$qtyDecsPrice);
-                            $usd = $usd * $opr['mutiplicador_compra'];
-                            $qty = toDec($usd/$price,$qtyDecsUnits);
+                            $quote = $quote * $opr['mutiplicador_compra'];
+                            $qty = toDec($quote/$price,$qtyDecsUnits);
                             $newOrder = $api->buy($symbol, $qty, $price);
                             $bot['orders'][$newOrder['orderId']] = $newOrder;
                         } 
                         
                         //Orden de venta de la compra inicial
                         $buyedUnits = 0;
-                        $buyedUsd = 0;
+                        $buyedQuote = 0;
                         foreach ($bot['orders'] as $order)
                         {
                             if ($order['status']=='FILLED' && $order['side']=='BUY')
                             {
                                 $buyedUnits += $order['origQty'];
-                                $buyedUsd += ($order['origQty']*$order['price']);
+                                $buyedQuote += ($order['origQty']*$order['price']);
                             }
                         }
                         $qty = toDec($buyedUnits,$qtyDecsUnits);
-                        $usd = toDec($buyedUsd * (1+$porcVentaUp));
-                        $price = toDec($usd/$qty,$qtyDecsPrice);
+                        $quote = toDec($buyedQuote * (1+$porcVentaUp));
+                        $price = toDec($quote/$qty,$qtyDecsPrice);
                         $newOrder = $api->sell($symbol, $qty, $price);
                         $bot['orders'][$newOrder['orderId']] = $newOrder;                        
                         
@@ -894,10 +894,10 @@ class Test
                 }
                 $ultimoPrecio = $api->price($symbol);
                 $account = $api->account();
-                $account['usd']['usd'] = toDec($account['usd']['units']);
-                $account['token']['usd'] = toDec($account['token']['units']*$ultimoPrecio);
-                $hours[$hour]['qtyUsd'] = $account['usd']['usd'];
-                $hours[$hour]['qtyTokenInUsd'] = $account['token']['usd'];
+                $account['quote']['quote'] = toDec($account['quote']['units']);
+                $account['token']['quote'] = toDec($account['token']['units']*$ultimoPrecio);
+                $hours[$hour]['qtyQuote'] = $account['quote']['quote'];
+                $hours[$hour]['qtyTokenInQuote'] = $account['token']['quote'];
 
                 $oo = $bot['orders'];
                 if (!empty($oo))
@@ -931,26 +931,26 @@ class Test
 
             //RESULTADOS ANALIZADOS PARA INCORPORAR
             $account = $api->account();
-            $account['usd']['usd'] = toDec($account['usd']['units']);
-            $account['token']['usd'] = toDec($account['token']['units']*$ultimoPrecio);
-            $account['total']['usd'] = $account['usd']['usd'] + $account['token']['usd'];
+            $account['quote']['quote'] = toDec($account['quote']['units']);
+            $account['token']['quote'] = toDec($account['token']['units']*$ultimoPrecio);
+            $account['total']['quote'] = $account['quote']['quote'] + $account['token']['quote'];
             
             $results['account'] = $account;
             $results['botOrders'] = $bot['orders'];
             $results['openOrders'] = $api->openOrders();
             $results['pnlOrders'] = $api->pnlOrders();
 
-            $usdComprado = 0;
+            $quoteComprado = 0;
             $qtyComprado = 0;
             if (!empty($results['botOrders']))
             foreach ($results['botOrders'] as $o)
             {
-                $usdComprado += toDec($o['origQty']*$o['price']);
+                $quoteComprado += toDec($o['origQty']*$o['price']);
                 $qtyComprado += $o['origQty'];
             }
             if ($qtyComprado>0)
             {
-                $results['statusComprado']['comprado'] = $usdComprado;
+                $results['statusComprado']['comprado'] = $quoteComprado;
                 $results['statusComprado']['actual'] = toDec($qtyComprado*$ultimoPrecio);
                 $results['statusComprado']['porcentaje'] = toDec((($results['statusComprado']['actual']/$results['statusComprado']['comprado'])-1)*100)."%";
 
@@ -966,7 +966,7 @@ class Test
 
                             
             //RESULTADOS COMPATIBLES CON BackTesting
-            $balance = toDec($account['usd']['usd'] + $result['statusComprado']['comprado'] ,2);
+            $balance = toDec($account['quote']['quote'] + $result['statusComprado']['comprado'] ,2);
             $comisiones = toDec($comisiones,2);
             $balanceFinal = toDec($balance - $comisiones,2);
             $porcentajeGanancia = toDec((($balanceFinal-$this->capital)*100)/$this->capital,2);
@@ -998,15 +998,311 @@ class Test
         }
     }
 
+    function testBotArs($symbol,$quoteInicial,$compraInicial,$prms)
+    {
+        $tck = new Ticker();
+        $aTec = array(); //Analisis tecnico
+
+        $this->quoteInicial = $quoteInicial;
+        $this->billetera = $quoteInicial;
+        $this->qtyQuote = $this->quoteInicial;
+        $this->qtyToken = 0.0;
+
+        $multiplicadorCompra = $prms['multiplicadorCompra'];
+        $multiplicadorPorc = $prms['multiplicadorPorc']/100;
+        $incremental = $prms['incremental'];
+        $porcVentaUp = $prms['porcVentaUp']/100;
+        $porcVentaDown = $prms['porcVentaDown']/100;
+
+
+        if (isset($prms['from']))
+            $from = $prms['from'];
+        else
+            $from = '2021-06-01 00:00:00';
+        if (isset($prms['to']))
+            $to = $prms['to'];
+        else
+            $to = '2021-08-31 23:59:00';
+
+
+        $this->tokenDecPrice = 2;
+        $this->tokenDecUnits = 2;
+
+
+        $compraNum = 0;
+        $maxCompraNum = 0;
+        $operaciones = 0;
+        $ordenVenta = 0.0;
+        $ordenCompra = 0.0;
+        $ultimaCompra = 0.0;
+        $totalCompra = 0.0;
+        $comisiones = 0.0;
+        $orders = array();
+        $hours = array();
+        $apalancamientoInsuficiente = array();
+        $acumPorcCompra = 0;
+
+
+        $qry = "SELECT datetime,open,close,high,low 
+                FROM klines_1m 
+                WHERE symbol = '".$symbol."' ";
+        if ($from)
+            $qry .= " AND datetime >= '".$from."' ";
+        if ($to)
+            $qry .= " AND datetime <= '".$to."' ";
+        $qry .= " ORDER BY datetime ASC "; //LIMIT 1440
+        $stmt = $this->db->query($qry);
+
+        while ($rw = $stmt->fetch())
+        {
+            if (!isset($results['start']))
+                $results['start'] = $rw['datetime'];
+            $results['end'] = $rw['datetime'];
+
+            $datetime   = $rw['datetime'];
+            $open       = $rw['open'];
+            $close      = $rw['close'];
+            $high       = $rw['high'];
+            $low        = $rw['low'];
+            $volume     = $rw['volume'];
+
+            /*
+            $atBuySignal = true;
+            if ($prms['at'] && $aTec['signal']['ema_cross']=='V')
+                $atBuySignal = false;            
+            */                
+
+            $tokenPrice = round($close,$this->tokenDecPrice);
+
+            $day = substr($datetime,0,10);
+            if (!isset($days[$day]))
+            {
+                $days[$day] = $day;
+            }
+
+            //$hour = substr($datetime,0,13).':00';
+            $hour = substr($datetime,0,10);
+            if (!isset($hours[$hour]))
+            {
+                $hours[$hour]['qtyQuote'] = 0;
+                $hours[$hour]['qtyTokenInQuote'] = 0;
+ 
+                $hours[$hour]['open'] = $open;
+                $hours[$hour]['close'] = $close;
+                $hours[$hour]['high'] = $high;
+                $hours[$hour]['low'] = $low;     
+            }
+
+            $hours[$hour]['close'] = $close;
+            if ($hours[$hour]['high'] < $high)
+                $hours[$hour]['high'] = $high;
+            if ($hours[$hour]['low'] > $low)
+                $hours[$hour]['low'] = $low;     
+
+            if ($compraNum == 0)
+            {
+
+                $price = $close;
+                $quote = round($compraInicial,2);
+                $qty = round($quote/$price,$this->tokenDecUnits);
+                if ($quote = $this->compra($qty,$price))
+                {
+                    $ultimaCompra = $quote;
+                    $compraNum++;
+                    $totalCompra += $quote;
+                    $comision = $quote * ($this->comisionBinance / 100);
+                    $comisiones += $comision;
+            
+                    $porcCompra = ($multiplicadorPorc * ($incremental?$compraNum:1));
+                    $ordenCompra = round($price * (1 - $porcCompra ) ,$this->tokenDecPrice);
+                    $ordenVenta  = round($price * (1 + $porcVentaUp ) ,$this->tokenDecPrice);
+                    
+                    $orders[] = array('datetime'=>$datetime,
+                                      'side'=>'BUY',
+                                      'ordenCompra'=>$ordenCompra,
+                                      'ordenVenta'=>$ordenVenta,
+                                      'operacion'=>$operacion,
+                                      'origQty'=>$qty,
+                                      'price'=>$price,
+                                      'quote'=>$quote,
+                                      'qtyQuote'=>$this->qtyQuote,
+                                      'qtyToken'=>$this->qtyToken,
+                                      'compraNum'=>$compraNum,
+                                      'operaciones'=>$operaciones,
+                                      'comision'=>$comision,
+                                      );
+                    $hours[$hour]['buy'] = $price;
+                    $acumPorcCompra += $porcCompra;
+                }
+                else
+                {
+                    $aiKey = str_replace('.','_',$price);
+                    if (!isset($apalancamientoInsuficiente[$aiKey]))
+                    {
+                        $hours[$hour]['apins'] = $price;
+                        $apalancamientoInsuficiente[$aiKey]=$datetime;
+                        $orders[] = array('datetime'=>$datetime,
+                                      'side'=>'AP_INS',
+                                      'operacion'=>$operacion,
+                                      'origQty'=>$qty,
+                                      'price'=>$price,
+                                      'quote'=>$price*$qty,
+                                      'qtyQuote'=>$this->qtyQuote,
+                                      'qtyToken'=>$this->qtyToken,
+                                      'compraNum'=>$compraNum,
+                                      'operaciones'=>$operaciones,
+                                      'comision'=>0,
+                                      'orderId'=>''
+                                      );
+
+                    }
+                }
+
+            }
+            elseif ($ordenCompra>0 || $ordenVenta>0)
+            {
+                if ($ordenCompra<$high && $ordenCompra>$low) #Ejecuta orden de compra
+                {
+                    $price = round($ordenCompra,$this->tokenDecPrice);
+                    $quote = round($ultimaCompra * $multiplicadorCompra,2);
+                    $qty = round($quote/$price,$this->tokenDecUnits);
+                    if ($quote = $this->compra($qty,$price))
+                    {
+                        $ultimaCompra = $quote;
+                        $compraNum++;
+                        if ($compraNum>$maxCompraNum)
+                            $maxCompraNum = $compraNum;
+                        $totalCompra += $quote;
+                        $comision = $quote * ($this->comisionBinance / 100);
+                        $comisiones += $comision;
+            
+                        $porcCompra = ($multiplicadorPorc * ($incremental?$compraNum:1));
+                        $ordenCompra = round($price * (1 - $porcCompra ) ,$this->tokenDecPrice);
+                        $quoteAVender  = round($totalCompra * (1 + $porcVentaDown ),2);
+                        $ordenVenta  = round($quoteAVender/$this->qtyToken,$this->tokenDecPrice);
+                        $orders[] = array('datetime'=>$datetime,
+                                          'side'=>'BUY',
+                                          'ordenCompra'=>$ordenCompra,
+                                          'ordenVenta'=>$ordenVenta,
+                                          'operacion'=>$operacion,
+                                          'porcCompra' =>$acumPorcCompra,
+                                          'origQty'=>$qty,
+                                          'price'=>$price,
+                                          'quote'=>$quote,
+                                          'qtyQuote'=>$this->qtyQuote,
+                                          'qtyToken'=>$this->qtyToken,
+                                          'compraNum'=>$compraNum,
+                                          'operaciones'=>$operaciones,
+                                          'comision'=>$comision,
+                                          );
+                        $hours[$hour]['buy'] = $price;
+                        $acumPorcCompra += $porcCompra;
+                    }
+                    else
+                    {
+                        $aiKey = str_replace('.','_',$price);
+                        if (!isset($apalancamientoInsuficiente[$aiKey]))
+                        {
+                            $hours[$hour]['apins'] = $price;
+                            $apalancamientoInsuficiente[$aiKey]=$datetime;
+                            $orders[] = array('datetime'=>$datetime,
+                                        'side'=>'AP_INS',
+                                        'operacion'=>$operacion,
+                                        'origQty'=>$qty,
+                                        'price'=>$price,
+                                        'quote'=>$price*$qty,
+                                        'qtyQuote'=>$this->qtyQuote,
+                                        'qtyToken'=>$this->qtyToken,
+                                        'compraNum'=>$compraNum,
+                                        'operaciones'=>$operaciones,
+                                        'comision'=>0,
+                                        'orderId'=>''
+                                        );
+                        }
+                    }
+                }
+
+                if ($ordenVenta<$high && $ordenVenta>$low) #Ejecuta orden de venta
+                {
+                    $qty = round($this->qtyToken,$this->tokenDecUnits);
+                    $price = round($ordenVenta,$this->tokenDecPrice);
+                    if ($quote = $this->venta($qty,$price))
+                    {
+                        $ultimaCompra = 0.0;
+                        $ordenCompra = 0.0;
+                        $ordenVenta = 0.0;
+                        $totalCompra = 0.0;
+                        $compraNum = 0;
+                        $operaciones++;
+                        $comision = $quote * ($this->comisionBinance / 100);
+                        $comisiones += $comision;
+                        $orders[] = array('datetime'=>$datetime,
+                                          'updated'=>$datetime,
+                                          'side'=>'SELL',
+                                          'ordenCompra'=>$ordenCompra,
+                                          'ordenVenta'=>$ordenVenta,
+                                          'origQty'=>$qty,
+                                          'price'=>$price,
+                                          'quote'=>$quote,
+                                          'qtyQuote'=>$this->qtyQuote,
+                                          'qtyToken'=>$this->qtyToken,
+                                          'compraNum'=>$compraNum,
+                                          'operaciones'=>$operaciones,
+                                          'comision'=>$comision,
+                                          );
+
+                        $hours[$hour]['sell'] = $price;
+                        
+
+                        $acumPorcCompra = 0;
+
+                    }
+                }
+            }
+            $hours[$hour]['qtyQuote'] = toDec($this->qtyQuote);
+            $hours[$hour]['qtyTokenInQuote'] = toDec($this->qtyToken*$tokenPrice);
+            $hours[$hour]['tokenPrice'] = $tokenPrice;
+
+        }
+
+        $this->calcularPnl($orders);
+
+        $balance = toDec($this->qtyQuote + $this->qtyToken * $close,2);
+        $comisiones = toDec($comisiones,2);
+        $balanceFinal = toDec($balance - $comisiones,2);
+        $porcentajeGanancia = toDec((($balanceFinal-$this->quoteInicial)*100)/$this->quoteInicial,2);
+        $results['saldoInicial'] = $quoteInicial;
+        $results['symbol'] = $symbol;
+        $results['interval'] = '1h';
+        $results['balance'] =       $balance;
+        $results['comisiones'] =    $comisiones;
+        $results['balanceFinal'] = $balanceFinal;
+        $results['ganancia'] =      $porcentajeGanancia;
+        $results['operaciones'] =   $operaciones;
+        $results['tokenDecPrice'] = $this->tokenDecPrice;
+        $results['tokenDecUnits'] = $this->tokenDecUnits;
+        $results['apalancamientoInsuficiente'] = $apalancamientoInsuficiente;
+        $results['maxCompraNum'] = $maxCompraNum;
+        $results['orders'] = $orders;
+        $results['hours'] = $hours;
+        $results['qtyDays'] = count($days);
+        $results['pnlInfo'] = $this->pnlInfo;
+        $results['quoteSymbol'] = 'ARS';
+        
+        return $results;
+
+    }
+
+
     function compra($qty,$price)
     {
-        $usd = round($qty*$price,2);
-        if ($this->qtyUsd-$usd>=0 && $this->totalComprado+$usd<=$this->billetera)
+        $quote = round($qty*$price,2);
+        if ($this->qtyQuote-$quote>=0 && $this->totalComprado+$quote<=$this->billetera)
         {
             $this->qtyToken = toDec($this->qtyToken + $qty,$this->tokenDecUnits);
-            $this->qtyUsd -= $usd;
-            $this->totalComprado += $usd;
-            return $usd;
+            $this->qtyQuote -= $quote;
+            $this->totalComprado += $quote;
+            return $quote;
         }
         return null;
     }
@@ -1015,11 +1311,11 @@ class Test
     {
         if (toDec($this->qtyToken,$this->tokenDecUnits)-$qty>=0)
         {
-            $usd = toDec($qty*$price,2);
+            $quote = toDec($qty*$price,2);
             $this->qtyToken = toDec($this->qtyToken - $qty,$this->tokenDecUnits);
-            $this->qtyUsd += $usd;
+            $this->qtyQuote += $quote;
             $this->totalComprado = 0.0;
-            return $usd;
+            return $quote;
         }
         return null;
     }

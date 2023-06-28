@@ -42,11 +42,14 @@ class TestAjax extends ControllerAjax
         $prms['ordenes']                = ($_REQUEST['mostrar']=='ordenes'?true:false);
 
         $prms['from']                   = $_REQUEST['from'];
-        $prms['to']                     = date('Y-m-d H:i',strtotime($_REQUEST['from'].' + 90 days'));
+        if ($_REQUEST['estrategia'] == 'bot_ars')
+            $prms['to']                     = date('Y-m-d H:i');
+        else
+            $prms['to']                     = date('Y-m-d H:i',strtotime($_REQUEST['from'].' + 90 days'));
         $test = new Test();
 
         $symbol = $_REQUEST['symbol'];
-        $usdInicial = $_REQUEST['usdInicial'];
+        $quoteInicial = $_REQUEST['quoteInicial'];
         $compraInicial = $_REQUEST['compraInicial'];
 
         $err=0;
@@ -55,7 +58,7 @@ class TestAjax extends ControllerAjax
             $this->ajxRsp->addError('La compra inicial debe ser mayor a 10.');
             $err++;
         }
-        if ($usdInicial<$compraInicial)
+        if ($quoteInicial<$compraInicial)
         {
             $this->ajxRsp->addError('La cantidad de USD en la billetera debe ser mayor a la compra inicial.');
             $err++;
@@ -75,11 +78,15 @@ class TestAjax extends ControllerAjax
 
         if ($_REQUEST['estrategia'] == 'apalancamiento')
         {
-            $results = $test->testApalancamiento($symbol,$usdInicial,$compraInicial,$prms);
+            $results = $test->testApalancamiento($symbol,$quoteInicial,$compraInicial,$prms);
         }
         elseif ($_REQUEST['estrategia'] == 'bot_auto')
         {
-            $results = $test->testBotAuto($symbol,$usdInicial,$compraInicial,$prms);
+            $results = $test->testBotAuto($symbol,$quoteInicial,$compraInicial,$prms);
+        }
+        elseif ($_REQUEST['estrategia'] == 'bot_ars')
+        {
+            $results = $test->testBotArs($symbol,$quoteInicial,$compraInicial,$prms);
         }
         else
         {
@@ -182,12 +189,12 @@ class TestAjax extends ControllerAjax
                     if ($order['porcCompra'])
                         $strOp .= ' -'.toDec($order['porcCompra']*100).'%';
 
-                    $order['usd'] = toDec($order['price']*$order['origQty']);
+                    $order['quote'] = toDec($order['price']*$order['origQty']);
                     $row = array(dateToStr($order['datetime'],true).' '.dateToStr($order['updated'],true),
                                  $strOp.' '.$order['status'].' '.$order['type'],
                                  toDec($order['origQty'],$results['tokenDecUnits']),
                                  toDec($order['price'],$results['tokenDecPrice']),
-                                 ($order['side']!='SELL'?'-':'').toDec($order['usd'],2),
+                                 ($order['side']!='SELL'?'-':'').toDec($order['quote'],2),
                                  toDec($order['comision'],2)
                                     );
                     $classRow = '';
@@ -218,7 +225,7 @@ class TestAjax extends ControllerAjax
                     //$ds['data'][$i]['kc'] = (float)toDec($rw['close'],$results['tokenDecPrice']);
                     $ds['data'][$i]['kl'] = (float)toDec($rw['low'],$results['tokenDecPrice']);
                     $ds['data'][$i]['kh'] = (float)toDec($rw['high'],$results['tokenDecPrice']);
-                    //$ds['data'][$i]['bil'] = (float)toDec($rw['qtyUsd']+$rw['qtyTokenInUsd']);
+                    //$ds['data'][$i]['bil'] = (float)toDec($rw['qtyQuote']+$rw['qtyTokenInQuote']);
                     if ($rw['buy'])
                         $ds['data'][$i]['buy'] = (float)$rw['buy'];
                     if ($rw['sell'])
@@ -268,7 +275,7 @@ class TestAjax extends ControllerAjax
            
 
         $symbol = $_REQUEST['symbol'];
-        $usdInicial = $_REQUEST['usdInicial'];
+        $quoteInicial = $_REQUEST['quoteInicial'];
         $compraInicial = $_REQUEST['compraInicial'];
 
         $err=0;
@@ -278,7 +285,7 @@ class TestAjax extends ControllerAjax
             $this->ajxRsp->addError('La compra inicial debe ser mayor a 10.');
             $err++;
         }
-        if ($usdInicial<$compraInicial)
+        if ($quoteInicial<$compraInicial)
         {
             $this->ajxRsp->addError('La cantidad de USD en la billetera debe ser mayor a la compra inicial.');
             $err++;
@@ -298,7 +305,7 @@ class TestAjax extends ControllerAjax
         */
         if ($_REQUEST['estrategia'] == 'estandar')
         {
-            $results = $test->testAT($symbol,$usdInicial,$compraInicial,$prms);
+            $results = $test->testAT($symbol,$quoteInicial,$compraInicial,$prms);
         }
         else
         {
@@ -355,8 +362,8 @@ class TestAjax extends ControllerAjax
                                  $strOp,
                                  toDec($order['origQty'],$results['tokenDecUnits']),
                                  toDec($order['price'],$results['tokenDecPrice']),
-                                 ($order['side']=='BUY'?'-':'').toDec($order['usd'],2),
-                                 toDec($order['qtyUsd'],2),
+                                 ($order['side']=='BUY'?'-':'').toDec($order['quote'],2),
+                                 toDec($order['qtyQuote'],2),
                                  toDec($order['qtyToken'],$results['tokenDecUnits']),
                                  toDec($order['comision'],2)
                                     );
