@@ -1,4 +1,3 @@
-
 <?php
 include_once LIB_PATH."DB.php";
 include_once MDL_PATH."binance/BinanceAPI.php";
