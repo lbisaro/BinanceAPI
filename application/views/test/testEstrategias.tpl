@@ -310,7 +310,7 @@
 
                 var valueAxisPrice = chart.yAxes.push(new am4charts.ValueAxis());
                     valueAxisPrice.dataFields.category = "price";
-                    valueAxisPrice.title.text = "Precio QUOTE";
+                    valueAxisPrice.title.text = "Precio";
                     valueAxisPrice.title.fontWeight = "bold";
                     valueAxisPrice.renderer.grid.template.disabled = true;
 
