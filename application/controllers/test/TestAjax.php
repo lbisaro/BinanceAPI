@@ -144,7 +144,7 @@ class TestAjax extends ControllerAjax
                           'Balance Final',toDec($results['balanceFinal']),
                           'Resultado Balance',toDec(  (($results['balanceFinal']/$results['saldoInicial'])-1)*100  ).'%',
                            ));
-        $fc->addRow(array('Ganancia Mensual Promedio','<strong>'.$porcGananciaMensualProm.'%'.'</strong>',
+        $fc->addRow(array('Ganancia Mensual Promedio','<strong>'.toDec($results['gananciaMensualPromedio']).'%'.'</strong>',
                           'Operaciones',$results['operaciones'],
                           'Promedio de compras',$promCompras,
                           'Apalancamiento Insuficiente',($qtyApIns?$qtyApIns:'No'),

@@ -18,7 +18,7 @@ class Test
     protected $qtyToken = 0.0;
     protected $totalComprado = 0.0;
     protected $pnlInfo = array();
-    protected $comisionBinance = 0.0;//0.075 ;
+    protected $comisionBinance = 0.075 ;
 
     protected $updateStatus = array();
 
@@ -610,6 +610,8 @@ class Test
         $results['hours'] = $hours;
         $results['qtyDays'] = count($days);
         $results['pnlInfo'] = $this->pnlInfo;
+        $results['quoteSymbol'] = 'USDT';
+        $results['gananciaMensualPromedio'] =      ($porcentajeGanancia/$results['qtyDays']) *30;
         
         return $results;
 
@@ -987,6 +989,8 @@ class Test
             $results['openPos'] = $api->openOrders();
             $results['qtyDays'] = count($days);
             $results['pnlInfo'] = $this->pnlInfo;
+            $results['quoteSymbol'] = 'USDT';
+            $results['gananciaMensualPromedio'] =      ($porcentajeGanancia/$results['qtyDays']) *30;
 
             return $results;
 
@@ -1302,6 +1306,7 @@ class Test
         $results['qtyDays'] = count($days);
         $results['pnlInfo'] = $this->pnlInfo;
         $results['quoteSymbol'] = 'ARS';
+        $results['gananciaMensualPromedio'] =      ($porcentajeGanancia/$results['qtyDays']) *30;
         
         return $results;
 
