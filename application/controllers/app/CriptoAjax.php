@@ -242,8 +242,9 @@ class CriptoAjax extends ControllerAjax
 
         $auth = UsrUsuario::getAuthInstance();
         $idusuario = $auth->get('idusuario');
+        $periodo = $_REQUEST['periodo'];
         $wal = new Wallet($api=null,$idusuario);
-        $values = $wal->get();
+        $values = $wal->get($periodo);
         $ds = array();
         if (!empty($values))
         {

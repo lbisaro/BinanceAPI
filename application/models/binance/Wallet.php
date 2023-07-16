@@ -95,9 +95,13 @@ class Wallet
         }
     }
 
-    function get()
+    function get($periodo)
     {
-        $qry = 'SELECT * FROM wallet WHERE idusuario = '.$this->idusuario.' ORDER BY date';
+        $addWhere = '';
+        if ($periodo > 0)
+            $addWhere = " AND date >= '".date('Y-m-d',strtotime('-'.$periodo.' days'))."' ";
+
+        $qry = 'SELECT * FROM wallet WHERE idusuario = '.$this->idusuario.' '.$addWhere.' ORDER BY date';
         $stmt = $this->db->query($qry);
         return $stmt->fetchAll();
     }

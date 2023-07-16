@@ -57,6 +57,17 @@
 <div class="container tabs" id="billetera">
     {{tab_billetera}}
     <div class="container-fluid" id="variacion_del_precio">
+        <div class="input-group mb-3">
+          <div class="input-group-prepend">
+            <label class="input-group-text" for="inputGroupSelect01">Periodo</label>
+          </div>
+          <select class="custom-select" id="inputGroupSelect01" onchange="readWallet()">
+            <option value="30" SELECTED>Ultimos 30 dias</option>
+            <option value="60">Ultimos 60 dias</option>
+            <option value="90">Ultimos 90 dias</option>
+            <option value="All">Todo</option>
+          </select>
+        </div>
         <div id="chartdiv"></div>
 
     </div>
