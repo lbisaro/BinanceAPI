@@ -307,6 +307,10 @@ class CriptoController extends Controller
             </div>';
         }
         
+        $arr['periodo_opt'] .= '<option value="30" '.($_REQUEST['periodo']==30?' SELECTED ':'').'>Ultimos 30 dias</option>';
+        $arr['periodo_opt'] .= '<option value="60" '.($_REQUEST['periodo']==60?' SELECTED ':'').'>Ultimos 60 dias</option>';
+        $arr['periodo_opt'] .= '<option value="90" '.($_REQUEST['periodo']==90?' SELECTED ':'').'>Ultimos 90 dias</option>';
+        $arr['periodo_opt'] .= '<option value="999"'.($_REQUEST['periodo']==999?' SELECTED ':'').'>Todo</option>';
 
         $arr['hidden'] = '';
 
@@ -315,6 +319,7 @@ class CriptoController extends Controller
             $arr['activeTab'] = $activeTab;
         else
             $arr['activeTab'] = 'compras';
+
     
         $this->addView('cripto/estadoDeCuenta',$arr);
     }
