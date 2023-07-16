@@ -102,7 +102,6 @@ class Wallet
             $addWhere = " AND date >= '".date('Y-m-d',strtotime('-'.$periodo.' days'))." 00:00:00' ";
 
         $qry = 'SELECT * FROM wallet WHERE idusuario = '.$this->idusuario.' '.$addWhere.' ORDER BY date';
-        print_r($qry);
         $stmt = $this->db->query($qry);
         return $stmt->fetchAll();
     }
