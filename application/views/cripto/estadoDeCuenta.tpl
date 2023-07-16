@@ -104,7 +104,7 @@
         $('#chartdiv').html('');
         
         updateProgress=0;
-        var url = 'app.CriptoAjax.readWallet+';
+        var url = 'app.CriptoAjax.readWallet+periodo='.$('#periodo').val();
         $.getJSON( url, function( data ) {
             if (data)
             {
