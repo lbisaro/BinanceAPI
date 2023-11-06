@@ -503,6 +503,8 @@ class BotController extends Controller
         if ($ordenesALiquidar>0)
             $arr['addButtons'] = '<a class="btn btn-warning btn-sm" href="app.bot.liquidarOp+id='.$idoperacion.'">Liquidar</a>';
 
+        $arr['symbol'] = $opr->get('symbol');
+
         if ($arr['tipo'] == Operacion::OP_TIPO_APLSHRT)
             $this->addView('bot/verOperacionShort',$arr);
         else
@@ -1478,24 +1480,47 @@ class BotController extends Controller
     {
         $this->addTitle('Auditar Ordenes');
 
-        $idoperacion = $_REQUEST['id'];
+        $idoperacion = $_REQUEST['idoperacion'];
+        $idbotsw = $_REQUEST['idbotsw'];
         $opr = new Operacion($idoperacion);
         $symbol = $opr->get('symbol');
+        if (!$symbol)
+            $symbol = $_REQUEST['symbol'];
+        $check_last = $_REQUEST['check_last'];
 
         $oprOrders = $opr->getOrdenes($enCurso = false);
         $audit = array();
         $lastComplete = null;
-        foreach ($oprOrders as $k => $v)
+        if (!empty($oprOrders))
         {
-            if ($v['completed'])
+            foreach ($oprOrders as $k => $v)
             {
-                $lastComplete = $v['updated'];
-                //unset($oprOrders[$k]);
+                if ($v['completed'])
+                {
+                    $lastComplete = $v['updated'];
+                    //unset($oprOrders[$k]);
+                }
+                $auditBot[$v['orderId']] = $v;
             }
-            $auditBot[$v['orderId']] = $v;
         }
-        if (!$lastComplete)
-            $lastComplete = '2023-01-01 00:00:00';
+
+        //Buscar ordenes en BotSW
+        $bsw = new BotSW();
+        $bsw_orders = $bsw->getOrdersFull();
+        if (!empty($bsw_orders))
+        {
+            foreach ($bsw_orders as $k => $v)
+            {
+                $auditBot[$v['orderId']] = $v;
+            }
+
+        }
+
+        if ($check_last)
+            $lastComplete = strToDate($check_last).' 00:00:00';
+        elseif (!$lastComplete)
+            $lastComplete = date('Y-m-d',strtotime('-7 days')).' 00:00:00';
+        $check_last = $lastComplete;
 
         $ak = $auth->getConfig('bncak');
         $as = $auth->getConfig('bncas');
@@ -1503,62 +1528,69 @@ class BotController extends Controller
         $api = new BinanceAPI($ak,$as);  
 
         //Informacion de la moneda
-        $symbolData = $api->getSymbolData($symbol);
-        $qtyDecsPrice = $symbolData['qtyDecsPrice'];
-        
-        //Historico
-        $ordersHst = $api->orders($symbol); 
-        $show = false; 
-        foreach ($ordersHst as $k => $v)
+        if ($symbol)
         {
-            $v['datetime'] = date('Y-m-d H:i:s',$ordersHst[$k]['time']/1000);
-
-            //Correccion para ordenes parciales
-            if (!isset($strQtyDecs))
+            $symbolData = $api->getSymbolData($symbol);
+            $qtyDecsPrice = $symbolData['qtyDecsPrice'];
+            
+            //Historico
+            if ($_REQUEST['buscar'])
             {
-                $strQtyDecs = strlen($v['cummulativeQuoteQty'])-strpos($v['cummulativeQuoteQty'], '.')-1;
-                
-            }
-            $v['qtyDecs'] = $strQtyDecs;
-            if (($v['price']*1)==0)
-                $v['price'] = toDec(toDec($v['cummulativeQuoteQty']/$v['executedQty'],$qtyDecsPrice),$strQtyDecs);
+                $ordersHst = $api->orders($symbol); 
+                $show = false; 
+                foreach ($ordersHst as $k => $v)
+                {
+                    $v['datetime'] = date('Y-m-d H:i:s',$ordersHst[$k]['time']/1000);
 
-            unset($v['clientOrderId']);
-            unset($v['orderListId']);
-            unset($v['origQuoteOrderQty']);
-            unset($v['timeInForce']);
-            unset($v['stopPrice']);
-            unset($v['icebergQty']);
-            unset($v['updateTime']);
-            unset($v['isWorking']);
-            unset($v['time']);
-            //$lastComplete = '2022-08-01 00:00:00';
-            if ($v['datetime'] >= $lastComplete && $v['status']!='CANCELED' && $v['status']!='EXPIRED')
-            {
-                if ($auditBot[$v['orderId']])
-                {
-                    $v['bot'] = true;
-                }
-                else
-                {
-                    $tradeInfo = $api->orderTradeInfo($symbol,$v['orderId']);
-                    $tradeQty = 0;
-                    $tradeUsd = 0;
-                    if (!empty($tradeInfo))
+                    //Correccion para ordenes parciales
+                    if (!isset($strQtyDecs))
                     {
-                        foreach($tradeInfo as $tii)
-                        {
-                            $tradeQty += $tii['qty'];
-                            $tradeUsd += $tii['quoteQty'];
-                        }
-                        $v['price'] = toDec(toDec($tradeUsd/$tradeQty,$qtyDecsPrice),$strQtyDecs);
+                        $strQtyDecs = strlen($v['cummulativeQuoteQty'])-strpos($v['cummulativeQuoteQty'], '.')-1;
+                        
                     }
-                    $v['bot'] = false;
-                }
-                $audit[$v['orderId']] = $v;
-            }
+                    $v['qtyDecs'] = $strQtyDecs;
+                    if (($v['price']*1)==0)
+                        $v['price'] = toDec(toDec($v['cummulativeQuoteQty']/$v['executedQty'],$qtyDecsPrice),$strQtyDecs);
 
-        } 
+                    unset($v['clientOrderId']);
+                    unset($v['orderListId']);
+                    unset($v['origQuoteOrderQty']);
+                    unset($v['timeInForce']);
+                    unset($v['stopPrice']);
+                    unset($v['icebergQty']);
+                    unset($v['updateTime']);
+                    unset($v['isWorking']);
+                    unset($v['time']);
+                    //$lastComplete = '2022-08-01 00:00:00';
+                    if ($v['datetime'] >= $lastComplete && $v['status']!='CANCELED' && $v['status']!='EXPIRED')
+                    {
+                        if ($auditBot[$v['orderId']])
+                        {   
+                            $v['bot'] = true;
+                            if ($auditBot[$v['orderId']]['idbotsw'])
+                                $v['idbotsw'] = $auditBot[$v['orderId']]['idbotsw'];
+                        }
+                        else
+                        {
+                            $tradeInfo = $api->orderTradeInfo($symbol,$v['orderId']);
+                            $tradeQty = 0;
+                            $tradeUsd = 0;
+                            if (!empty($tradeInfo))
+                            {
+                                foreach($tradeInfo as $tii)
+                                {
+                                    $tradeQty += $tii['qty'];
+                                    $tradeUsd += $tii['quoteQty'];
+                                }
+                                $v['price'] = toDec(toDec($tradeUsd/$tradeQty,$qtyDecsPrice),$strQtyDecs);
+                            }
+                            $v['bot'] = false;
+                        }
+                        $audit[$v['orderId']] = $v;
+                    }
+                } 
+            }
+        }
 
         $dg = new HtmlTableDg();
         $dg->addHeader('orderId');
@@ -1583,14 +1615,24 @@ class BotController extends Controller
             $row[] = ($rw['side']=='BUY'?'Compra':'Venta');
             $row[] = $rw['status'];
             $row[] = $rw['datetime'];
-            $row[] = ($rw['bot']?'OK':'Falta');
+            if ($rw['bot'])
+            {
+                if ($rw['idbotsw'])
+                    $row[] = 'Bot SW#'.$rw['idbotsw'];
+                else
+                    $row[] = 'OK';
+            }
+            else
+            {
+                $row[] = 'Falta';
+            }
             if ($rw['bot'])
                 $row[] = '&nbsp;';
             else
                 $row[] = '<input type="checkbox" id="chk_'.$rw['orderId'].'" onclick="refresh();" />';
 
             $sql='';
-            if (!$rw['bot'])
+            if (!$rw['bot'] && !$rw['idbotsw'])
             {
                 //Preparando SQL
                 $side = ($rw['side']=='BUY'?'0':'1');
@@ -1612,6 +1654,17 @@ class BotController extends Controller
             $dg->addRow($row,$class,$height='25px',$valign='middle',$id="tr_".$rw['orderId']);
         }
         
+        $arr['symbol'] = $symbol;
+        if ($idoperacion)
+        {
+            $arr['symbol_read_only'] = 'READONLY';
+            $arr['url_prms'] = 'idoperacion='.$idoperacion;
+        }
+        elseif ($idbotsw)
+        {
+            $arr['url_prms'] = 'idbotsw='.$idbotsw;
+        }
+        $arr['check_last'] = dateToStr($check_last);
         $arr['data'] = $dg->get();
         $arr['data'] .= $inputs;
         $arr['hidden'] = '';

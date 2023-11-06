@@ -15,7 +15,7 @@
     <tr>
       <td>{{symbolSelector}}</td>
       <td style="text-align: right;">
-        <a class="btn btn-info btn-sm menu-admin" href="app.bot.auditarOrdenes+id={{idoperacion}}">Auditar Ordenes</a>
+        <a class="btn btn-info btn-sm menu-admin" href="app.bot.auditarOrdenes+idoperacion={{idoperacion}}&symbol={{symbol}}">Auditar Ordenes</a>
         <a class="btn btn-info btn-sm" href="app.bot.editarOperacion+id={{idoperacion}}">Modificar</a>
         <a class="btn btn-info btn-sm" href="app.bot.revisarEstrategia+id={{idoperacion}}">Grafica</a>
         {{addButtons}}
