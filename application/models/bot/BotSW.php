@@ -485,27 +485,33 @@ class BotSW extends ModelDB
         if ($buscaInfo)
         {
             $ds = $tck->getDataset($where);
-            foreach ($ds as $rw)
+            if (!empty($ds))
             {
-                $info[$rw['base_asset']]['qtyDecsUnits'] = $rw['qty_decs_units'];
-                $info[$rw['base_asset']]['qtyDecsPrice'] = $rw['qty_decs_price'];            
-            }
-        }
-
-        foreach ($info as $asset => $rw)
-        {
-            if (empty($rw))
-            {
-                //Hay que agregar un Ticker porque no existe info previa
-                $tck->reset();
-                $tck->set(array('tickerid'=>$asset.'USDT'));
-                if ($tck->save())
+                foreach ($ds as $rw)
                 {
-                    $info[$asset]['qtyDecsUnits'] = $tck->get('qty_decs_units');
-                    $info[$asset]['qtyDecsPrice'] = $tck->get('qty_decs_price');  
+                    $info[$rw['base_asset']]['qtyDecsUnits'] = $rw['qty_decs_units'];
+                    $info[$rw['base_asset']]['qtyDecsPrice'] = $rw['qty_decs_price'];            
                 }
             }
         }
+        if (!empty($info))
+        {
+            foreach ($info as $asset => $rw)
+            {
+                if (empty($rw))
+                {
+                    //Hay que agregar un Ticker porque no existe info previa
+                    $tck->reset();
+                    $tck->set(array('tickerid'=>$asset.'USDT'));
+                    if ($tck->save())
+                    {
+                        $info[$asset]['qtyDecsUnits'] = $tck->get('qty_decs_units');
+                        $info[$asset]['qtyDecsPrice'] = $tck->get('qty_decs_price');  
+                    }
+                }
+            }        
+        }
+        
 
         return $info;
     }
@@ -572,4 +578,45 @@ class BotSW extends ModelDB
         return $bots;
     }
 
+    function getSymbolsForTrade()
+    {
+        if (!$this->data['idbotsw'])
+        {
+            $isNew = true;
+            CriticalExit('BotSW::calculateCapital() :: No es posible calcular el capital sin un ID - Implementar saveNew()');
+        }
+
+        $symbol_estable = $this->get('symbol_estable');
+        $symbol_reserva = $this->get('symbol_reserva');
+        $activos = $this->getActivos();
+        $assets = explode(' ',$activos[$this->data['idbotsw']]['strMonedas']);
+        
+        $symbols = array();
+        foreach ($assets as $asset)
+            if ($asset && $asset != $symbol_estable)
+            $symbols[] = $asset.$symbol_estable;
+        foreach ($assets as $asset)
+            if ($asset && $asset != $symbol_reserva)
+            $symbols[] = $asset.$symbol_reserva;
+
+        $symbols[] = $symbol_reserva.$symbol_estable;
+
+        return $symbols;
+    }
+
+    function addOrder($datetime,$baseAsset,$quoteAsset,$side,$origQty,$price,$orderId)
+    {
+        $idbotsw = $this->data['idbotsw'];
+        $ins = "INSERT INTO bot_sw_orden_log (idbotsw,datetime,base_asset,quote_asset,side,origQty,price,orderId ) VALUES (
+               ".$idbotsw.",
+               '".$datetime."',
+               '".$baseAsset."',
+               '".$quoteAsset."',
+               ".$side.",
+               ".$origQty.",
+               ".$price.",
+               '".$orderId."')";
+        $this->db->query($ins);
+
+    }
 }
