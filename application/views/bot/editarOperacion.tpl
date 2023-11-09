@@ -82,6 +82,25 @@
           </div>
         </div>
       </div>
+      
+      <div class="form-group">
+        <label for="stop_loss">Stop-Loss</label>
+        <div class="input-group mb-2">
+          <input type="text" class="form-control" id="stop_loss" placeholder="Recomendado 2.00">
+          <div class="input-group-append">
+            <div class="input-group-text">%</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="max_op_perdida">Maximo de operaciones consecutivas a perdida</label>
+        <div class="input-group mb-2">
+          <input type="text" class="form-control" id="max_op_perdida" placeholder="Recomendado 3">
+          <div class="input-group-append">
+            <div class="input-group-text">%</div>
+          </div>
+        </div>
+      </div>
 
       <div class="form-group" id="btnEditOperacion">
         <button onclick="editarOperacion()" class="btn btn-success" >Grabar</button>

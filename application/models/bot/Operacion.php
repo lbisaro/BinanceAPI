@@ -118,6 +118,14 @@ class Operacion extends ModelDB
                 return $this->data['porc_venta_up'].'/'.$this->data['porc_venta_down'];
             }
         }
+        if ($field == 'str_stop_loss')
+        {
+            return ($this->data['stop_loss']?toDec($this->data['stop_loss'],2).'%':'No establecido');
+        }        
+        if ($field == 'str_max_op_perdida')
+        {
+            return ($this->data['max_op_perdida']?toDec($this->data['max_op_perdida'],0):'No establecido');
+        }
         if ($field == 'capital_asset')
         {
             if ($this->data['destino_profit']==self::OP_DESTINO_PROFIT_QUOTE)
@@ -137,6 +145,15 @@ class Operacion extends ModelDB
 
     function getLabel($field)
     {
+
+        if ($field == 'stop_loss' || $field == 'str_stop_loss')
+        {
+            return 'Stop-Loss';
+        }        
+        if ($field == 'max_op_perdida' || $field == 'str_max_op_perdida')
+        {
+            return 'Maximo de operaciones consecutivas a perdida';
+        }
         return parent::getLabel($field);
     }
 
@@ -172,6 +189,17 @@ class Operacion extends ModelDB
                 $err[] = 'Se debe especificar un porcentaje de venta palanca entre 0.5 y 100';
             
         }
+        $this->data['stop_loss'] = toDec($this->data['stop_loss'],2);
+        if ($this->data['stop_loss'] < 0 || $this->data['stop_loss'] > 99)
+            $err[] = 'El stop-Loss debe ser un numero entre 0 y 99';
+        elseif (!$this->data['stop_loss'])
+            $this->data['stop_loss'] = 0;
+
+        $this->data['max_op_perdida'] = toDec($this->data['max_op_perdida'],0);
+        if ($this->data['max_op_perdida'] < 0 || $this->data['max_op_perdida'] > 99)
+            $err[] = 'El Maximo de operaciones consecutivas a perdida debe ser un numero entre 0 y 99';
+        elseif (!$this->data['max_op_perdida'])
+            $this->data['max_op_perdida'] = 0;
 
         if (!$this->data['idusuario'])
         {
@@ -1417,7 +1445,7 @@ class Operacion extends ModelDB
 
         $qry = "SELECT operacion.symbol,operacion.stop, operacion_orden.* 
                 FROM operacion_orden 
-                LEFT JOIN operacion ON operacion.idoperacion =operacion_orden.idoperacion
+                LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion
                 WHERE idusuario = ".$auth->get('idusuario')." 
                   AND status = ".self::OR_STATUS_FILLED."  
                   AND completed = 0 
@@ -1514,6 +1542,7 @@ class Operacion extends ModelDB
 
     static public function unlockProcess()
     {
+        chmod(LOCK_FILE, 666);
         $lockFileText = file_get_contents(LOCK_FILE);
         file_put_contents(LOCK_FILE, '');
         chmod(LOCK_FILE, 666);
@@ -2129,5 +2158,33 @@ class Operacion extends ModelDB
         $msg = 'STOP_BOT';
         self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
         return $this->data['stop'];
+    }
+
+    //Verifica stop-loss y liquida si corresponde
+    function proccessStopLoss($prices)
+    {
+        echo "\nProcesando stop-loss";
+        $stopLoss = $this->get('stop_loss');
+        if ($stopLoss > 0 && !$rw['stop'])
+        {
+            $comprado = $this->getCompradoEnCurso();
+            foreach ($comprado as $symbol => $rw)
+            {
+                if (!$rw['stop'])
+                {
+                    $usd = $rw['buyedUSD'];
+                    $units = $rw['buyedUnits'];
+                    $avgPrice = $usd/$units;
+                    $stopLossPrice = $avgPrice - $avgPrice*($stopLoss/100);
+
+                    echo "\nProcesando stop-loss";
+                    $msg = 'Liquidar '.$units.' por stop-loss - stop-loss-prices: '.$stopLossPrice;
+                    if ($prices[$symbol] < $stopLossPrice)
+                        self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+
+                }
+            }
+            
+        }
     }
 }

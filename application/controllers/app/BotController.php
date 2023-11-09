@@ -1,3 +1,4 @@
+
 <?php
 include_once LIB_PATH."Controller.php";
 include_once LIB_PATH."Html.php";
@@ -265,7 +266,10 @@ class BotController extends Controller
                                      ($opr->get('multiplicador_porc_inc')?' Incremental':'').
                                      ($opr->get('multiplicador_porc_auto')?' Automatico':'');
         $arr['porc_venta_up'] = toDec($opr->get('real_porc_venta_up'));
-        $arr['porc_venta_down'] = toDec($opr->get('real_porc_venta_down'));
+        $arr['porc_venta_down'] = toDec($opr->get('real_porc_venta_down'));        
+
+        $arr['stop_loss'] = $opr->get('str_stop_loss');
+        $arr['max_op_perdida'] = $opr->get('str_max_op_perdida');
 
         if (!$opr->get('stop'))
         {

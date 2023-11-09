@@ -219,6 +219,8 @@ class BotAjax extends ControllerAjax
         $arrToSet['multiplicador_porc_auto'] = ($_REQUEST['multiplicador_porc_auto']?1:0);
         $arrToSet['porc_venta_up'] = $_REQUEST['porc_venta_up'];
         $arrToSet['porc_venta_down'] = $_REQUEST['porc_venta_down'];
+        $arrToSet['stop_loss'] = $_REQUEST['stop_loss'];
+        $arrToSet['max_op_perdida'] = $_REQUEST['max_op_perdida'];
        
 
         $opr = new Operacion($_REQUEST['idoperacion']);

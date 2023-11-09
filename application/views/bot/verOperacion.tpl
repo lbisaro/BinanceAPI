@@ -46,6 +46,12 @@
         <span class="data">{{porc_venta_down}}%</span></td>
     </tr>
     <tr>
+      <td>Stop-Loss 
+        <span class="data">{{stop_loss}}</span></td>
+      <td>Maximo de operaciones consecutivas a perdida 
+        <span class="data">{{max_op_perdida}}</span></td>
+    </tr>
+    <tr>
       <td>Estado 
         <span class="data">{{estado}}</td>
       <td>Reinicio Automatica 

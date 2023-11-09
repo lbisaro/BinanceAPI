@@ -64,6 +64,9 @@ foreach ($usuarios as $idusuario => $usuarioData)
         {
             $binanceOpenOrders[$order['orderId']] = $order['status'];
         }
+
+        $main_prices = $api->prices();
+        pr($main_prices);
         
 
         //Operaciones de APALANCAMIENTO ESTANDARD
