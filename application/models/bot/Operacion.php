@@ -2163,7 +2163,6 @@ class Operacion extends ModelDB
     //Verifica stop-loss y liquida si corresponde
     function proccessStopLoss($prices)
     {
-        echo "\nProcesando stop-loss";
         $stopLoss = $this->get('stop_loss');
         if ($stopLoss > 0 && !$rw['stop'])
         {
@@ -2177,10 +2176,16 @@ class Operacion extends ModelDB
                     $avgPrice = $usd/$units;
                     $stopLossPrice = $avgPrice - $avgPrice*($stopLoss/100);
 
-                    echo "\nProcesando stop-loss";
-                    $msg = 'Liquidar '.$units.' por stop-loss - stop-loss-prices: '.$stopLossPrice;
                     if ($prices[$symbol] < $stopLossPrice)
+                    {
+                        $msg = 'Liquidar '.$units.' por stop-loss - stop-loss-prices: '.$stopLossPrice;
                         self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+                    }
+                    else
+                    {
+                        $msg = 'NO Liquidar '.$units.' por stop-loss - stop-loss-prices: '.$stopLossPrice;
+                        self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+                    }
 
                 }
             }
