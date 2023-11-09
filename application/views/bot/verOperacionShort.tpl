@@ -19,7 +19,9 @@
         <a class="btn btn-info btn-sm" href="app.bot.editarOperacion+id={{idoperacion}}">Modificar</a>
         <a class="btn btn-info btn-sm" href="app.bot.revisarEstrategia+id={{idoperacion}}">Grafica</a>
         {{addButtons}}
+        <!--
         <button class="btn btn-{{toogleStopClass}} btn-sm" onclick="revertirStop()">{{toogleStopText}}</button>
+        -->
         </td>
     </tr>
     <tr>
