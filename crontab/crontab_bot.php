@@ -33,7 +33,7 @@ $usuarios = $opr->getUsuariosActivos();
     
 foreach ($usuarios as $idusuario => $usuarioData)
 {
-    try {
+    //try {
 
         if (isset($opr))
             unset($opr);
@@ -90,11 +90,11 @@ foreach ($usuarios as $idusuario => $usuarioData)
         include 'crontab_update_wallet.php';
 
 
-    } catch (Throwable $e) {
-        $msg = "BOT - Error: " . $e->getMessage();
-        Operacion::logBot('u:'.$idusuario.' '.$msg);
-        continue;
-    }
+    //} catch (Throwable $e) {
+    //    $msg = "BOT - Error: " . $e->getMessage();
+    //    Operacion::logBot('u:'.$idusuario.' '.$msg);
+    //    continue;
+    //}
     sleep(2); //Hace una espera entre cada usuario
 }
 
