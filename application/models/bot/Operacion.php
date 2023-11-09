@@ -1439,14 +1439,18 @@ class Operacion extends ModelDB
         }
     }
 
-    function getCompradoEnCurso()
+    function getCompradoEnCurso($idusuario = null)
     {
-        $auth = UsrUsuario::getAuthInstance();
+        if (!$idusuario)
+        {
+            $auth = UsrUsuario::getAuthInstance();
+            $idusuario = $auth->get('idusuario');
+        }
 
         $qry = "SELECT operacion.symbol,operacion.stop, operacion_orden.* 
                 FROM operacion_orden 
                 LEFT JOIN operacion ON operacion.idoperacion = operacion_orden.idoperacion
-                WHERE idusuario = ".$auth->get('idusuario')." 
+                WHERE idusuario = ".$idusuario." 
                   AND status = ".self::OR_STATUS_FILLED."  
                   AND completed = 0 
                 ORDER BY stop,symbol, operacion_orden.updated";
