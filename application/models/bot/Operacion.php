@@ -2169,21 +2169,21 @@ class Operacion extends ModelDB
             $comprado = $this->getCompradoEnCurso();
             foreach ($comprado as $symbol => $rw)
             {
-                if (!$rw['stop'])
+                if (!$rw['stop'] && $this->data['capital'])
                 {
-                    $usd = $rw['buyedUSD'];
-                    $units = $rw['buyedUnits'];
-                    $avgPrice = $usd/$units;
-                    $stopLossPrice = $avgPrice - $avgPrice*($stopLoss/100);
 
-                    if ($prices[$symbol] < $stopLossPrice)
+
+                    $usdActual = $rw['buyedUnits']*$prices[$symbol];
+                    $usdStopLoss = $this->data['capital'] - $this->data['capital']*($stopLoss/100);
+
+                    if ($usdActual < $usdStopLoss)
                     {
-                        $msg = 'Liquidar '.$units.' por stop-loss - stop-loss-prices: '.$stopLossPrice;
+                        $msg = 'Liquidar '.$rw['buyedUnits'].' por stop-loss - '.$usdActual.' < '.$usdStopLoss;
                         self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
                     }
                     else
                     {
-                        $msg = 'NO Liquidar '.$units.' por stop-loss - stop-loss-prices: '.$stopLossPrice;
+                        $msg = 'NO Liquidar '.$rw['buyedUnits'].' por stop-loss - '.$usdActual.' >= '.$usdStopLoss;
                         self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
                     }
 
