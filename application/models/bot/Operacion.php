@@ -2165,12 +2165,18 @@ class Operacion extends ModelDB
     }
 
     //Verifica stop-loss y liquida si corresponde
-    function proccessStopLoss($prices)
+    function proccessStopLoss($prices,$idusuario=null)
     {
+        if (!$idusuario)
+        {
+            $auth = UsrUsuario::getAuthInstance();
+            $idusuario = $auth->get('idusuario');
+        }
+        
         $stopLoss = $this->get('stop_loss');
         if ($stopLoss > 0 && !$rw['stop'])
         {
-            $comprado = $this->getCompradoEnCurso();
+            $comprado = $this->getCompradoEnCurso($idusuario);
             foreach ($comprado as $symbol => $rw)
             {
                 if (!$rw['stop'] && $this->data['capital'])
