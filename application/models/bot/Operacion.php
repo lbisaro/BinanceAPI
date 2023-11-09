@@ -2172,7 +2172,8 @@ class Operacion extends ModelDB
             $auth = UsrUsuario::getAuthInstance();
             $idusuario = $auth->get('idusuario');
         }
-        
+
+        /*
         $stopLoss = $this->get('stop_loss');
         if ($stopLoss > 0 && !$rw['stop'])
         {
@@ -2201,5 +2202,6 @@ class Operacion extends ModelDB
             }
             
         }
+        */
     }
 }
