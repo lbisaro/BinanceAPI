@@ -705,6 +705,7 @@ class Operacion extends ModelDB
             $this->data['op_perdida_consec'] = $op_perdida_consec;
             $upd = "UPDATE operacion SET op_perdida_consec = '".$op_perdida_consec."' WHERE idoperacion = ".$this->data['idoperacion'];
             $this->db->query($upd);
+            self::logBot('u:'.$this->data['idusuario'].' o:'.$this->data['idoperacion'].' s:'.$this->data['symbol'].' '.$upd,$echo=false);
         }
 
         //Actualizando ordenes para enviarlas al PNL
