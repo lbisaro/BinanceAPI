@@ -124,7 +124,15 @@ class Operacion extends ModelDB
         }        
         if ($field == 'str_max_op_perdida')
         {
-            return ($this->data['max_op_perdida']?toDec($this->data['max_op_perdida'],0):'No establecido');
+            if ($this->data['max_op_perdida'])
+            {
+                return $this->data['op_perdida_consec'].' de '.$this->data['max_op_perdida'];
+            }
+            else
+            {
+                return 'No establecido';
+            }
+            
         }
         if ($field == 'capital_asset')
         {
@@ -660,13 +668,53 @@ class Operacion extends ModelDB
 
     function complete()
     {
+        //Calculo de Perdidas consecutivas
+        $qry = "SELECT * 
+                FROM operacion_orden 
+                WHERE idoperacion = ".$this->data['idoperacion']." AND completed = 0";
+        $stmt = $this->db->query($qry);
+        $resultUSD = 0;
+        $resultUnits = 0;
+        while ($rw = $stmt->fetch())
+        {
+            if ($rw['side'] == self::SIDE_BUY)
+            {
+                $resultUSD   -= ($rw['origQty']*$rw['price']);
+                $resultUnits -= $rw['origQty'];
+            }
+            else
+            {
+                $resultUSD   += ($rw['origQty']*$rw['price']);
+                $resultUnits += $rw['origQty'];
+            }                    
+        }
+        $op_perdida_consec = 0;
+        $msg_resultado = '';
+        if ($resultUnits == 0 && $resultUSD != 0)
+        {
+            if ($resultUSD > 0)
+            {
+                $op_perdida_consec = '0';
+                $msg_resultado = ' - Resultado: POS';
+            }
+            else
+            {
+                $op_perdida_consec = $this->data['op_perdida_consec']+1;
+                $msg_resultado = ' - Resultado: NEG';
+            }
+            $this->data['op_perdida_consec'] = $op_perdida_consec;
+            $upd = "UPDATE operacion SET op_perdida_consec = '".$op_perdida_consec."' WHERE idoperacion = ".$this->data['idoperacion'];
+            $this->db->query($upd);
+        }
+
+        //Actualizando ordenes para enviarlas al PNL
         if ($this->status() == self::OP_STATUS_COMPLETED)
         {
             $pnlDate = date('Y-m-d H:i:s');
             $upd = "UPDATE operacion_orden SET completed = 1 , pnlDate = '".$pnlDate."'
                     WHERE idoperacion = ".$this->data['idoperacion']." AND completed = 0";
             $this->db->query($upd);      
-            $msg = ' COMPLETE ORDER';
+            $msg = ' COMPLETE ORDER - Perdidas consecutivas = '.$op_perdida_consec.$msg_resultado;
             self::logBot('u:'.$this->data['idusuario'].' o:'.$this->data['idoperacion'].' s:'.$this->data['symbol'].' '.$msg,$echo=false);
 
         }
@@ -1439,13 +1487,10 @@ class Operacion extends ModelDB
         }
     }
 
-    function getCompradoEnCurso($idusuario = null)
+    function getCompradoEnCurso()
     {
-        if (!$idusuario)
-        {
-            $auth = UsrUsuario::getAuthInstance();
-            $idusuario = $auth->get('idusuario');
-        }
+        $auth = UsrUsuario::getAuthInstance();
+        $idusuario = $auth->get('idusuario');
 
         $qry = "SELECT operacion.symbol,operacion.stop, operacion_orden.* 
                 FROM operacion_orden 
@@ -1769,7 +1814,7 @@ class Operacion extends ModelDB
         $qtyQuote = 0;
         $qtyOrdenesALiquidar = 0;
 
-        $msg = 'LIQUIDAR_OPERACION';
+        $msg = 'LIQUIDAR_OPERACION - AutoRestart: '.($params['autoRestartOff']?'OFF':'ON') ;
         self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
 
         while ($rw = $stmt->fetch())
@@ -1899,6 +1944,8 @@ class Operacion extends ModelDB
 
         $msg = 'LIQUIDAR_OPERACION - Finalizado';
         self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+
+        $this->complete();
 
         return true;
     }
@@ -2165,43 +2212,65 @@ class Operacion extends ModelDB
     }
 
     //Verifica stop-loss y liquida si corresponde
-    function proccessStopLoss($prices,$idusuario=null)
+    function proccessStopLoss($prices)
     {
-        if (!$idusuario)
-        {
-            $auth = UsrUsuario::getAuthInstance();
-            $idusuario = $auth->get('idusuario');
-        }
+        $idoperacion = $this->data['idoperacion'];
+        if (!$idoperacion)
+            return null;
 
-        /*
-        $stopLoss = $this->get('stop_loss');
-        if ($stopLoss > 0 && !$rw['stop'])
+        $symbol = $this->data['symbol'];
+
+        $stopLoss = $this->data['stop_loss'];
+        if ($stopLoss > 0 && !$this->data['stop'] && $this->data['capital_usd']>0 && $this->data['destino_profit'] == self::OP_DESTINO_PROFIT_QUOTE)
         {
-            $comprado = $this->getCompradoEnCurso($idusuario);
-            foreach ($comprado as $symbol => $rw)
+            $buyedUnits = 0;
+            $buyedUSD = 0;
+            $qry = "SELECT * 
+                    FROM operacion_orden 
+                    WHERE idoperacion = ".$idoperacion." 
+                          AND status = ".self::OR_STATUS_FILLED."  
+                          AND completed = 0";
+            $stmt = $this->db->query($qry);
+            while ($rw = $stmt->fetch())
             {
-                if (!$rw['stop'] && $this->data['capital'])
+                if ($rw['side'] == self::SIDE_BUY)
                 {
-
-
-                    $usdActual = $rw['buyedUnits']*$prices[$symbol];
-                    $usdStopLoss = $this->data['capital'] - $this->data['capital']*($stopLoss/100);
-
-                    if ($usdActual < $usdStopLoss)
-                    {
-                        $msg = 'Liquidar '.$rw['buyedUnits'].' por stop-loss - '.$usdActual.' < '.$usdStopLoss;
-                        self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
-                    }
-                    else
-                    {
-                        $msg = 'NO Liquidar '.$rw['buyedUnits'].' por stop-loss - '.$usdActual.' >= '.$usdStopLoss;
-                        self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
-                    }
-
+                    $buyedUSD   += ($rw['origQty']*$rw['price']);
+                    $buyedUnits += $rw['origQty'];
                 }
+                else
+                {
+                    $buyedUSD   -= ($rw['origQty']*$rw['price']);
+                    $buyedUnits -= $rw['origQty'];
+                }                    
             }
-            
+
+            if (!$rw['stop'] && $this->data['capital_usd'])
+            {
+                $usdActual = $buyedUnits*$prices[$symbol];
+                $usdResultado = $buyedUSD-$usdActual;
+
+                $resultado = ($usdResultado/$this->data['capital_usd'])*100;
+                
+                print "\n".'USD Resultado = '.$usdResultado.' Liquidar USD '.toDec($buyedUSD)."\n".' STOP_LOSS '.toDec($resultado).' < -'.toDec($stopLoss)."\n";
+                print "\nUSD_ACTUAL ".$buyedUnits.' * '.$prices[$symbol].' = '.$usdActual;
+                print "\nPERDIDA SOBRE CAPITAL USD ".$usdResultado;
+                print "\nPERDIDA SOBRE CAPITAL % ".$resultado;
+
+                if (-$resultado < -$stopLoss)
+                {
+                    $msg = 'Liquidar USD '.toDec($buyedUSD).' STOP_LOSS -'.toDec($resultado).' < -'.toDec($stopLoss);
+                    self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+
+                    $params['autoRestartOff'] = ($this->data['op_perdida_consec']+1 >= $this->data['max_op_perdida'] ? true : false);
+                    $msg = 'Perdida consecutiva: '.($this->data['op_perdida_consec']+1).' >= '.$this->data['max_op_perdida'].
+                           ' - Set AutoRestart: '.($params['autoRestartOff']?' NO ':'SI');
+                    self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
+
+                    $this->liquidarOp($params);
+                }
+
+            }
         }
-        */
     }
 }

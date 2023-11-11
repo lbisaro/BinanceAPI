@@ -39,7 +39,9 @@
         <div class="input-group mb-2">
             <select id="destino_profit" class="form-control form-control-sm">
               <option value="0" {{dp_selected_0}}>Obtener ganancias en {{quoteAsset}}</option>
+              <!--
               <option value="1" {{dp_selected_1}}>Obtener ganancias en {{baseAsset}}</option>
+              -->
             </select>
         </div>
       </div>
@@ -86,7 +88,7 @@
       <div class="form-group">
         <label for="stop_loss">Stop-Loss</label>
         <div class="input-group mb-2">
-          <input type="text" class="form-control" id="stop_loss" placeholder="Recomendado 2.00">
+          <input type="text" class="form-control" id="stop_loss" value="{{stop_loss}}" placeholder="Recomendado 2.00">
           <div class="input-group-append">
             <div class="input-group-text">%</div>
           </div>
@@ -95,7 +97,7 @@
       <div class="form-group">
         <label for="max_op_perdida">Maximo de operaciones consecutivas a perdida</label>
         <div class="input-group mb-2">
-          <input type="text" class="form-control" id="max_op_perdida" placeholder="Recomendado 3">
+          <input type="text" class="form-control" id="max_op_perdida" value="{{max_op_perdida}}" placeholder="Recomendado 3">
           <div class="input-group-append">
             <div class="input-group-text">%</div>
           </div>

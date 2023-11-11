@@ -301,6 +301,7 @@ class BotAjax extends ControllerAjax
         $content = str_ireplace('START ORDER ','<b class="badge badge-info">START ORDER </b>',$content);
         $content = str_ireplace('STOP_BOT','<b class="badge badge-danger">STOP BOT </b>',$content);
         $content = str_ireplace('LIQUIDAR_OPERACION','<b class="badge badge-danger">LIQUIDAR OPERACION </b>',$content);
+        $content = str_ireplace('STOP_LOSS','<b class="badge badge-warning">STOP LOSS </b>',$content);
         if (!empty($content))
         {
             $this->ajxRsp->assign('contenido','innerHTML','<code class="text-dark">'.nl2br($content).'</code>');

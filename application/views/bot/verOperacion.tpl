@@ -48,13 +48,13 @@
     <tr>
       <td>Stop-Loss 
         <span class="data">{{stop_loss}}</span></td>
-      <td>Maximo de operaciones consecutivas a perdida 
-        <span class="data">{{max_op_perdida}}</span></td>
+      <td>Operaciones consecutivas a perdida 
+        <span class="data">{{str_max_op_perdida}}</span></td>
     </tr>
     <tr>
       <td>Estado 
         <span class="data">{{estado}}</td>
-      <td>Reinicio Automatica 
+      <td>Reinicio Automatico 
         <span class="data" colspan="2">{{auto-restart}}</td>
     </tr>
     <tr>

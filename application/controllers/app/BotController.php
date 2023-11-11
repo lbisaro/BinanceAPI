@@ -180,12 +180,14 @@ class BotController extends Controller
         $arr['baseAsset'] = $symbolData['baseAsset'];
         $arr['qtyDecs'] = $symbolData['qtyDecs'];
         $arr['qtyDecsPrice'] = $symbolData['qtyDecsPrice'];
-        
+                
         $arr['symbol'] = $opr->get('symbol');
         $arr['capital_usd'] = $opr->get('capital_usd');
         $arr['inicio_usd'] = $opr->get('inicio_usd');
         $arr['multiplicador_compra'] = $opr->get('multiplicador_compra');
         $arr['multiplicador_porc'] = $opr->get('multiplicador_porc');
+        $arr['stop_loss'] = $opr->get('stop_loss');
+        $arr['max_op_perdida'] = $opr->get('max_op_perdida');
         
         if ($opr->get('multiplicador_porc_inc'))
             $arr['mpi_checked'] = 'CHECKED';
@@ -269,13 +271,13 @@ class BotController extends Controller
         $arr['porc_venta_down'] = toDec($opr->get('real_porc_venta_down'));        
 
         $arr['stop_loss'] = $opr->get('str_stop_loss');
-        $arr['max_op_perdida'] = $opr->get('str_max_op_perdida');
+        $arr['str_max_op_perdida'] = $opr->get('str_max_op_perdida');
 
         if (!$opr->get('stop'))
         {
             $arr['estado'] = $opr->get('strEstado');
             $status = $opr->status();
-            if ($opr->get('tipo')==Operacion::OP_TIPO_APL)
+            if ($opr->get('tipo')==Operacion::OP_TIPO_APL || $opr->get('tipo')==Operacion::OP_TIPO_APLCRZ)
             {
                 if ($status==Operacion::OP_STATUS_APALANCAOFF)
                     $arr['estado'] .= '<br/><a class="btn btn-sm btn-warning" href="'.Controller::getLink('app','bot','resolverApalancamiento','id='.$idoperacion).'">Resolver Apalancamiento</a>';
@@ -442,6 +444,7 @@ class BotController extends Controller
 
         }
 
+
         $arr['ordenesActivas'] = $dg->get();
 
         //PNL
@@ -449,7 +452,6 @@ class BotController extends Controller
 
         if ($pnlOp['base']!=0 || $pnlOp['quote']!=0 )
         {
-
             $capitalReal = $opr->get('capital_usd');
             if ($opr->isLong() && $opr->get('destino_profit') != Operacion::OP_DESTINO_PROFIT_QUOTE)
                 $capitalReal = $opr->get('capital_usd')/$symbolPrice;

@@ -318,8 +318,7 @@ foreach ($operaciones as $operacion)
     else
     {
         //Verifica stop-loss y liquida si corresponde
-        $opr->proccessStopLoss($main_prices,$idusuario);
-        
+        $opr->proccessStopLoss($main_prices);
         
         if ($opr->autoRestart() && $opr->canStart())
         {

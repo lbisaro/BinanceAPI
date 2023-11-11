@@ -66,8 +66,6 @@ foreach ($usuarios as $idusuario => $usuarioData)
         }
 
         $main_prices = $api->prices();
-        pr($main_prices);
-        
 
         //Operaciones de APALANCAMIENTO ESTANDARD
         $tipo = Operacion::OP_TIPO_APL;
