@@ -312,6 +312,7 @@ class BotSWController extends Controller
             $dg->addRow($row);
         }
         $arr['htmlCapital'] = $dg->get();
+        $arr['addButtons'] .= '<a class="btn btn-info btn-sm" href="app.botSW.ver+id='.$id.'">Regresar</a>';
 
         $arr['hidden'] .= Html::getTagInput('idbotsw',$id,'hidden');
         $this->addView('bot/BotSW.asignarCapital',$arr);
@@ -366,6 +367,7 @@ class BotSWController extends Controller
         }
         $arr['htmlTrade'] = $dg->get();
         $arr['idbotsw'] = $id;
+        $arr['addButtons'] .= '<a class="btn btn-info btn-sm" href="app.botSW.ver+id='.$id.'">Regresar</a>';
 
 
         $this->addView('bot/BotSW.trade',$arr);

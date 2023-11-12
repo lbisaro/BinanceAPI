@@ -1934,7 +1934,7 @@ class Operacion extends ModelDB
         }
         */
 
-        //Apagando el Bot
+        //Vuelve a prender el Bot
         $upd = "UPDATE operacion SET stop = '0' WHERE idoperacion = ".$this->data['idoperacion'];
         $this->db->query($upd);
 
