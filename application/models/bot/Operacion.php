@@ -706,7 +706,7 @@ class Operacion extends ModelDB
             $this->data['op_perdida_consec'] = $op_perdida_consec;
             $upd = "UPDATE operacion SET op_perdida_consec = '".$op_perdida_consec."' WHERE idoperacion = ".$this->data['idoperacion'];
             $this->db->query($upd);
-            $msg = ' COMPLETE ORDER - query: '.$upd;
+            $msg = ' COMPLETE ORDER';
             self::logBot('u:'.$this->data['idusuario'].' o:'.$this->data['idoperacion'].' s:'.$this->data['symbol'].' '.$msg,$echo=false);
         }
 
@@ -1947,8 +1947,6 @@ class Operacion extends ModelDB
 
         $msg = 'LIQUIDAR_OPERACION - Finalizado';
         self::logBot('u:'.$idusuario.' o:'.$this->data['idoperacion'].' s:'.$symbol.' '.$msg,$echo=false);
-
-        //$this->complete();
 
         return true;
     }
