@@ -141,7 +141,7 @@ class BotController extends Controller
 
         $arr['tipo'] = $_REQUEST['tipo'];
         if (!isset($_REQUEST['tipo']))
-            $arr['tipo'] = '0';
+            $arr['tipo'] = Operacion::OP_TIPO_APLCRZ;
 
         $arr['PORCENTAJE_VENTA_UP'] = toDec(Operacion::PORCENTAJE_VENTA_UP);
         $arr['PORCENTAJE_VENTA_DOWN'] = toDec(Operacion::PORCENTAJE_VENTA_DOWN);
@@ -201,6 +201,8 @@ class BotController extends Controller
             $arr['dp_selected_0'] = 'SELECTED';
 
         $arr['idoperacion'] = $opr->get('idoperacion');
+        if ($opr->get('tipo') != Operacion::OP_TIPO_APLCRZ)
+            $opr->set(array('tipo'=>Operacion::OP_TIPO_APLCRZ));
         $arr['tipo'] = $opr->get('tipo');
 
         $arr['porc_venta_up']    = toDec($opr->get('real_porc_venta_up'));

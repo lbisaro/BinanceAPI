@@ -210,6 +210,7 @@ class BotAjax extends ControllerAjax
         $as = $auth->getConfig('bncas');
         $api = new BinanceAPI($ak,$as);
 
+        $arrToSet['tipo'] = $_REQUEST['tipo'];
         $arrToSet['capital_usd'] = $_REQUEST['capital_usd'];
         $arrToSet['inicio_usd'] = $_REQUEST['inicio_usd'];
         $arrToSet['destino_profit'] = ($_REQUEST['destino_profit']?'1':'0');
