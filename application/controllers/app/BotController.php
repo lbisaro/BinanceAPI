@@ -55,6 +55,7 @@ class BotController extends Controller
         $dg->addHeader('Compra inicial',null,null,'center');
         $dg->addHeader('Multiplicadores',null,null,'center');
         $dg->addHeader('Porcentaje de venta',null,null,'center');
+        $dg->addHeader('Stop-Loss',null,null,'center');
         $dg->addHeader('Estado',null,null,'center');
         $dg->addHeader('Recompra Automatica',null,null,'center');
 
@@ -86,7 +87,15 @@ class BotController extends Controller
                 else
                     $strVentas = ' <br/>Ventas x '.$ventas;
 
-
+                $stopLoss = '-';
+                if ($opr->get('stop_loss'))
+                {
+                    $stopLoss = $opr->get('str_stop_loss');
+                    if ($opr->get('max_op_perdida'))
+                    {
+                        $stopLoss .= '<br>'.$opr->get('str_max_op_perdida');
+                    }
+                }
                 
                 $strEstado = $opr->get('strEstado').$strCompras.$strVentas;
                 
@@ -101,6 +110,7 @@ class BotController extends Controller
                                          ($opr->get('multiplicador_porc_inc')?' Inc':'').
                                          ($opr->get('multiplicador_porc_auto')?' Auto':''),
                               $opr->get('strPorcVenta'),
+                              $stopLoss,
                               $strEstado,
                               $autoRestart
                               );

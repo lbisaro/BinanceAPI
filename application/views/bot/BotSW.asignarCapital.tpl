@@ -108,6 +108,7 @@
             var button = $(event.relatedTarget);
             var asset = button.data('asset');
             var modal = $(this);
+            console.log('asset: '+asset);
             modal.find('.modal-title').text('Asignar capital en ' + asset);
 
             activeAsset = asset;

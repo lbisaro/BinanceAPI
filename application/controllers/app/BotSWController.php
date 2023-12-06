@@ -236,8 +236,8 @@ class BotSWController extends Controller
         $api = new BinanceAPI($ak,$as);
         $account = $api->account();
         $prices = $api->prices();
-        $capitalAvailable[$symbol_estable] = array();
-        $capitalAvailable[$symbol_reserva] = array();
+        $capitalAvailable[$symbol_estable] = array('token_free'=>0,'price'=>'1.00');
+        $capitalAvailable[$symbol_reserva] = array('token_free'=>0,'price'=>'1.00');
         $assets = array();
         if (!empty($account['balances']))
         {
@@ -250,6 +250,7 @@ class BotSWController extends Controller
                         $price = '1.00';
                     else
                         $price = $prices[$rw['asset'].'USDT'];
+
                     if ($price>0)
                     {
                         $capitalAvailable[$rw['asset']]['token_free'] = $rw['free'];
@@ -260,7 +261,10 @@ class BotSWController extends Controller
                 }
             }
         }
-
+        if (!in_array($symbol_estable , $assets))
+            $assets[] = $symbol_estable;
+        if (!in_array($symbol_reserva , $assets))
+            $assets[] = $symbol_reserva;
         $ai = $bot->getAssetsInfo($assets);
         
         $capital = $bot->getCapital();
@@ -286,12 +290,12 @@ class BotSWController extends Controller
                 $accion = '<div class="btn btn-success btn-sm" data-toggle="modal" data-target="#modalAsignarCapital" data-asset="'.$asset.'">Asignar</div>';
             else
                 $accion = '<div class="btn btn-secondary btn-sm" data-toggle="modal" data-target="#modalAsignarCapital" data-asset="'.$asset.'">Modificar</div>';
+
             $tokenUsd = toDec($tokenCapital*$price);
             if ($tokenUsd == 0)
                 $tokenUsd = '';
             if ($asset == $symbol_reserva)
                 $accion = '';
-
 
             $row = array($asset.' '.$symbol_estable,
                          $price,
@@ -310,6 +314,7 @@ class BotSWController extends Controller
                         '};';
 
             $dg->addRow($row);
+
         }
         $arr['htmlCapital'] = $dg->get();
         $arr['addButtons'] .= '<a class="btn btn-info btn-sm" href="app.botSW.ver+id='.$id.'">Regresar</a>';
@@ -335,6 +340,12 @@ class BotSWController extends Controller
             $this->addError('No esta autorizado a visualizar esta pagina');
             return null;
         }
+
+        $ak = $auth->getConfig('bncak');
+        $as = $auth->getConfig('bncas');
+        $api = new BinanceAPI($ak,$as);
+        $account = $api->account();
+        $prices = $api->prices();
 
         $symbol_estable = $bot->get('symbol_estable');
         $symbol_reserva = $bot->get('symbol_reserva');
@@ -370,6 +381,95 @@ class BotSWController extends Controller
         $arr['addButtons'] .= '<a class="btn btn-info btn-sm" href="app.botSW.ver+id='.$id.'">Regresar</a>';
 
 
+        //Ordenes
+        $capital = $bot->getCapital();
+        $orders = $bot->getOrdersFull();
+        $pares = [];
+        $pares[''] = 'Todos';
+        foreach ($orders as $rw)
+            $pares[$rw['base_asset'].$rw['quote_asset']] = $rw['base_asset'].$rw['quote_asset'];
+        
+        $selectPar = Html::getTagSelect('par',$pares,null,array('onchange'=>'filter_par();'));
+        
+        $dg = new HtmlTableDg('ordenes');
+        $dg->setCaption('Ordenes ejecutadas');
+        $dg->addHeader('Tipo');
+        $dg->addHeader('Fecha Hora');
+        $dg->addHeader($selectPar);
+        $dg->addHeader('Base',null,null,'right');
+        $dg->addHeader('Quote',null,null,'right');
+        $dg->addHeader('Precio',null,null,'right');
+        $dg->addHeader('Ref.',null,null,'right');
+        foreach ($capital as $base_asset => $rw)
+        {
+            if ($base_asset != $symbol_estable)
+            {
+
+                $row = array();
+                $row[] = 'Capital';
+
+                $row[] = '';
+                $row[] = $base_asset.$symbol_estable;
+                $row[] = floatval($rw['qty']);
+                $row[] = toDec($rw['inUSD'],2);
+                $row[] = floatval($rw['price']);
+
+                $price = $prices[$base_asset.$symbol_estable];
+                $ref = toDec((($price/$rw['price'])-1)*100,2);
+                $alertClass = 'text-secondary';
+                if ($rw['side'] == BotSW::SIDE_BUY)
+                    if ($ref>0)
+                        $alertClass = 'alert alert-success';
+                    elseif ($ref<0)
+                        $alertClass = 'alert alert-danger';
+                if ($rw['side'] == BotSW::SIDE_SELL)
+                    if ($ref<0)
+                        $alertClass = 'alert alert-success';
+                    elseif ($ref>0)
+                        $alertClass = 'alert alert-danger';
+                $row[] = '<span class="'.$alertClass.'" style="padding:0px;margin:0px;">'.$ref.'%</span>';
+                $class = ' '.$base_asset.$symbol_estable;
+
+                $dg->addRow($row,$class); 
+            }
+        }
+
+        foreach ($orders as $rw)
+        {
+            $row = array();
+            $class = ($rw['side']==BotSW::SIDE_BUY ?'text-success':'text-danger');
+        
+            $row[] = '<a href="http://192.168.1.11/app.bot.verOrden+symbol='.$rw['base_asset'].$rw['quote_asset'].'&orderId='.$rw['orderId'].'" target="_blank">'.
+                     ($rw['side']==BotSW::SIDE_BUY ?'Compra':'Venta').'</a>';
+
+            $row[] = dateToStr($rw['datetime'],true);
+            $row[] = $rw['base_asset'].$rw['quote_asset'];
+            $row[] = floatval($rw['base_qty']);
+            $row[] = ($rw['quote_asset']=='USDT'?toDec($rw['quote_qty'],2):floatval($rw['quote_qty']));
+            $row[] = floatval($rw['price']);
+
+            $price = $prices[$rw['base_asset'].$rw['quote_asset']];
+            $ref = toDec((($price/$rw['price'])-1)*100,2);
+            $alertClass = 'text-secondary';
+            if ($rw['side'] == BotSW::SIDE_BUY)
+                if ($ref>0)
+                    $alertClass = 'alert alert-success';
+                elseif ($ref<0)
+                    $alertClass = 'alert alert-danger';
+            if ($rw['side'] == BotSW::SIDE_SELL)
+                if ($ref<0)
+                    $alertClass = 'alert alert-success';
+                elseif ($ref>0)
+                    $alertClass = 'alert alert-danger';
+            $row[] = '<span class="'.$alertClass.'" style="padding:0px;margin:0px;">'.$ref.'%</span>';
+            $class .= ' '.$rw['base_asset'].$rw['quote_asset'];
+
+            $dg->addRow($row,$class);        
+
+        }
+
+
+        $arr['orders'] = $dg->get();
         $this->addView('bot/BotSW.trade',$arr);
 
     }

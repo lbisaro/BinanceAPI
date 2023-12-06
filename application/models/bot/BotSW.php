@@ -237,7 +237,6 @@ class BotSW extends ModelDB
 
             if ($rw['side'] == self::SIDE_BUY)
             {
-                $rw['symbol'] = $rw['base_asset'].$rw['quote_asset'];
                 $rw['base_qty'] = $rw['origQty'];
                 $rw['quote_qty'] = -($rw['origQty']*$rw['price']);
             }

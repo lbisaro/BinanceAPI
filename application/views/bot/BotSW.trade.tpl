@@ -77,6 +77,9 @@
     <input type="hidden" name="trade_action" id="trade_action" >
     <input type="hidden" name="trade_symbol" id="trade_symbol" >
 </div>
+<div class="container">
+    {{orders}}
+</div>
 
 
 
@@ -141,6 +144,22 @@
 
         }
         
+    }
+    function filter_par()
+    {
+        var par_to_filter = $('#par').val();
+
+        if (par_to_filter)
+        {
+            $('#ordenes tbody tr').hide();
+            $('#ordenes tbody tr.'+par_to_filter).show();
+        }
+        else
+        {
+            $('#ordenes tbody tr').show();
+
+        }
+
     }
 
    

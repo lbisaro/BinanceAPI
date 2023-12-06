@@ -1,0 +1,2 @@
+ALTER TABLE `bot_sw_orden_log` ADD `idbotsw_orden` INT NOT NULL AUTO_INCREMENT FIRST, ADD PRIMARY KEY (`idbotsw_orden`);
+ALTER TABLE `bot_sw_orden_log` ADD `pnl_id` INT NOT NULL DEFAULT '0' AFTER `orderId`;
