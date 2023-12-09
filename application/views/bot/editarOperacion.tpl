@@ -89,7 +89,7 @@
       <div class="form-group">
         <label for="stop_loss">Stop-Loss</label>
         <div class="input-group mb-2">
-          <input type="text" class="form-control" id="stop_loss" value="{{stop_loss}}" placeholder="Recomendado 2.00">
+          <input type="text" class="form-control" id="stop_loss" value="{{stop_loss}}"  onchange="refreshTable()" placeholder="Recomendado 2.00">
           <div class="input-group-append">
             <div class="input-group-text">%</div>
           </div>
@@ -163,6 +163,7 @@
         var m_porc = $('#multiplicador_porc').val();
         var m_porc_inc = ($('#multiplicador_porc_inc ').is(':checked')?1:0);
         var m_porc_auto = ($('#multiplicador_porc_auto ').is(':checked')?1:0);
+        var sl_perc = $('#stop_loss').val();
         var table = '';
 
         if (m_porc_auto)
@@ -183,6 +184,7 @@
                         <th>Compra {{quoteAsset}}</th>
                         <th>Total Compra</th>
                         <th>Precio de Venta</th>
+                        <th>Precio de Stop-Loss</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -194,14 +196,24 @@
             psci = 0;
             compraUsd = inicio_usd*1;
             totalCompra = compraUsd;
-            ventaPorc = ventaPorc = $('#porc_venta_up').val()/100;
+            ventaPorc = $('#porc_venta_up').val()/100;
+
+            sl_usd_to_loss = capital_usd*(sl_perc/100); 
 
             var i=1;
+            tot_units = 0;
             while (totalCompra<=capital_usd)
             {
                 precioVenta = precio * (1+ventaPorc);
                 strVenta = totalCompra+'*'+precio+' = '+(totalCompra*precio)+' -> '+totalCompra+'*'+precioVenta+' = '+(totalCompra*precioVenta);
                 qtyVenta = (totalCompra*precio)/precioVenta;
+                tot_units = tot_units + (compraUsd/precio);
+                sl_usd = totalCompra-sl_usd_to_loss;
+                sl_price = sl_usd/tot_units;
+
+                $sl_class = '';
+                if (sl_price > precio)
+                    $sl_class = 'text-danger ';
 
                 table = table + '<tr>';
                 table = table + '<td>#'+i+'</td>';
@@ -211,6 +223,10 @@
                 table = table + '<td>'+format_number(compraUsd,qtyDecsPrice)+'</td>';
                 table = table + '<td>'+format_number(totalCompra,qtyDecsPrice)+'</td>';
                 table = table + '<td class="text-success">'+format_number(precioVenta,qtyDecsPrice)+'</td>';
+                if (sl_perc>0)
+                    table = table + '<td class="'+$sl_class+'">' +format_number(sl_price,qtyDecsPrice)+'</td>';
+                else
+                    table = table + '<td>&nbsp;</td>';
                 table = table + '</tr>';
 
                 if (m_porc_inc==1)
