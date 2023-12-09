@@ -274,7 +274,7 @@
                 table = table + '<td>'+format_number(compraUsd,qtyDecsPrice)+'</td>';
                 table = table + '<td>'+format_number(totalCompra,qtyDecsPrice)+'</td>';
                 table = table + '<td class="text-success">'+format_number(precioVenta,qtyDecsPrice)+'</td>';
-                if (sl_perc>0)
+                if (sl_perc>0 && sl_price>0)
                     table = table + '<td class="'+$sl_class+'">' +format_number(sl_price,qtyDecsPrice)+'</td>';
                 else
                     table = table + '<td>&nbsp;</td>';
