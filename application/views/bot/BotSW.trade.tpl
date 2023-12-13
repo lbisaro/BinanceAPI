@@ -108,6 +108,7 @@
     var activeAsset = '';
     var activeQuote = '';
 
+
     $(document).ready( function () {
 
         $('#modalTrade').on('show.bs.modal', function (event) {
@@ -128,16 +129,39 @@
 
     function setMaxCapitalToken()
     {
-        data = eval('data_'+activeAsset);
-        $('.modal-body #capital').val(data.Free);   
+        action = $('#trade_action').val();
+        var data_base = eval('data_'+activeAsset);
+        var data_quote = eval('data_'+activeQuote);
+
+        if (action == 'sell')
+        {
+            var capital = toDec(data_base.Free,data_base.qtyDecsUnits);
+            $('.modal-body #capital').val(capital);   
+        }
+        else
+        {
+            var capital = toDec(data_quote.Free/data_base.Price,data_base.qtyDecsUnits);
+            $('.modal-body #capital').val(capital);              
+        }
         swapTokenToUsd();
     }
 
     function setMaxCapitalUsd()
     {
-        data = eval('data_'+activeAsset);
-        var capitalUSD = toDec(data.Free*data.Price);
-        $('.modal-body #capitalUSD').val(capitalUSD);   
+        action = $('#trade_action').val();
+        var data_base = eval('data_'+activeAsset);
+        var data_quote = eval('data_'+activeQuote);
+
+        if (action == 'sell')
+        {
+            var capitalUSD = toDec(data_base.Free*data_base.Price);
+            $('.modal-body #capitalUSD').val(capitalUSD);   
+        }
+        else
+        {
+            var capitalUSD = toDec(data_quote.Free);
+            $('.modal-body #capitalUSD').val(capitalUSD);              
+        }
         swapUsdToToken();
     }
 
@@ -166,25 +190,29 @@
         symbol = base+quote
         activeAsset = base;
         activeQuote = quote;
-        var data = eval('data_'+base);
         
         var modal = $('#modalTrade');
         
-        modal.find('.modal-body #capitalDisponible').html(data.Free);
+        var data_base = eval('data_'+base);
+        var data_quote = eval('data_'+quote);
+        if (action == 'sell')
+        {
+            modal.find('.modal-body #capitalDisponible').html(base+' '+data_base.Free);
+        }
+        else
+        {
+            modal.find('.modal-body #capitalDisponible').html(quote+' '+toDec(data_quote.Free,data_quote.qtyDecsUnits));
+        }
+        modal.find('.modal-body #capital').val('');
+        modal.find('.modal-body #capitalUSD').val('');
+
         modal.find('.modal-body #assetInputGroup').html(base)
         modal.find('.modal-body #quoteInputGroup').html(quote)
 
-
-        if (data.Capital>0)
-            modal.find('.modal-body #capital').val(data.Capital);
-        else
-            modal.find('.modal-body #capital').val(data.Capital);
-
-
         modal.find('.modal-body #asset').val(base)
         modal.find('.modal-body #quote').val(quote)
-        modal.find('.modal-body #precio').html(data.Price);
-        modal.find('.modal-body #capitalUSD').val(toDec(data.Capital*data.Price));
+        modal.find('.modal-body #precio').html(data_base.Price);
+
 
         $('#modalTrade').modal('show');
     

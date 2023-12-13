@@ -594,11 +594,11 @@ class BotSW extends ModelDB
         foreach ($assets as $asset)
             if ($asset && $asset != $symbol_estable)
             $symbols[$asset.$symbol_estable] = array('base'=>$asset,'quote'=>$symbol_estable);
-        foreach ($assets as $asset)
-            if ($asset && $asset != $symbol_reserva)
-            $symbols[$asset.$symbol_reserva] = array('base'=>$asset,'quote'=>$symbol_reserva);
+        //foreach ($assets as $asset)
+        //    if ($asset && $asset != $symbol_reserva)
+        //    $symbols[$asset.$symbol_reserva] = array('base'=>$asset,'quote'=>$symbol_reserva);
 
-        $symbols[$symbol_reserva.$symbol_estable] = array('base'=>$symbol_reserva,'quote'=>$symbol_estable);
+        //$symbols[$symbol_reserva.$symbol_estable] = array('base'=>$symbol_reserva,'quote'=>$symbol_estable);
 
         return $symbols;
     }
