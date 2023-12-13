@@ -9,7 +9,7 @@
 </style>
 
 <!-- Modal -->
-<div class="modal fade" id="modalAsignarCapital" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
+<div class="modal fade" id="modalTrade" tabindex="-1" aria-labelledby="modalLabel" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
       <div class="modal-header">
@@ -21,9 +21,27 @@
       <div class="modal-body">
         <div class="input-group mb-2">
             <div class="input-group-prepend">
-                <div class="input-group-text" >USD</div>
+                <div class="input-group-text" id="assetInputGroup"></div>
             </div>
-            <input type="text" class="form-control" name="capitalUSD" id="capitalUSD" placeholder="0.00" >
+            <input type="text" class="form-control" name="capital" id="capital" placeholder="0.00" onkeyup="swapTokenToUsd()" onblur="swapTokenToUsd()" >
+            <div class="input-group-append">
+                <button type="button" class="btn btn-secondary" onclick="setMaxCapitalToken()">Maximo</span>
+            </div>
+        </div>
+        <div class="input-group mb-2">
+            <div class="input-group-prepend">
+                <div class="input-group-text"id="quoteInputGroup" ></div>
+            </div>
+            <input type="text" class="form-control" name="capitalUSD" id="capitalUSD" placeholder="0.00" onkeyup="swapUsdToToken()" onblur="swapUsdToToken()" >
+            <div class="input-group-append">
+                <button type="button" class="btn btn-secondary" onclick="setMaxCapitalUsd()">Maximo</span>
+            </div>
+        </div>
+        <div class="container text-info">
+            Precio: <span id="precio"></span>
+        </div>
+        <div class="container text-info">
+            Capital disponible: <span id="capitalDisponible"></span>
         </div>
       </div>
       <div class="modal-footer">
@@ -88,10 +106,11 @@
     {{jsonData}}
 
     var activeAsset = '';
+    var activeQuote = '';
 
     $(document).ready( function () {
 
-        $('#modalAsignarCapital').on('show.bs.modal', function (event) {
+        $('#modalTrade').on('show.bs.modal', function (event) {
             
             
             var button = $(event.relatedTarget);
@@ -102,28 +121,81 @@
             modal.find('.modal-title').text(str_action +' '+ symbol);
             modal.find('.modal-title').removeClass((action=='buy'?'text-danger':'text-success'));
             modal.find('.modal-title').addClass((action=='buy'?'text-success':'text-danger'));
-            $('#capitalUSD').val('');
-            setTimeout(function () {$('#capitalUSD').focus() } , 500);
-
                         
         })
 
     });
 
-    function make_trade(action,symbol)
+    function setMaxCapitalToken()
+    {
+        data = eval('data_'+activeAsset);
+        $('.modal-body #capital').val(data.Free);   
+        swapTokenToUsd();
+    }
+
+    function setMaxCapitalUsd()
+    {
+        data = eval('data_'+activeAsset);
+        var capitalUSD = toDec(data.Free*data.Price);
+        $('.modal-body #capitalUSD').val(capitalUSD);   
+        swapUsdToToken();
+    }
+
+    function swapTokenToUsd()
+    {
+        data = eval('data_'+activeAsset);
+        var price = $('.modal-body #precio').html();
+        var capital = $('.modal-body #capital').val();
+        var capitalUSD = toDec(capital*price);
+        $('.modal-body #capitalUSD').val(capitalUSD);
+    }
+
+    function swapUsdToToken()
+    {
+        data = eval('data_'+activeAsset);
+        var price = $('.modal-body #precio').html();
+        var capitalUSD = $('.modal-body #capitalUSD').val();
+        var capital = toDec(capitalUSD/price,data.qtyDecsUnits);
+        $('.modal-body #capital').val(capital);
+    }
+
+    function make_trade(action,base,quote)
     {
         $('#trade_action').val(action);
-        $('#trade_symbol').val(symbol);
+        $('#trade_symbol').val(base+quote);
+        symbol = base+quote
+        activeAsset = base;
+        activeQuote = quote;
+        var data = eval('data_'+base);
+        
+        var modal = $('#modalTrade');
+        
+        modal.find('.modal-body #capitalDisponible').html(data.Free);
+        modal.find('.modal-body #assetInputGroup').html(base)
+        modal.find('.modal-body #quoteInputGroup').html(quote)
 
-        $('#modalAsignarCapital').modal('show');
+
+        if (data.Capital>0)
+            modal.find('.modal-body #capital').val(data.Capital);
+        else
+            modal.find('.modal-body #capital').val(data.Capital);
+
+
+        modal.find('.modal-body #asset').val(base)
+        modal.find('.modal-body #quote').val(quote)
+        modal.find('.modal-body #precio').html(data.Price);
+        modal.find('.modal-body #capitalUSD').val(toDec(data.Capital*data.Price));
+
+        $('#modalTrade').modal('show');
     
     }
 
     function trade()
     {
-        var capital = toDec($('#capitalUSD').val(),2);
-        $('#capitalUSD').val(capital);
-        capital = parseFloat(toDec($('#capitalUSD').val(),2));
+        var capitalUSD = $('#capitalUSD').val();
+        var qty = $('#capital').val();
+        
+        capitalUSD = parseFloat(toDec($('#capitalUSD').val(),2));
         if (capital < 12 )
         {
             alert('Se debe asignar un capital superior a 12.0 USD');
@@ -131,15 +203,15 @@
         else
         {
             str_confirm = 'Confirma la '+($('#trade_action').val()=='buy'?'COMPRA':'VENTA')+
-                          ' de '+$('#trade_symbol').val()+' por el equivalente aproximado a USD '+$('#capitalUSD').val()+'?';
+                          ' de '+qty+' '+$('#trade_symbol').val()+' por el equivalente aproximado a USD '+$('#capitalUSD').val()+'?';
             if (confirm(str_confirm))
             {
-                $('#modalAsignarCapital').modal('hide');
+                $('#modalTrade').modal('hide');
                 $('#trade').hide();
                 $('#trade_msg').html('Aguarde un momento, se esta ejecutando la operacion....');
                 $('#trade_msg').attr('class','text-info');
                 $('#trade_msg').show();
-                CtrlAjax.sendCtrl("app","BotSW","trade");
+                CtrlAjax.sendCtrl("app","BotSW","trade",'symbol='+$('#trade_symbol').val());
             }
 
         }

@@ -368,17 +368,73 @@ class BotSWController extends Controller
         $dg->addHeader('Accion');
         if (!empty($tradeSymbols))
         {
-            foreach ($tradeSymbols as $symbol)
+            foreach ($tradeSymbols as $symbol => $rw)
             {
                 $row = array($symbol,
-                             '<span class="btn btn-sm btn-success" onclick="make_trade(\'buy\',\''.$symbol.'\');">Comprar</span>&nbsp;'.
-                             '<span class="btn btn-sm btn-danger"  onclick="make_trade(\'sell\',\''.$symbol.'\');">Vender</span>');
+                             '<span class="btn btn-sm btn-success" onclick="make_trade(\'buy\',\''.$rw['base'].'\',\''.$rw['quote'].'\');">Comprar</span>&nbsp;'.
+                             '<span class="btn btn-sm btn-danger"  onclick="make_trade(\'sell\',\''.$rw['base'].'\',\''.$rw['quote'].'\');">Vender</span>');
                 $dg->addRow($row);
             }
         }
+
         $arr['htmlTrade'] = $dg->get();
         $arr['idbotsw'] = $id;
         $arr['addButtons'] .= '<a class="btn btn-info btn-sm" href="app.botSW.ver+id='.$id.'">Regresar</a>';
+
+
+        //Capital disponible para trade
+        $assets = array();
+        if (!empty($account['balances']))
+        {
+            foreach ($account['balances'] as $rw)
+            {
+                if ($rw['free']>0)
+                {
+                    $price = 0;
+                    if ($rw['asset'] == 'USDT' || $rw['asset'] == 'BUSD' || $rw['asset'] == 'USDC')
+                        $price = '1.00';
+                    else
+                        $price = $prices[$rw['asset'].'USDT'];
+
+                    if ($price>0)
+                    {
+                        $capitalAvailable[$rw['asset']]['token_free'] = $rw['free'];
+                        $capitalAvailable[$rw['asset']]['price'] = $price;
+                        $assets[] = $rw['asset'];
+                    }
+                    
+                }
+            }
+        }
+        if (!in_array($symbol_estable , $assets))
+            $assets[] = $symbol_estable;
+        if (!in_array($symbol_reserva , $assets))
+            $assets[] = $symbol_reserva;
+        $ai = $bot->getAssetsInfo($assets);
+        $capital = $bot->getCapital();
+        foreach ($capital as $asset => $rw)
+            $capitalAvailable[$asset]['token_capital'] = $rw['qty'];
+        foreach ($capitalAvailable as $asset=>$rw)
+        {
+            $tokenCapital = toDecDown($rw['token_capital'],$ai[$asset]['qtyDecsUnits']);
+            $price = toDecDown($rw['price'],$ai[$asset]['qtyDecsPrice']);
+            $tokenFree = toDecDown($rw['token_free'],$ai[$asset]['qtyDecsUnits']);
+
+
+            $tokenUsd = toDec($tokenCapital*$price);
+            if ($tokenUsd == 0)
+                $tokenUsd = '';
+            if ($asset == $symbol_reserva)
+                $accion = '';
+
+            $arr['jsonData'] .= '
+            const data_'.$asset.' = {
+                        "Free": '.$tokenFree.',"Capital": '.$tokenCapital.',"Price": '.$price.
+                        ',"qtyDecsUnits": '.$ai[$asset]['qtyDecsUnits'].
+                        ',"qtyDecsPrice": '.$ai[$asset]['qtyDecsPrice'].
+                        '};';
+
+        }
 
 
         //Ordenes

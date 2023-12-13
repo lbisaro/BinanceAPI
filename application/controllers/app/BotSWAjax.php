@@ -110,7 +110,7 @@ class BotSWAjax extends ControllerAjax
         
 
         $id = $_REQUEST['idbotsw'];
-        $usd = $_REQUEST['capitalUSD'];
+        $qty = $_REQUEST['capital'];
         $symbol = $_REQUEST['trade_symbol'];
         $action = $_REQUEST['trade_action'];
 
@@ -120,98 +120,85 @@ class BotSWAjax extends ControllerAjax
 
         if (!empty($symbolData))
         {
-            //foreach ($symbolData as $k=>$v)
-            //    $this->ajxRsp->debug('symbolData: '.$k.': '.$v);
-                
-            $prices = $api->prices();
-            $price = $prices[$symbol];
 
-            if ($price > 0)
+            $origQty = toDec($qty,$symbolData['qtyDecs']);
+            
+            $baseAsset = $symbolData['baseAsset'];
+            $quoteAsset = $symbolData['quoteAsset'];
+            $baseFree = 0;
+            $quoteFree = 0;
+            $account = $api->account();
+            if (!empty($account['balances']))
             {
-                //$this->ajxRsp->debug('Price: '.$symbol.' = '.$price);
-                $origQty = toDec($usd/$price,$symbolData['qtyDecs']);
-                //$this->ajxRsp->debug('origQty: '.$origQty);
-
-                
-                $baseAsset = $symbolData['baseAsset'];
-                $quoteAsset = $symbolData['quoteAsset'];
-                $baseFree = 0;
-                $quoteFree = 0;
-                $account = $api->account();
-                if (!empty($account['balances']))
+                foreach ($account['balances'] as $rw)
                 {
-                    foreach ($account['balances'] as $rw)
+                    if ($rw['free']>0)
                     {
-                        if ($rw['free']>0)
-                        {
-                            if ($rw['asset'] == $baseAsset)
-                                $baseFree = $rw['free'];
-                            if ($rw['asset'] == $quoteAsset)
-                                $quoteFree = $rw['free'];
-                        }
+                        if ($rw['asset'] == $baseAsset)
+                            $baseFree = $rw['free'];
+                        if ($rw['asset'] == $quoteAsset)
+                            $quoteFree = $rw['free'];
                     }
                 }
-                //$this->ajxRsp->debug('Free for '.$baseAsset.': '.$baseFree);
-                //$this->ajxRsp->debug('Free for '.$quoteAsset.': '.$quoteFree);
-                if ($action == 'buy')
-                {
-                    if ($quoteFree > $usd)
-                    {
-                        $order = $api->marketBuy($symbol, $origQty);
-                        if ($order['status'] == 'FILLED')
-                        {
-                            $origQty = $order['executedQty'];
-                            $price = toDec($order['cummulativeQuoteQty']/$order['executedQty'],$symbolData['qtyDecs']);
-                        }
-                        $bot->addOrder(date('Y-m-d h:i:s'),$baseAsset,$quoteAsset,BotSW::SIDE_BUY,$origQty,$price,$order['orderId']);
-                        $this->ajxRsp->assign('trade_msg','innerHTML','La orden se ejecuto con exito<br> ');
-                        $this->ajxRsp->append('trade_msg','innerHTML',' orderId: '.$order['orderId']. ' - '.
-                                                                      ' status: '.$order['status']. ' - '.
-                                                                      ' side: '.$order['side']. ' - '.
-                                                                      ' executedQty: '.$order['executedQty']. ' - '.
-                                                                      ' cummulativeQuoteQty: '.$order['cummulativeQuoteQty']. ' - '.
-                                                                      ' price: '.$price);
-                        $this->ajxRsp->append('trade_msg','class','text-success');
-                        $this->ajxRsp->script("$('#trade').show();");
+            }
+            //$this->ajxRsp->debug('Free for '.$baseAsset.': '.$baseFree);
+            //$this->ajxRsp->debug('Free for '.$quoteAsset.': '.$quoteFree);
 
-                     }
-                    else
+            if ($action == 'buy')
+            {
+                if ($quoteFree > $usd)
+                {
+                    $order = $api->marketBuy($symbol, $origQty);
+                    if ($order['status'] == 'FILLED')
                     {
-                        $this->ajxRsp->addError('No cuenta con balance suficiente en '.$quoteAsset.' para realizar la operacion.');
+                        $origQty = $order['executedQty'];
+                        $price = toDec($order['cummulativeQuoteQty']/$order['executedQty'],$symbolData['qtyDecs']);
                     }
-                }
+                    $bot->addOrder(date('Y-m-d h:i:s'),$baseAsset,$quoteAsset,BotSW::SIDE_BUY,$origQty,$price,$order['orderId']);
+                    $this->ajxRsp->assign('trade_msg','innerHTML','La orden se ejecuto con exito<br> ');
+                    $this->ajxRsp->append('trade_msg','innerHTML',' orderId: '.$order['orderId']. ' - '.
+                                                                  ' status: '.$order['status']. ' - '.
+                                                                  ' side: '.$order['side']. ' - '.
+                                                                  ' executedQty: '.$order['executedQty']. ' - '.
+                                                                  ' cummulativeQuoteQty: '.$order['cummulativeQuoteQty']. ' - '.
+                                                                  ' price: '.$price);
+                    $this->ajxRsp->append('trade_msg','class','text-success');
+                    $this->ajxRsp->script("$('#trade').show();");
+
+                 }
                 else
                 {
-                    if ($baseFree > $origQty)
-                    {
-                        $order = $api->marketSell($symbol, $origQty);
-                        if ($order['status'] == 'FILLED')
-                        {
-                            $origQty = $order['executedQty'];
-                            $price = toDec($order['cummulativeQuoteQty']/$order['executedQty'],$symbolData['qtyDecs']);
-                        }
-                        $bot->addOrder(date('Y-m-d h:i:s'),$baseAsset,$quoteAsset,BotSW::SIDE_SELL,$origQty,$price,$order['orderId']);
-                        $this->ajxRsp->assign('trade_msg','innerHTML','La orden se ejecuto con exito<br> ');
-                        $this->ajxRsp->append('trade_msg','innerHTML',' orderId: '.$order['orderId']. ' - '.
-                                                                      ' status: '.$order['status']. ' - '.
-                                                                      ' side: '.$order['side']. ' - '.
-                                                                      ' executedQty: '.$order['executedQty']. ' - '.
-                                                                      ' cummulativeQuoteQty: '.$order['cummulativeQuoteQty']. ' - '.
-                                                                      ' price: '.$price);
-                        $this->ajxRsp->append('trade_msg','class','text-success');
-                        $this->ajxRsp->script("$('#trade').show();");
-                    }
-                    else
-                    {
-                        $this->ajxRsp->addError('No cuenta con balance suficiente en '.$baseAsset.' para realizar la operacion.');
-                    }
+                    $this->ajxRsp->addError('No cuenta con balance suficiente en '.$quoteAsset.' para realizar la operacion.');
                 }
-            
             }
             else
             {
-                $this->ajxRsp->addError('No fue posible encontrar el precio de '.$symbol);
+                if ($baseFree > $origQty)
+                {
+                    $order = $api->marketSell($symbol, $origQty);
+                    if ($order['status'] == 'FILLED')
+                    {
+                        $origQty = $order['executedQty'];
+                        $price = toDec($order['cummulativeQuoteQty']/$order['executedQty'],$symbolData['qtyDecs']);
+                    }
+                    $bot->addOrder(date('Y-m-d h:i:s'),$baseAsset,$quoteAsset,BotSW::SIDE_SELL,$origQty,$price,$order['orderId']);
+                    $this->ajxRsp->assign('trade_msg','innerHTML','La orden se ejecuto con exito<br> ');
+                    $this->ajxRsp->append('trade_msg','innerHTML',' orderId: '.$order['orderId']. ' - '.
+                                                                  ' status: '.$order['status']. ' - '.
+                                                                  ' side: '.$order['side']. ' - '.
+                                                                  ' executedQty: '.$order['executedQty']. ' - '.
+                                                                  ' cummulativeQuoteQty: '.$order['cummulativeQuoteQty']. ' - '.
+                                                                  ' price: '.$price);
+                    $this->ajxRsp->append('trade_msg','class','text-success');
+                    $this->ajxRsp->script("$('#trade').show();");
+                }
+                else
+                {
+                    $this->ajxRsp->addError('No cuenta con balance suficiente en '.$baseAsset.' para realizar la operacion.');
+                }
             }
+            
+
             
         }
         else
