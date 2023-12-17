@@ -419,14 +419,13 @@ class BotController extends Controller
                     $pnlOpenOrders[] = array('origQty'=>$rw['origQty'],'price'=>$rw['price']);
                 }
             }
+        }
 
-            if ($stopLossPrice > 0)
-            {
-                $stopLossPrice = toDec($stopLossPrice,$symbolData['qtyDecsQuote']);
-                $ref = toDec((($symbolPrice/$stopLossPrice)-1)*100,2);
-                $dg->addRow(array('Stop-Loss','','',$stopLossPrice,'', $ref));
-            }
-
+        if ($stopLossPrice > 0)
+        {
+            $stopLossPrice = toDec($stopLossPrice,$symbolData['qtyDecsQuote']);
+            $ref = toDec((($symbolPrice/$stopLossPrice)-1)*100,2);
+            $dg->addRow(array('Stop-Loss','','',$stopLossPrice,'', $ref));
         }
 
         $pnlAbiertas = 0;
