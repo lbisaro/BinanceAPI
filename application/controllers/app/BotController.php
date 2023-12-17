@@ -423,7 +423,7 @@ class BotController extends Controller
 
         if ($stopLossPrice > 0)
         {
-            $stopLossPrice = toDec($stopLossPrice,$symbolData['qtyDecs']);
+            $stopLossPrice = toDec($stopLossPrice,$symbolData['qtyDecsPrice']);
             $ref = toDec((($symbolPrice/$stopLossPrice)-1)*100,2).'%';
             $dg->addRow(array('Stop-Loss','','',$stopLossPrice,'', $ref));
         }
