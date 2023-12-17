@@ -142,6 +142,7 @@
     var aCompras = [];
     var aVentas = [];
     var aStopLoss = [];
+    var yMin = 0;
 
     $(document).ready( function () {
         $('#btnAddOperacion').hide();
@@ -218,6 +219,7 @@
         aCompras = [];
         aVentas = [];
         aStopLoss = [];
+        yMin = 0;
 
         var capital_usd = $('#capital_usd').val();
         var inicio_usd = $('#inicio_usd').val();
@@ -297,6 +299,7 @@
                 aVentas.push({x: i, y: parseFloat(format_number(precioVenta,qtyDecsPrice))});
                 if (sl_perc>0 && sl_price > 0)
                     aStopLoss.push({x: i, y: parseFloat(format_number(sl_price,qtyDecsPrice))});
+                yMin = precioVenta*0.95;
 
                 if (m_porc_inc==1)
                     psuc = parseFloat(m_porc)*(i);
@@ -369,7 +372,8 @@
     {
         var chart = new CanvasJS.Chart("chartContainer", {
             axisY:{ 
-              title: "Precio"
+              title: "Precio",
+              minimum: yMin,
             },
             axisX:{
               title: "Compra #",
