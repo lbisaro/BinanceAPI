@@ -139,10 +139,6 @@
     var qtyDecsPrice = 2;
     var symbolPrice = 10.0;
 
-    var aCompras = [];
-    var aVentas = [];
-    var aStopLoss = [];
-    var yMin = 0;
 
     $(document).ready( function () {
         $('#btnAddOperacion').hide();
@@ -214,6 +210,10 @@
         }
     }
 
+    var aCompras = [];
+    var aVentas = [];
+    var aStopLoss = [];
+    var yMin = 0;
     function refreshTable()
     {
         aCompras = [];
@@ -249,6 +249,7 @@
                         <th>Total Compra</th>
                         <th>Precio de Venta</th>
                         <th>Precio de Stop-Loss</th>
+                        <th>% SL sobre compra inicial</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -287,9 +288,16 @@
                 table = table + '<td>'+format_number(totalCompra,qtyDecsPrice)+'</td>';
                 table = table + '<td class="text-success">'+format_number(precioVenta,qtyDecsPrice)+'</td>';
                 if (sl_perc>0 && sl_price>0)
+                {
+                    pslsci = ((parseFloat(sl_price)/parseFloat(symbolPrice))-1)*100;
                     table = table + '<td class="'+$sl_class+'">' +format_number(sl_price,qtyDecsPrice)+'</td>';
+                    table = table + '<td class="'+$sl_class+'">' +format_number(pslsci,2)+'%</td>';
+                }
                 else
+                {
                     table = table + '<td>&nbsp;</td>';
+                    table = table + '<td>&nbsp;</td>';
+                }
                 table = table + '</tr>';
 
                 aCompras.push({x: i, y: parseFloat(format_number(precio,qtyDecsPrice))});
