@@ -2274,4 +2274,50 @@ class Operacion extends ModelDB
             }
         }
     }
+
+    function getStopLossPrice($actualPrice)
+    {
+        $stopLossPrice = 0;
+        $idoperacion = $this->data['idoperacion'];
+        if (!$idoperacion)
+            return null;
+
+        $symbol = $this->data['symbol'];
+
+        $stopLoss = $this->data['stop_loss'];
+        if ($stopLoss > 0 && !$this->data['stop'] && $this->data['capital_usd']>0 && $this->data['destino_profit'] == self::OP_DESTINO_PROFIT_QUOTE)
+        {
+            $buyedUnits = 0;
+            $buyedUSD = 0;
+            $qry = "SELECT * 
+                    FROM operacion_orden 
+                    WHERE idoperacion = ".$idoperacion." 
+                          AND status = ".self::OR_STATUS_FILLED."  
+                          AND completed = 0";
+            $stmt = $this->db->query($qry);
+            while ($rw = $stmt->fetch())
+            {
+                if ($rw['side'] == self::SIDE_BUY)
+                {
+                    $buyedUSD   += ($rw['origQty']*$rw['price']);
+                    $buyedUnits += $rw['origQty'];
+                }
+                else
+                {
+                    $buyedUSD   -= ($rw['origQty']*$rw['price']);
+                    $buyedUnits -= $rw['origQty'];
+                }                    
+            }
+
+            if ($this->data['capital_usd'])
+            {
+                $toLossUSD = $this->data['capital_usd'] * ($stopLoss/100);
+                $stopLossUSD = $buyedUSD - $toLossUSD;
+                $stopLossPrice = $stopLossUSD/$buyedUnits;
+
+            }
+        }
+        return $stopLossPrice;
+    }
+            
 }

@@ -348,6 +348,7 @@ class BotController extends Controller
             $order = 'price ASC';
         $ordenes = $opr->getOrdenes($enCurso=true,$order);
 
+        $stopLossPrice = $opr->getStopLossPrice($symbolPrice);
 
         $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
         $dg->addHeader('Tipo');
@@ -386,7 +387,7 @@ class BotController extends Controller
             if ($rw['price']>0)
             {
 
-                $porc = toDec((($symbolPrice/$rw['price'])-1)*100,);
+                $porc = toDec((($symbolPrice/$rw['price'])-1)*100,2);
                 $refUSD = '';
                 if ($rw['status']==Operacion::OR_STATUS_FILLED)
                 {
@@ -417,6 +418,13 @@ class BotController extends Controller
                 {
                     $pnlOpenOrders[] = array('origQty'=>$rw['origQty'],'price'=>$rw['price']);
                 }
+            }
+
+            if ($stopLossPrice > 0)
+            {
+                $stopLossPrice = toDec($stopLossPrice,$symbolData['qtyDecsQuote']);
+                $ref = toDec((($symbolPrice/$stopLossPrice)-1)*100,2);
+                $dg->addRow(array('Stop-Loss','','',$stopLossPrice,'', $ref));
             }
 
         }
