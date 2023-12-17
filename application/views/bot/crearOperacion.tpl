@@ -122,6 +122,7 @@
         <h5>Referencia sobre la operacion</h5>
         <h4 class="text-success">{{strTipoOp}}</h4>
         <div class="container" id="oprTable"></div>
+        <div id="chartContainer" style="height: 300px; width: 100%;"></div>
       </div>
 
     </div>
@@ -130,11 +131,18 @@
 </div>
 <input type="hidden" name="tipo" id="tipo" value="{{tipo}}">
 
+<script src="https://cdn.canvasjs.com/jquery.canvasjs.min.js"></script>
+
 <script type="text/javascript">
     var quoteAsset = 'USD';
     var symbolDecs = 2;
     var qtyDecsPrice = 2;
     var symbolPrice = 10.0;
+
+    var aCompras = [];
+    var aVentas = [];
+    var aStopLoss = [];
+
     $(document).ready( function () {
         $('#btnAddOperacion').hide();
 
@@ -207,6 +215,10 @@
 
     function refreshTable()
     {
+        aCompras = [];
+        aVentas = [];
+        aStopLoss = [];
+
         var capital_usd = $('#capital_usd').val();
         var inicio_usd = $('#inicio_usd').val();
         var m_compra = $('#multiplicador_compra').val();
@@ -281,6 +293,11 @@
                 
                 table = table + '</tr>';
 
+                aCompras.push({x: i, y: parseFloat(format_number(precio,qtyDecsPrice))});
+                aVentas.push({x: i, y: parseFloat(format_number(precioVenta,qtyDecsPrice))});
+                if (sl_perc>0 && sl_price > 0)
+                    aStopLoss.push({x: i, y: parseFloat(format_number(sl_price,qtyDecsPrice))});
+
                 if (m_porc_inc==1)
                     psuc = parseFloat(m_porc)*(i);
                 else
@@ -303,7 +320,11 @@
             </table>`;
         }
         
-        $('#oprTable').html(table);        
+        $('#oprTable').html(table);  
+        $('#oprTable tbody td').css('padding','0.25em 0.75em');
+        $('#oprTable thead th').css('text-align','right');
+        $('#oprTable tbody td').css('text-align','right');
+        makeGraph();      
     }
 
     function getMPAuto()
@@ -340,6 +361,53 @@
         $('#porc_venta_down').val(2.00);
         $('#symbol').val('MATICUSDT');
         validSymbol();
+    }
+
+
+
+    function makeGraph(graph_data)
+    {
+        var chart = new CanvasJS.Chart("chartContainer", {
+            axisY:{ 
+              title: "Precio"
+            },
+            axisX:{
+              title: "Compra #",
+              interval: 1,
+            },
+            legend:{
+                cursor:"pointer",
+                verticalAlign: "top",
+                horizontalAlign: "right",
+                dockInsidePlotArea: true
+            },
+            data: [{
+              name: "Compra",
+              showInLegend: true,
+              color: "#888888",
+              type: "line",
+              markerSize: 5,
+              dataPoints: aCompras
+            },
+            {
+              name: "Venta",
+              showInLegend: true,
+              color: "#80B080",
+              type: "line",
+              markerSize: 5,
+              dataPoints: aVentas
+            },
+            {
+              name: "Stop-Loss",
+              showInLegend: true,
+              color: "#F08080",
+              type: "line",
+              markerSize: 5,
+              dataPoints: aStopLoss
+            }]
+        });
+        chart.render();
+
     }
 
     
