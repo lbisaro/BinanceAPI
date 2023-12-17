@@ -245,7 +245,7 @@
                         <th>Precio de Compra</th>
                         <th>% Sobre ultima compra </th>
                         <th>% Sobre compra Inicial</th>
-                        <th>Compra <span class="quoteAsset">`+quoteAsset+`</span></th>
+                        <th>Compra {{quoteAsset}}</th>
                         <th>Total Compra</th>
                         <th>Precio de Venta</th>
                         <th>Precio de Stop-Loss</th>
@@ -254,8 +254,7 @@
                 <tbody>
                 `;
             
-            
-            
+            symbolDecs = 2;
             precio = format_number(symbolPrice,qtyDecsPrice);
             psuc = 0;
             psci = 0;
@@ -267,19 +266,18 @@
 
             var i=1;
             tot_units = 0;
+            precioVenta = precio * (1+ventaPorc);
+            qtyVenta = (totalCompra*precio)/precioVenta;
+            tot_units = tot_units + (compraUsd/precio);
             while (totalCompra<=capital_usd)
             {
-                precioVenta = precio * (1+ventaPorc);
-                strVenta = totalCompra+'*'+precio+' = '+(totalCompra*precio)+' -> '+totalCompra+'*'+precioVenta+' = '+(totalCompra*precioVenta);
-                qtyVenta = (totalCompra*precio)/precioVenta;
-                tot_units = tot_units + (compraUsd/precio);
                 sl_usd = totalCompra-sl_usd_to_loss;
                 sl_price = sl_usd/tot_units;
 
                 $sl_class = '';
                 if (sl_price > precio)
                     $sl_class = 'text-danger ';
-                
+
                 table = table + '<tr>';
                 table = table + '<td>#'+i+'</td>';
                 table = table + '<td>'+format_number(precio,qtyDecsPrice)+'</td>';
@@ -292,15 +290,15 @@
                     table = table + '<td class="'+$sl_class+'">' +format_number(sl_price,qtyDecsPrice)+'</td>';
                 else
                     table = table + '<td>&nbsp;</td>';
-                
                 table = table + '</tr>';
 
                 aCompras.push({x: i, y: parseFloat(format_number(precio,qtyDecsPrice))});
                 aVentas.push({x: i, y: parseFloat(format_number(precioVenta,qtyDecsPrice))});
                 if (sl_perc>0 && sl_price > 0)
                     aStopLoss.push({x: i, y: parseFloat(format_number(sl_price,qtyDecsPrice))});
-                yMin = precioVenta*0.95;
+                
 
+                //Calcular proxima compra
                 if (m_porc_inc==1)
                     psuc = parseFloat(m_porc)*(i);
                 else
@@ -312,9 +310,16 @@
 
                 compraUsd = parseFloat(compraUsd)*parseFloat(m_compra);
 
+                tot_units = tot_units + (compraUsd/precio);
+
                 totalCompra = parseFloat(totalCompra) + parseFloat(compraUsd);
 
                 ventaPorc = $('#porc_venta_down').val()/100;
+                usdVenta  = totalCompra * (1+ventaPorc);
+                precioVenta = toDec(usdVenta/tot_units,qtyDecsPrice);
+
+                yMin = precioVenta*0.95;
+
                 i++;
             }
             
