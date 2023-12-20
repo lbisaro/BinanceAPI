@@ -23,20 +23,19 @@
             <div class="input-group-prepend">
                 <div class="input-group-text" id="assetInputGroup"></div>
             </div>
-            <input type="text" class="form-control" name="capital" id="capital" placeholder="0.00" onkeyup="swapTokenToUsd()" onblur="swapTokenToUsd()" >
+            <input type="text" class="form-control" name="capital" id="capital" placeholder="0.00" >
             <div class="input-group-append">
                 <button type="button" class="btn btn-secondary" onclick="setMaxCapitalToken()">Maximo</span>
             </div>
         </div>
         <div class="input-group mb-2">
             <div class="input-group-prepend">
-                <div class="input-group-text" >USD</div>
+                <div class="input-group-text" >Precio</div>
             </div>
-            <input type="text" class="form-control" name="capitalUSD" id="capitalUSD" placeholder="0.00" onkeyup="swapUsdToToken()" onblur="swapUsdToToken()" >
-            <div class="input-group-append">
-                <button type="button" class="btn btn-secondary" onclick="setMaxCapitalUsd()">Maximo</span>
-            </div>
+            <input type="text" class="form-control" name="price" id="price" placeholder="0.00" >
+
         </div>
+        
         <div class="container text-info">
             Precio: <span id="precio"></span>
         </div>
@@ -126,7 +125,8 @@
 
             modal.find('.modal-body #asset').val(asset)
             modal.find('.modal-body #precio').html(data.Price);
-            modal.find('.modal-body #capitalUSD').val(toDec(data.Capital*data.Price));
+            modal.find('#price').val(data.Price);
+            
             
         })
 
@@ -169,10 +169,16 @@
     {
         data = eval('data_'+activeAsset);
         capital = $('#capital').val();
-        if (capital < 0 || capital>data.Free)
-            alert('Se debe asignar un capital entre 0.00 y '+data.Free);
+        price = $('#price').val();
+        if (capital>data.Free)
+        {
+            alert('Se debe asignar un capital menor a '+data.Free);
+        }
         else
-            CtrlAjax.sendCtrl("app","BotSW","asignarCapital","asset="+activeAsset+"&price="+data.Price);
+        {
+            $('#modalAsignarCapital').modal('hide');
+            CtrlAjax.sendCtrl("app","BotSW","asignarCapital","asset="+activeAsset+"&price="+price);
+        }
     
     }
 

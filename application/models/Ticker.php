@@ -459,7 +459,7 @@ class Ticker extends ModelDB
         if ($scale)
             $data['scale'] = $scale;
         else
-            $data['scale']         = $dp['scale'];
+            $data['scale'] = $dp['scale'];
 
         $data['askMin'] = -1;
         $data['askMax'] = -1;
@@ -470,9 +470,11 @@ class Ticker extends ModelDB
         $data['usdAsk'] = 0;
         $data['bids'] = array();
         $data['asks'] = array();
+        $data['avg_price'] = 0;
 
 
         $rawData = $api->depth($symbol,$limit=5000);
+        $data['raw'] = $rawData;
 
         $bidScale = $data['bidScaleStart'];
         $askScale = $data['askScaleStart'];
@@ -520,6 +522,7 @@ class Ticker extends ModelDB
             }
 
         }
+
 
         return $data;             
     }

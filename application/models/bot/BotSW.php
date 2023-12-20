@@ -388,17 +388,22 @@ class BotSW extends ModelDB
             $isNew = true;
             CriticalExit('BotSW::asignarCapital() :: No es posible asignar capital sin un ID - Implementar saveNew()');
         }
-        $capital = unserialize($this->data['capital']);
-        $preQty = $capital[$asset]['qty'];
-        $prePrice = $capital[$asset]['price'];
-        $difQty = $qty-$preQty;
+        $capital = $this->getCapital();
 
-        if ($difQty<0)
-            $price = $prePrice;
+        $preQty = $capital[$asset]['qty'];
+        $difQty = $qty+$preQty;
 
         $ai = $this->getAssetsInfo(array($asset));
         $qty = toDecDown($qty,$ai[$asset]['qtyDecsUnits']);
         $price = toDecDown($price,$ai[$asset]['qtyDecsPrice']);
+        $preQty = toDec($preQty,$ai[$asset]['qtyDecsUnits']);
+
+        if ($difQty<0)
+        {
+            $this->errLog->add('El capital total no puede quedar en un valor menor a 0. El capital actual es de '.$preQty);
+            return false;
+        }
+
 
         $ins = "INSERT INTO bot_sw_capital_log (idbotsw,symbol,qty,price) VALUES (".
                $this->data['idbotsw'].",".
