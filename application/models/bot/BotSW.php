@@ -228,8 +228,12 @@ class BotSW extends ModelDB
 
     function getOrdersFull()
     {
+        $idbotsw = $this->data['idbotsw'];
+        if (!$idbotsw)
+            return null;
+        
         $ordenes = array();
-        $qry = "SELECT * FROM bot_sw_orden_log ";
+        $qry = "SELECT * FROM bot_sw_orden_log WHERE idbotsw = ".$idbotsw;
         $stmt = $this->db->query($qry);
         while ($rw = $stmt->fetch())
         {
