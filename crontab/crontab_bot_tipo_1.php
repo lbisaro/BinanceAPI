@@ -192,18 +192,13 @@ foreach ($operaciones as $operacion)
             else
                 $porcentaje = $opr->get('real_porc_venta_down');
 
-            if ($opr->get('destino_profit')==Operacion::OP_DESTINO_PROFIT_QUOTE)
-            {
-                //Venta obteniendo beneficios en Quote
-                $newQuote = $totQuoteBuyed * (1+($porcentaje/100));
-                $newPrice = toDec(($newQuote / $totUnitsBuyed),$symbolData['qtyDecsPrice']);
-                $newQty = toDecDown($totUnitsBuyed,$symbolData['qtyDecs']);
-                
-            }
-            else
+            $newQuote = $totQuoteBuyed * (1+($porcentaje/100));
+            $newPrice = toDec(($newQuote / $totUnitsBuyed),$symbolData['qtyDecsPrice']);
+            $newQty = toDecDown($totUnitsBuyed,$symbolData['qtyDecs']);
+
+            if ($opr->get('destino_profit')!=Operacion::OP_DESTINO_PROFIT_QUOTE)
             {
                 //Venta obteniendo beneficios en Base
-                $newPrice = toDec($lastBuyPrice * (1+($porcentaje/100)),$symbolData['qtyDecsPrice']);
                 $newQty = toDecDown($totQuoteBuyed / $newPrice,$symbolData['qtyDecs']);
             }
             

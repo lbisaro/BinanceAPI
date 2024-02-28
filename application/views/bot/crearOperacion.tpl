@@ -37,9 +37,7 @@
         <div class="input-group mb-2">
             <select id="destino_profit" class="form-control form-control-sm">
               <option value="0" SELECTED>Obtener ganancias en Quote</option>
-              <!--
               <option value="1">Obtener ganancias en Base</option>
-              -->
             </select>
         </div>
       </div>
