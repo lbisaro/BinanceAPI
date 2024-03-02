@@ -352,17 +352,36 @@ class BotSW extends ModelDB
             $capital[$rw['symbol']]['inUSD'] += $rw['qty']*$rw['price'];
             $totInUSD += $rw['qty']*$rw['price'];
         }
+
+        if (!isset($capital[$this->data['symbol_estable']]))
+        {
+            $capital[$this->data['symbol_estable']]['qty'] = 0;
+            $capital[$this->data['symbol_estable']]['inUSD'] = 0;
+            $capital[$this->data['symbol_estable']]['price'] = 1;
+            $capital[$this->data['symbol_estable']]['part'] = 0;
+        }
+
+        if (!isset($capital[$this->data['symbol_reserva']]))
+        {
+            $capital[$this->data['symbol_reserva']]['qty'] = 0;
+            $capital[$this->data['symbol_reserva']]['inUSD'] = 0;
+            $capital[$this->data['symbol_reserva']]['price'] = 1;
+            $capital[$this->data['symbol_reserva']]['part'] = 0;
+        }
+
         $totInUSD = toDec($totInUSD);
         if ($totInUSD > 0)
         {
             $remove = array();
             foreach ($capital as $asset=>$rw)
             {
-                if ($capital[$asset]['qty']>0)
+                if ($capital[$asset]['qty']>0 || $asset == $this->data['symbol_estable'])
                 {
                     $capital[$asset]['inUSD'] = toDec($capital[$asset]['inUSD']);
-                    $capital[$asset]['price'] = $capital[$asset]['inUSD']/$capital[$asset]['qty'];
-                    $capital[$asset]['part'] = toDec(($capital[$asset]['inUSD']/$totInUSD)*100);
+                    if ($capital[$asset]['qty'] != 0)
+                        $capital[$asset]['price'] = $capital[$asset]['inUSD']/$capital[$asset]['qty'];
+                    if ($totInUSD != 0)
+                        $capital[$asset]['part'] = toDec(($capital[$asset]['inUSD']/$totInUSD)*100);
                 }
                 else
                 {
@@ -379,7 +398,7 @@ class BotSW extends ModelDB
         }
 
         foreach ($precharge as $asset)
-            if ($capital[$asset]['qty']==0)
+            if ($capital[$asset]['qty']==0 && $asset != $this->data['symbol_estable'])
                 unset($capital[$asset]);
         return $capital;
 
