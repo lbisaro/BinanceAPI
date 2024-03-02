@@ -22,7 +22,7 @@ class Ticker extends ModelDB
         $this->addTable(DB_NAME,'tickers','tickerid');
 
         $this->presetDecs['USDT'] = 2;
-        $this->presetDecs['BUSD'] = 2;
+        $this->presetDecs['FDUSD'] = 2;
         $this->presetDecs['USDC'] = 2;
         $this->presetDecs['BNB'] = 4;
         $this->presetDecs['BTC'] = 6;

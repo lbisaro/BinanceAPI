@@ -2127,7 +2127,7 @@ class Operacion extends ModelDB
 
         $data['base_start_in_usd'] = 0;
         $data['quote_start_in_usd'] = 0;
-        $usdAssets = array('USDT','BUSD','USDC');
+        $usdAssets = array('USDT','FDUSD','USDC');
         if (in_array($data['quote_asset'], $usdAssets))
             $data['quote_start_in_usd'] = 1;
         if (in_array($data['base_asset'], $usdAssets))
@@ -2137,13 +2137,13 @@ class Operacion extends ModelDB
         $api = new BinanceAPI();
         if (!$data['base_start_in_usd'])
         {
-            $strSymbol = $data['base_asset'].($data['base_asset']!='USDT'?'USDT':'BUSD');
+            $strSymbol = $data['base_asset'].($data['base_asset']!='USDT'?'USDT':'FDUSD');
             $klines = $api->candlesticks($strSymbol, $interval = "1m", $limit = 1, $startTime );
             $data['base_start_in_usd'] = $klines[$startTime]['close'];
         }
         if (!$data['quote_start_in_usd'])
         {
-            $strSymbol = $data['quote_asset'].($data['quote_asset']!='USDT'?'USDT':'BUSD');
+            $strSymbol = $data['quote_asset'].($data['quote_asset']!='USDT'?'USDT':'FDUSD');
             $klines = $api->candlesticks($strSymbol, $interval = "1m", $limit = 1, $startTime );
             $data['quote_start_in_usd'] = $klines[$startTime]['close'];
         }

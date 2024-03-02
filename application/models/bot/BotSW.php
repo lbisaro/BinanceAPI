@@ -284,7 +284,7 @@ class BotSW extends ModelDB
         $or = $this->getOrdenesResumen();
 
         //Se hace una precarga de monedas para organizar el orden en el que se muestran
-        $precharge = array('USDT','BUSD','USDC','BTC','ETH','BNB');
+        $precharge = array('USDT','FDUSD','USDC','BTC','ETH','BNB');
         foreach ($precharge as $asset)
             $posiciones[$asset]=array();
 
@@ -332,7 +332,7 @@ class BotSW extends ModelDB
         }
         $capital = array();
         //Se hace una precarga de monedas para organizar el orden en el que se muestran
-        $precharge = array('USDT','BUSD','USDC','BTC','ETH','BNB');
+        $precharge = array('USDT','FDUSD','USDC','BTC','ETH','BNB');
         foreach ($precharge as $asset)
             $capital[$asset]=array();
 

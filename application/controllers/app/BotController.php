@@ -1957,7 +1957,7 @@ class BotController extends Controller
         if ($_REQUEST['symbol'])
             $symbol = $_REQUEST['symbol'];
         else
-            $symbol = 'LUNCBUSD';
+            $symbol = 'LUNCFDUSD';
 
         $arr['symbol'] = $symbol;
 

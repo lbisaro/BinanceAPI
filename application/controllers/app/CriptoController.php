@@ -123,7 +123,7 @@ class CriptoController extends Controller
 
                     $ticker = $rw['asset'].'USDT';
                     if (!isset($prices[$ticker]))
-                        $ticker = $rw['asset'].'BUSD';
+                        $ticker = $rw['asset'].'FDUSD';
                     if (!isset($prices[$ticker]))
                         $ticker = $rw['asset'].'USDC';
 
@@ -179,7 +179,7 @@ class CriptoController extends Controller
                     $totLocked += $locked;
                     $totFree += $free;
 
-                    if (in_array($rw['asset'], array('USDT','BUSD','USDC')))
+                    if (in_array($rw['asset'], array('USDT','FDUSD','USDC')))
                         $resumen['USD'] += $total;
                     elseif (in_array($rw['asset'], array('BTC','BNB','ETH')))
                         $resumen['Alt1'] += $total;
@@ -194,7 +194,7 @@ class CriptoController extends Controller
 
             $fc = new HtmlTableFc();
             $fc->setCaption('Resumen de distribucion');
-            $fc->addRow(array('USDT + BUSD + USDC','USD '.toDec($resumen['USD']),toDec(($resumen['USD']/$totTotal)*100).'%'));
+            $fc->addRow(array('USDT + FDUSD + USDC','USD '.toDec($resumen['USD']),toDec(($resumen['USD']/$totTotal)*100).'%'));
             $fc->addRow(array('BTC + ETH + BNB','USD '.toDec($resumen['Alt1']),toDec(($resumen['Alt1']/$totTotal)*100).'%'));
             $fc->addRow(array('Alt Coins','USD '.toDec($resumen['Alt2']),toDec(($resumen['Alt2']/$totTotal)*100).'%'));
 
@@ -492,8 +492,8 @@ class CriptoController extends Controller
             $tickers['DOTUSDT']['sellQty'] = 6.44;
             $tickers['MATICUSDT']['sellPrice'] = 0.361;
             $tickers['MATICUSDT']['sellQty'] = 66;
-            $tickers['THETABUSD']['sellPrice'] = 1.211;
-            $tickers['THETABUSD']['sellQty'] = 137;
+            $tickers['THETAFDUSD']['sellPrice'] = 1.211;
+            $tickers['THETAFDUSD']['sellQty'] = 137;
         }
 
         $api = new BinanceAPI();

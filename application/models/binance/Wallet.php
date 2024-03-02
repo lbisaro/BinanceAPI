@@ -40,8 +40,8 @@ class Wallet
                     {
                         if (isset($prices[$rw['asset'].'USDT']))
                             $price = $prices[$rw['asset'].'USDT'];
-                        elseif (isset($prices[$rw['asset'].'BUSD']))
-                            $price = $prices[$rw['asset'].'BUSD'];
+                        elseif (isset($prices[$rw['asset'].'FDUSD']))
+                            $price = $prices[$rw['asset'].'FDUSD'];
                         elseif (isset($prices[$rw['asset'].'USDC']))
                             $price = $prices[$rw['asset'].'USDC'];
                         else

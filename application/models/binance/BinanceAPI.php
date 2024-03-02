@@ -605,7 +605,7 @@ class BinanceAPI
      * $info = $api->exchangeInfo();
      * $info = $api->exchangeInfo('BTCUSDT');
      *
-     * $arr = array('ATABUSD','BTCUSDT');
+     * $arr = array('ATAFDUSD','BTCUSDT');
      * $info = $api->exchangeInfo($arr);
      *
      * @property int $weight 10
@@ -764,7 +764,7 @@ class BinanceAPI
      * 
      * @property int $weight 1
      * 
-     * @param string $symbol  (optional)  Should be a symbol, e.g. BNBUSDT or empty to get the full list
+     * @param string $symbol  (optional)  Should be a symbol, e.g. BNFDUSDT or empty to get the full list
      * 
      * @return array containing the response
      * @throws \Exception
@@ -1611,7 +1611,7 @@ class BinanceAPI
                 $btc_value += $obj['free'];
                 $btc_total += $obj['free'] + $obj['locked'];
                 continue;
-            } elseif ($asset === 'USDT' || $asset === 'USDC' || $asset === 'PAX' || $asset === 'BUSD') {
+            } elseif ($asset === 'USDT' || $asset === 'USDC' || $asset === 'PAX' || $asset === 'FDUSD') {
                 $btcValue = $obj['free'] / $priceData['BTCUSDT'];
                 $btcTotal = ($obj['free'] + $obj['locked']) / $priceData['BTCUSDT'];
                 $balances[$asset]['btcValue'] = $btcValue;
@@ -2916,7 +2916,7 @@ class BinanceAPI
      * @property int $weight 1
      * 
      * @param string $side       (mandatory)   Should be SELL or BUY
-     * @param string $symbol     (mandatory)   The symbol, e.g. BTCBUSD
+     * @param string $symbol     (mandatory)   The symbol, e.g. BTCFDUSD
      * @param float  $quantity   (mandatory)   Quantity to buy/sell
      * @param int    $price      (mandatory)   Price
      * @param int    $stopprice  (mandatory)   Stop Price

@@ -19,7 +19,7 @@
         <div class="input-group mb-2">
             <select class="form-control" id="symbol_estable" onchange="checkSymbols()">
                 <option value="USDT">USDT</option>
-                <option value="BUSD">BUSD</option>
+                <option value="FDUSD">FDUSD</option>
                 <option value="USDC">USDC</option>
             </select>
         </div>
@@ -29,7 +29,7 @@
         <label for="symbol_reserva">StableCoin para reserva</label>
         <div class="input-group mb-2">
             <select class="form-control" id="symbol_reserva" onchange="checkSymbols()">
-                <option value="BUSD">BUSD</option>
+                <option value="FDUSD">FDUSD</option>
                 <option value="USDC">USDC</option>
                 <option value="USDT">USDT</option>
                 

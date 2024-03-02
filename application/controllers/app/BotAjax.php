@@ -742,7 +742,7 @@ class BotAjax extends ControllerAjax
         $as = $auth->getConfig('bncas');
         $api = new BinanceAPI($ak,$as);
 
-        $symbol = 'LUNABUSD';
+        $symbol = 'LUNAFDUSD';
         $type = $_REQUEST['op_type'];
         $side = $_REQUEST['op_side'];
         $qty = $_REQUEST['op_qty'];

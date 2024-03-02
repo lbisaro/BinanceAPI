@@ -246,7 +246,7 @@ class BotSWController extends Controller
                 if ($rw['free']>0)
                 {
                     $price = 0;
-                    if ($rw['asset'] == 'USDT' || $rw['asset'] == 'BUSD' || $rw['asset'] == 'USDC')
+                    if ($rw['asset'] == 'USDT' || $rw['asset'] == 'FDUSD' || $rw['asset'] == 'USDC')
                         $price = '1.00';
                     else
                         $price = $prices[$rw['asset'].'USDT'];
@@ -391,7 +391,7 @@ class BotSWController extends Controller
                 if ($rw['free']>0)
                 {
                     $price = 0;
-                    if ($rw['asset'] == 'USDT' || $rw['asset'] == 'BUSD' || $rw['asset'] == 'USDC')
+                    if ($rw['asset'] == 'USDT' || $rw['asset'] == 'FDUSD' || $rw['asset'] == 'USDC')
                         $price = '1.00';
                     else
                         $price = $prices[$rw['asset'].'USDT'];
