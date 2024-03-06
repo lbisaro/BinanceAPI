@@ -202,6 +202,32 @@ class BotSW extends ModelDB
 
     }
 
+
+    function auditOrders()
+    {
+        $ordenes = array();
+        $qry = "SELECT * FROM bot_sw_orden_log";
+        $stmt = $this->db->query($qry);
+        while ($rw = $stmt->fetch())
+        {
+            if ($rw['side'] == self::SIDE_BUY)
+            {
+                $rw['base_qty'] = $rw['origQty'];
+                $rw['quote_qty'] = -($rw['origQty']*$rw['price']);
+            }
+            else  
+            {
+                $rw['base_qty'] = -$rw['origQty'];
+                $rw['quote_qty'] = $rw['origQty']*$rw['price'];
+            }
+            unset($rw['origQty']);
+            $ordenes[] = $rw;
+        }
+
+        return $ordenes; 
+    }
+
+
     function getOrdenes()
     {
         $ordenes = array();
