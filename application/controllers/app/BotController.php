@@ -1565,7 +1565,7 @@ class BotController extends Controller
                 $show = false; 
                 foreach ($ordersHst as $k => $v)
                 {
-                    $v['datetime'] = date('Y-m-d H:i:s',$ordersHst[$k]['time']/1000);
+                    $v['datetime'] = date('Y-m-d H:i:s',$ordersHst[$k]['updateTime']/1000);
 
                     //Correccion para ordenes parciales
                     if (!isset($strQtyDecs))
@@ -1586,6 +1586,7 @@ class BotController extends Controller
                     unset($v['updateTime']);
                     unset($v['isWorking']);
                     unset($v['time']);
+
                     //$lastComplete = '2022-08-01 00:00:00';
                     if ($v['datetime'] >= $lastComplete && $v['status']!='CANCELED' && $v['status']!='EXPIRED')
                     {
