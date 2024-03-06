@@ -1541,6 +1541,8 @@ class BotController extends Controller
 
         }
 
+        debug($bsw_orders);
+
         if ($check_last)
             $lastComplete = strToDate($check_last).' 00:00:00';
         elseif (!$lastComplete)
