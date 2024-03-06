@@ -1531,7 +1531,7 @@ class BotController extends Controller
 
         //Buscar ordenes en BotSW
         $bsw = new BotSW();
-        $bsw_orders = $bsw->getOrdenes();
+        $bsw_orders = $bsw->auditOrders();
         if (!empty($bsw_orders))
         {
             foreach ($bsw_orders as $k => $v)
