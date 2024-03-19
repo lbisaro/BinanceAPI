@@ -619,7 +619,6 @@ class BotSW extends ModelDB
         return $assets;
     }
 
-    /**
     function getActivos()
     {
         $auth = UsrUsuario::getAuthInstance();
@@ -654,7 +653,6 @@ class BotSW extends ModelDB
         }
         return $bots;
     }
-    */
 
     function getSymbolsForTrade()
     {
