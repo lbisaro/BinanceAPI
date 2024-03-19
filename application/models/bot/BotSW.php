@@ -353,8 +353,7 @@ class BotSW extends ModelDB
     {
         if (!$this->data['idbotsw'])
         {
-            $isNew = true;
-            CriticalExit('BotSW::calculateCapital() :: No es posible calcular el capital sin un ID - Implementar saveNew()');
+            CriticalExit('BotSW::getCapital() :: Se debe especificar un ID valido');
         }
         $capital = array();
         //Se hace una precarga de monedas para organizar el orden en el que se muestran
@@ -597,25 +596,50 @@ class BotSW extends ModelDB
         return $ret;
     }
 
+
+    function getAssets()
+    {
+        if (!$this->data['idbotsw'])
+        {
+            CriticalExit('BotSW::getSymbols() :: se debe especificar un ID valido');
+        }
+
+        $capital = $this->getCapital();
+        $assets = array();
+        if (!empty($capital))
+        {
+            foreach ($capital as $asset => $rw)
+            {
+                if ($asset != $this->data['symbol_estable'] && $asset != $this->data['symbol_reserva'])
+                {
+                    $assets[] = $asset;
+                }
+            }
+        }
+        return $assets;
+    }
+
+    /**
     function getActivos()
     {
         $auth = UsrUsuario::getAuthInstance();
         $ds = $this->getDataset('idusuario = '.$auth->get('idusuario'),'estado');
         $bots = array();
+        $tmpBot = new BotSW();
         if (!empty($ds))
         {
             foreach ($ds as $k=>$rw)
             {
                 $bots[$rw['idbotsw']] = $rw;
-                $bots[$rw['idbotsw']]['strEstado'] = $this->getTipoEstado($rw['estado']);
-                $bots[$rw['idbotsw']]['strEstadoClass'] = $this->getTipoEstadoClass($rw['estado']);
+                $bots[$rw['idbotsw']]['strEstado'] = $tmpBot->getTipoEstado($rw['estado']);
+                $bots[$rw['idbotsw']]['strEstadoClass'] = $tmpBot->getTipoEstadoClass($rw['estado']);
                 $bots[$rw['idbotsw']]['strEstables'] = $rw['symbol_estable'].'-'.$rw['symbol_reserva'];
                 $bots[$rw['idbotsw']]['strMonedas'] = '';
                 $bots[$rw['idbotsw']]['capital'] = 0.0;
 
-                $this->reset();
-                $this->load($rw['idbotsw']);
-                $capital = $this->getCapital();
+                $tmpBot->reset();
+                $tmpBot->load($rw['idbotsw']);
+                $capital = $tmpBot->getCapital();
                 if (!empty($capital))
                 {
                     foreach ($capital as $symbol => $rw1)
@@ -630,24 +654,23 @@ class BotSW extends ModelDB
         }
         return $bots;
     }
+    */
 
     function getSymbolsForTrade()
     {
         if (!$this->data['idbotsw'])
         {
-            $isNew = true;
-            CriticalExit('BotSW::calculateCapital() :: No es posible calcular el capital sin un ID - Implementar saveNew()');
+            CriticalExit('BotSW::getSymbolsForTrade() :: se debe especificar un ID valido');
         }
 
         $symbol_estable = $this->get('symbol_estable');
         $symbol_reserva = $this->get('symbol_reserva');
-        $activos = $this->getActivos();
-        $assets = explode(' ',$activos[$this->data['idbotsw']]['strMonedas']);
+        $assets = $this->getAssets();
         
         $symbols = array();
         foreach ($assets as $asset)
             if ($asset && $asset != $symbol_estable)
-            $symbols[$asset.$symbol_estable] = array('base'=>$asset,'quote'=>$symbol_estable);
+                $symbols[$asset.$symbol_estable] = array('base'=>$asset,'quote'=>$symbol_estable);
         //foreach ($assets as $asset)
         //    if ($asset && $asset != $symbol_reserva)
         //    $symbols[$asset.$symbol_reserva] = array('base'=>$asset,'quote'=>$symbol_reserva);
