@@ -483,10 +483,7 @@ class BotSWController extends Controller
                         $alertClass = 'alert alert-success';
                     elseif ($ref>0)
                         $alertClass = 'alert alert-danger';
-                if ($rw['pnl_id'] == 0)
-                    $row[] = '<span class="'.$alertClass.'" style="padding:0px;margin:0px;">'.$ref.'%</span>';
-                else
-                    $row[] = '&nbsp;';
+                $row[] = '<span class="'.$alertClass.'" style="padding:0px;margin:0px;">'.$ref.'%</span> ';
                 $class = ' '.$base_asset.$symbol_estable;
 
                 $dg->addRow($row,$class); 
@@ -520,7 +517,11 @@ class BotSWController extends Controller
                     $alertClass = 'alert alert-success';
                 elseif ($ref>0)
                     $alertClass = 'alert alert-danger';
-            $row[] = '<span class="'.$alertClass.'" style="padding:0px;margin:0px;">'.$ref.'%</span>';
+            if ($rw['pnl_id'] == 0)
+                    $row[] = '<span class="'.$alertClass.'" style="padding:0px;margin:0px;">'.$ref.'%</span>';
+                else
+                    $row[] = '&nbsp;';
+            
             $class .= ' '.$rw['base_asset'].$rw['quote_asset'];
 
             $dg->addRow($row,$class);        
