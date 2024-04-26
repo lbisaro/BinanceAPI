@@ -3062,4 +3062,20 @@ class BinanceAPI
         return $this->info['timeOffset'];;
     }
 
+    public function walletTotal()
+    {
+        $params["sapi"] = true;
+        $params["asset"] = array();
+
+        $awb = $this->httpRequest("v1/asset/wallet/balance", 'GET', $params, true);
+
+        $btc_price = $this->price('BTCUSDT');
+        $usdTotal = 0;
+        foreach ($awb as $rw)
+        {
+            $usdTotal+= $rw['balance']*$btc_price;
+        }
+        $usdTotal = toDec($usdTotal,2);
+        return $usdTotal;
+    }
 }
