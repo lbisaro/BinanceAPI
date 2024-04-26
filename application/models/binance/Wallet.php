@@ -19,7 +19,7 @@ class Wallet
 
     function update()
     {
-        $total = $api->walletTotal();
+        $total = $this->api->walletTotal();
         
         if ($total > 0)
         {
