@@ -35,6 +35,20 @@ class CriptoController extends Controller
             $api = new BinanceAPI($ak,$as);
             $opr = new Operacion();
 
+            $awb = $api->assetWalletBalance();
+            $btc_price = $api->price('BTCUSDT');
+
+            $totTotal = 0;
+
+            foreach ($awb as $k => $rw)
+            {
+                $totTotal += $rw['balance']*$btc_price;
+                $awb[$k]['usd'] = $rw['balance']*$btc_price;
+            }
+            $totTotal = toDec($totTotal);
+
+
+
             //Compras
             $prices = $api->prices();
 
@@ -146,7 +160,7 @@ class CriptoController extends Controller
                 $balance[$v['base_asset']]['qty_decs'] = $v['qty_decs_units'];
             }
 
-            $totTotal = 0;
+            
             $totLocked = 0;
             $totFree = 0;
             $resumen = array();
@@ -175,7 +189,6 @@ class CriptoController extends Controller
                     $row[] = ($free>0?$free:'');
                     $dg->addRow($row);
         
-                    $totTotal += $total;
                     $totLocked += $locked;
                     $totFree += $free;
 
@@ -189,6 +202,23 @@ class CriptoController extends Controller
             }
 
             $ctrlBilletera = $totTotal;
+
+            foreach ($awb as $k => $rw)
+            {
+                if ($rw['usd']>0 && $rw['walletName'] != 'Spot')
+                {
+                    $row = array();
+                    $row[] = '<strong>'.$rw['walletName'].'</strong>';
+                    $row[] = '&nbsp;';
+                    $row[] = toDec($rw['usd']);
+                    $row[] = '&nbsp;';
+                    $row[] = '&nbsp;';
+                    $row[] = toDec($rw['usd']);
+                    $row[] = '&nbsp;';
+                    $row[] = '&nbsp;';
+                    $dg->addRow($row);
+                }
+            }
 
             $dg->addFooter(array('Total','',$totTotal,'','','',''));
 
