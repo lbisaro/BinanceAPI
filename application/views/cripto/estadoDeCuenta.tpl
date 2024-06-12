@@ -55,7 +55,6 @@
     </div>
 </div>
 <div class="container tabs" id="billetera">
-    {{tab_billetera}}
     <div class="container-fluid" id="variacion_del_precio">
         <div class="input-group mb-3">
           <div class="input-group-prepend">
@@ -68,6 +67,7 @@
         <div id="chartdiv"></div>
 
     </div>
+    {{tab_billetera}}
 </div>
 
 <script type="text/javascript">
