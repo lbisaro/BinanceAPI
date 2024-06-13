@@ -106,6 +106,7 @@ class CriptoController extends Controller
 
             $ctrlBnb = 0;
             $ctrlBilletera = 0;
+            $totUsdAcumulado = 0;
             $porcMinimoUsdEnBnb = 0.25;//%
             $dg = new HtmlTableDg(null,null,'table table-hover table-striped table-borderless');
             $dg->addHeader('Asset');
@@ -168,6 +169,8 @@ class CriptoController extends Controller
             $resumen['Alt1'] = 0;
             $resumen['Alt2'] = 0;
 
+
+
             foreach ($balance as $rw)
             {
                 $total = $rw['free']+$rw['locked'];
@@ -198,14 +201,17 @@ class CriptoController extends Controller
                         $resumen['Alt1'] += $total;
                     else
                         $resumen['Alt2'] += $total;
+
+                    $totUsdAcumulado += toDec($total);
                 }
             }
 
             $ctrlBilletera = $totTotal;
 
+
             foreach ($awb as $k => $rw)
             {
-                if ($rw['usd']>0 && $rw['walletName'] != 'Spot')
+                if ($rw['usd']>0 && $rw['walletName'] != 'Spot' && $rw['walletName'] != 'Funding')
                 {
                     $row = array();
                     $row[] = '<strong>'.$rw['walletName'].'</strong>';
@@ -213,11 +219,27 @@ class CriptoController extends Controller
                     $row[] = toDec($rw['usd']);
                     $row[] = '&nbsp;';
                     $row[] = '&nbsp;';
-                    $row[] = toDec($rw['usd']);
+                    $row[] = '&nbsp;';
                     $row[] = '&nbsp;';
                     $row[] = '&nbsp;';
                     $dg->addRow($row);
+                    $totUsdAcumulado += $rw['usd'];
                 }
+            }
+
+            if ($totUsdAcumulado<$totTotal) //Aca entra lo que hay en billetera y no esta detallado ni en tickers ni en otras billeteras
+            {
+                $row = array();
+                $row[] = '<strong>Otros</strong>';
+                $row[] = '&nbsp;';
+                $row[] = toDec($totTotal-$totUsdAcumulado);
+                $row[] = '&nbsp;';
+                $row[] = '&nbsp;';
+                $row[] = '&nbsp;';
+                $row[] = '&nbsp;';
+                $row[] = '&nbsp;';
+                $dg->addRow($row);
+
             }
 
             $dg->addFooter(array('Total','',$totTotal,'','','',''));
