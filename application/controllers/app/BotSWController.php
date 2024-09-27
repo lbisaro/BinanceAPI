@@ -430,8 +430,8 @@ class BotSWController extends Controller
             $arr['jsonData'] .= '
             const data_'.$asset.' = {
                         "Free": '.$tokenFree.',"Capital": '.$tokenCapital.',"Price": '.$price.
-                        ',"qtyDecsUnits": '.$ai[$asset]['qtyDecsUnits'].
-                        ',"qtyDecsPrice": '.$ai[$asset]['qtyDecsPrice'].
+                        ',"qtyDecsUnits": '.toDec($ai[$asset]['qtyDecsUnits'],10).
+                        ',"qtyDecsPrice": '.toDec($ai[$asset]['qtyDecsPrice'],10).
                         '};';
 
         }
