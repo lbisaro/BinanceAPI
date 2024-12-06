@@ -495,7 +495,7 @@ class BotSWController extends Controller
             $row = array();
             $class = ($rw['side']==BotSW::SIDE_BUY ?'text-success':'text-danger');
         
-            $row[] = '<a href="http://192.168.1.11/app.bot.verOrden+symbol='.$rw['base_asset'].$rw['quote_asset'].'&orderId='.$rw['orderId'].'" target="_blank">'.
+            $row[] = '<a href="app.bot.verOrden+symbol='.$rw['base_asset'].$rw['quote_asset'].'&orderId='.$rw['orderId'].'" target="_blank">'.
                      ($rw['side']==BotSW::SIDE_BUY ?'Compra':'Venta').'</a>';
 
             $row[] = dateToStr($rw['datetime'],true);
