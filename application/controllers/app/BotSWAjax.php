@@ -117,6 +117,7 @@ class BotSWAjax extends ControllerAjax
         $tck = new Ticker();
         $bot = new BotSW($id);
         $symbolData = $tck->getSymbolData($symbol);
+        $this->ajxRsp->debug($symbolData);
 
         if (!empty($symbolData))
         {
@@ -152,7 +153,7 @@ class BotSWAjax extends ControllerAjax
                     if ($order['status'] == 'FILLED')
                     {
                         $origQty = $order['executedQty'];
-                        $price = toDec($order['cummulativeQuoteQty']/$order['executedQty'],$symbolData['qtyDecs']);
+                        $price = toDec($order['cummulativeQuoteQty']/$order['executedQty'],$symbolData['qtyDecsPrice']);
                     }
                     $bot->addOrder(date('Y-m-d h:i:s'),$baseAsset,$quoteAsset,BotSW::SIDE_BUY,$origQty,$price,$order['orderId']);
                     $this->ajxRsp->assign('trade_msg','innerHTML','La orden se ejecuto con exito<br> ');
@@ -179,7 +180,7 @@ class BotSWAjax extends ControllerAjax
                     if ($order['status'] == 'FILLED')
                     {
                         $origQty = $order['executedQty'];
-                        $price = toDec($order['cummulativeQuoteQty']/$order['executedQty'],$symbolData['qtyDecs']);
+                        $price = toDec($order['cummulativeQuoteQty']/$order['executedQty'],$symbolData['qtyDecsPrice']);
                     }
                     $bot->addOrder(date('Y-m-d h:i:s'),$baseAsset,$quoteAsset,BotSW::SIDE_SELL,$origQty,$price,$order['orderId']);
                     $this->ajxRsp->assign('trade_msg','innerHTML','La orden se ejecuto con exito<br> ');
