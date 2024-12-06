@@ -974,7 +974,7 @@ class BotController extends Controller
         $orderTradeInfo = $api->orderTradeInfo($symbol,$orderId);
 
         if ($orderStatus['executedQty'])
-            $orderStatus['calculatedPrice'] = $orderStatus['cummulativeQuoteQty']/$orderStatus['executedQty'];
+            $orderStatus['calculatedPrice'] = toDec($orderStatus['cummulativeQuoteQty']/$orderStatus['executedQty'],8);
         else
             $orderStatus['calculatedPrice'] = '';
 
