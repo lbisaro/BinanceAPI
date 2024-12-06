@@ -973,12 +973,20 @@ class BotController extends Controller
         $orderStatus = $api->orderStatus($symbol,$orderId);
         $orderTradeInfo = $api->orderTradeInfo($symbol,$orderId);
 
-        pr($symbol);
-        pr($orderId);
-        pr($orderStatus);
-        pr($orderTradeInfo);
+        if ($orderStatus['executedQty'])
+            $orderStatus['calculatedPrice'] = $orderStatus['cummulativeQuoteQty']/$orderStatus['executedQty'];
+        else
+            $orderStatus['calculatedPrice'] = '';
 
-        $arr['data'] = '';
+        $fc = new HtmlTableFc();
+        $fc->addRow(array('Symbol',$orderStatus['symbol'],'ORDER ID',$orderStatus['orderId']));
+        $fc->addRow(array('Qty',$orderStatus['executedQty'],'Quote',$orderStatus['cummulativeQuoteQty']));
+        $fc->addRow(array('Price',$orderStatus['calculatedPrice']));
+        $fc->addRow(array('Status',$orderStatus['status']));
+        $fc->addRow(array('Side - Type',$orderStatus['side'].' - '.$orderStatus['type']));
+        $fc->addRow(array('Updated',date('d/m/Y H:i', ($orderStatus['updateTime']/1000) - (3 * 60 * 60))));
+
+        $arr['data'] = $fc->get().arrayToTableDg($orderTradeInfo);
         $arr['hidden'] = '';
     
         $this->addView('ver',$arr);
