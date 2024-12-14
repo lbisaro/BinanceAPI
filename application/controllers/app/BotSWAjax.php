@@ -142,8 +142,8 @@ class BotSWAjax extends ControllerAjax
                     }
                 }
             }
-            //$this->ajxRsp->debug('Free for '.$baseAsset.': '.$baseFree);
-            //$this->ajxRsp->debug('Free for '.$quoteAsset.': '.$quoteFree);
+            $this->ajxRsp->debug('Free for '.$baseAsset.': '.$baseFree);
+            $this->ajxRsp->debug('Free for '.$quoteAsset.': '.$quoteFree);
 
             if ($action == 'buy')
             {
@@ -195,7 +195,7 @@ class BotSWAjax extends ControllerAjax
                 }
                 else
                 {
-                    $this->ajxRsp->addError('No cuenta con balance suficiente en '.$baseAsset.' para realizar la operacion.');
+                    $this->ajxRsp->addError('No cuenta con balance suficiente en '.$baseAsset.' para realizar la operacion. ('.$baseFree.' <= '.$origQty.')');
                 }
             }
             
