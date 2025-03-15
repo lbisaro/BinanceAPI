@@ -478,6 +478,7 @@ class BotSW extends ModelDB
             }
         }        
 
+        debug($data);
         //Calculando AVG Price
         $avg = array();
         foreach ($data as $asset => $rwAsset) 
