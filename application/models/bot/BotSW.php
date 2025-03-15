@@ -471,14 +471,14 @@ class BotSW extends ModelDB
                 $asset = $rw['base_asset'];
                 if ($asset == $this->data['symbol_estable'])
                     $rw['price'] = 1;
-                $data[$asset][] = array('qty'=>$rw['base_qty'],
-                                        'inUSD'=>($rw['base_qty']*$rw['price']),
+                $qty = ($rw['side'] == self::SIDE_BUY ? $rw['base_qty'] : -$rw['base_qty']);
+                $data[$asset][] = array('qty'=>$qty,
+                                        'inUSD'=>($qty*$rw['price']),
                                         'price'=>$rw['price'],
                                         );
             }
         }        
 
-        debug($data);
         //Calculando AVG Price
         $avg = array();
         foreach ($data as $asset => $rwAsset) 
@@ -490,7 +490,7 @@ class BotSW extends ModelDB
                 $qty += $rw['qty'];
                 $inUSD += $rw['inUSD'];
             }
-            $avg[$asset]['price'] = $inUSD/$qty;
+            $avg[$asset]['price'] = abs($inUSD)/$qty;
             $avg[$asset]['qty'] = $qty;
 
         }
