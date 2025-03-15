@@ -492,6 +492,7 @@ class BotSW extends ModelDB
             }
             $avg[$asset]['price'] = -($inUSD)/$qty;
             $avg[$asset]['qty'] = $qty;
+            $avg[$asset]['inUSD'] = $inUSD;
 
         }
 
