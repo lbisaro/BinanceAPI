@@ -304,6 +304,10 @@ class BotSW extends ModelDB
 
     function getPosiciones($prices)
     {
+        if (!$this->data['idbotsw'])
+        {
+            CriticalExit('BotSW::getPosiciones() :: Se debe especificar un ID valido');
+        }
         $posiciones = array();
 
         $capital = $this->getCapital();
@@ -427,6 +431,108 @@ class BotSW extends ModelDB
                 unset($capital[$asset]);
         return $capital;
 
+    }
+
+    function getAvgPrice()
+    {
+        if (!$this->data['idbotsw'])
+        {
+            CriticalExit('BotSW::getAvgPrice() :: Se debe especificar un ID valido');
+        }
+        $posiciones = array();
+
+        $data = array();
+
+        //Analisis del capital
+        $capital = $this->getCapital();
+        if (!empty($capital))
+        {
+            foreach ($capital as $asset => $rw)
+            {
+                if ($rw['qty']>0)
+                {
+                    if ($asset == $this->data['symbol_estable'])
+                        $rw['price'] = 1;
+                    $data[$asset][] = array('qty'=>$rw['qty'],
+                                            'inUSD'=>$rw['inUSD'],
+                                            'price'=>$rw['price'],
+                                            );
+                    
+                }
+            }
+        }
+
+        //Analisando trades
+        $or = $this->getOrdersFull();
+        if (!empty($or))
+        {
+            foreach ($or as $rw)
+            {
+                $asset = $rw['base_asset'];
+                if ($asset == $this->data['symbol_estable'])
+                    $rw['price'] = 1;
+                $data[$asset][] = array('qty'=>$rw['base_qty'],
+                                        'inUSD'=>($rw['base_qty']*$rw['price']),
+                                        'price'=>$rw['price'],
+                                        );
+            }
+        }        
+
+        //Calculando AVG Price
+        $avg = array();
+        foreach ($data as $asset => $rwAsset) 
+        {
+            $qty = 0;
+            $inUSD = 0;
+            foreach ($rwAsset as $rw)
+            {
+                $qty += $rw['qty'];
+                $inUSD += $rw['inUSD'];
+            }
+            $avg[$asset]['price'] = $inUSD/$qty;
+            $avg[$asset]['qty'] = $qty;
+
+        }
+
+        return $avg;
+
+        //Se hace una precarga de monedas para organizar el orden en el que se muestran
+        $precharge = array('USDT','FDUSD','USDC','BTC','ETH','BNB');
+        foreach ($precharge as $asset)
+            $posiciones[$asset]=array();
+
+        if (!empty($capital))
+        {
+            $totInUSD = 0;
+            foreach ($capital as $asset => $rw)
+            {
+                $posiciones[$asset]['cap'] = $rw;
+
+                $posiciones[$asset]['pos']['qty'] = $rw['qty'] + $or[$asset];
+                if ($asset == $this->data['symbol_estable'] || $asset == $this->data['symbol_reserva'])
+                    $posiciones[$asset]['pos']['price'] = 1;
+                else
+                    $posiciones[$asset]['pos']['price'] = $prices[$asset.$this->data['symbol_estable']];
+                $posiciones[$asset]['pos']['inUSD'] = toDec($posiciones[$asset]['pos']['qty'] * $posiciones[$asset]['pos']['price']);
+
+                $totInUSD += $posiciones[$asset]['pos']['inUSD'];
+            }
+            $totInUSD = toDec($totInUSD);
+
+            foreach ($posiciones as $asset => $rw)
+            {
+                $posiciones[$asset]['pos']['part'] = toDec(($rw['pos']['inUSD']/$totInUSD)*100);
+
+                $posiciones[$asset]['dif']['part'] = toDec($posiciones[$asset]['pos']['part'] - $posiciones[$asset]['cap']['part']);
+                $posiciones[$asset]['dif']['qty']  = $posiciones[$asset]['pos']['qty'] - $posiciones[$asset]['cap']['qty'];
+                $posiciones[$asset]['dif']['inUSD']  = toDec($posiciones[$asset]['pos']['inUSD'] - $posiciones[$asset]['cap']['inUSD']);
+            }
+        }
+        foreach ($precharge as $asset)
+            if ($posiciones[$asset]['pos']['part']==0)
+                unset($posiciones[$asset]);
+
+        return $posiciones;
     }
 
     function asignarCapital($asset,$qty,$price)

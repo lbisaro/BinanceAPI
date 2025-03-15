@@ -55,6 +55,9 @@ class BotSWController extends Controller
             return null;
         }
 
+        $avg = $bot->getAvgPrice();
+        debug($avg);
+
         $arr['titulo'] = $bot->get('titulo');
         $arr['symbol_estable'] = $bot->get('symbol_estable');
         $arr['symbol_reserva'] = $bot->get('symbol_reserva');
