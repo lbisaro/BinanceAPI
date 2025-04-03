@@ -130,6 +130,7 @@ class CriptoController extends Controller
             }
             
             $whereIn = '';
+            $small_usdt = 0.0;
             foreach ($account['balances'] as $rw)
             {
                 if (!isset($balance[$rw['asset']]) && ( $rw['free'] > 0 || $rw['locked'] > 0 ) )
@@ -147,9 +148,20 @@ class CriptoController extends Controller
                     $rw['free'] = toDec($rw['free']*$prices[$ticker]);
                     $rw['locked'] = toDec($rw['locked']*$prices[$ticker]);
                     $rw['qty_decs'] = 2;
+                    if ($rw['free'] < 20)
+                    {
+                        $rw['small_usdt'] = true;
+                        $small_usdt += $rw['free'];
+                    }
+                    else
+                    {
+                        $rw['small_usdt'] = false;
+                    }
+
                     $balance[$rw['asset']] = $rw;
                     if ($rw['asset'] == 'BNB')
                         $ctrlBnb = $rw['free'];
+
                 }
             }
 
@@ -190,7 +202,11 @@ class CriptoController extends Controller
                     $row[] = ($locked>0?$locked:'');
                     $row[] = ($freeT>0?'<small>'.toDec($freeT,$rw['qty_decs']).'</small>':'');
                     $row[] = ($free>0?$free:'');
-                    $dg->addRow($row);
+                    $class_name = '';
+                    if ($rw['small_usdt'])
+                        $class_name = 'small_usdt';
+
+                    $dg->addRow($row,$class_name);
         
                     $totLocked += $locked;
                     $totFree += $free;
@@ -204,6 +220,19 @@ class CriptoController extends Controller
 
                     $totUsdAcumulado += toDec($total);
                 }
+            }
+
+            if ($small_usdt>0)
+            {
+                $row = array();
+                $row[] = 'Pequeños saldos';
+                $row[] = '';
+                $row[] = toDec($small_usdt);
+                $row[] = '';
+                $row[] = '';
+                $row[] = '';
+                $row[] = '';
+                $dg->addRow($row,'small_usdt_join');
             }
 
             $ctrlBilletera = $totTotal;

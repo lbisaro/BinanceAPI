@@ -16,6 +16,14 @@
       width: 100%;
       height: 300px;
     }
+
+    .small_usdt {
+        color: #5555aa;
+    }
+    .small_usdt_join {
+        font-weight: bolder;
+        color: #5555aa;
+    }
 </style>
 
 <div class="container">
