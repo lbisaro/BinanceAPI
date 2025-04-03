@@ -1,4 +1,3 @@
-
 <?php
 include_once LIB_PATH."Controller.php";
 include_once LIB_PATH."Html.php";
