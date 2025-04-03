@@ -220,7 +220,7 @@ class CriptoController extends Controller
 
             if ($small_usdt>0)
             {
-                $small_usdt_assets_str=''
+                $small_usdt_assets_str='';
                 foreach ($small_usdt_assets as $asset)
                     $small_usdt_assets_str .= ($small_usdt_assets_str?' ':'').$asset; 
                 $row = array();
