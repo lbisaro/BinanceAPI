@@ -148,7 +148,7 @@ class CriptoController extends Controller
                     $rw['free'] = toDec($rw['free']*$prices[$ticker]);
                     $rw['locked'] = toDec($rw['locked']*$prices[$ticker]);
                     $rw['qty_decs'] = 2;
-                    if ($rw['free'] < 20)
+                    if ($rw['free']+$rw['locked'] < 20)
                     {
                         $rw['small_usdt'] = true;
                         $small_usdt += $rw['free'];
