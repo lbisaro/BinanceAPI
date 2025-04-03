@@ -222,12 +222,12 @@ class CriptoController extends Controller
             {
                 $small_usdt_assets_str='';
                 foreach ($small_usdt_assets as $asset)
-                    $small_usdt_assets_str .= ($small_usdt_assets_str?' ':'').$asset; 
+                    $small_usdt_assets_str .= ($small_usdt_assets_str?' &nbsp; ':'').$asset; 
                 $row = array();
-                $row[] = 'Pequeños saldos';
+                $row[] = '<strong>Pequeños saldos</strong>';
                 $row[] = '';
                 $row[] = toDec($small_usdt);
-                $row[] = $small_usdt_assets_str;
+                $row[] = '<small class="text-secondary">'.$small_usdt_assets_str.'</small>';
                 $dg->addRow($row);
             }
 
