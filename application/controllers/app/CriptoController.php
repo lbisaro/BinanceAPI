@@ -151,7 +151,7 @@ class CriptoController extends Controller
                     $rw['qty_decs'] = 2;
                     if ($rw['free']+$rw['locked'] < 10)
                     {
-                        $small_usdt += $rw['free'];
+                        $small_usdt += $rw['free']+$rw['locked'];
                         $small_usdt_assets[] = $rw['asset'];
                     }
                     else
