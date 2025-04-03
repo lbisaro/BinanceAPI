@@ -220,6 +220,7 @@ class CriptoController extends Controller
 
             if ($small_usdt>0)
             {
+                $totUsdAcumulado += $small_usdt;
                 $small_usdt_assets_str='';
                 foreach ($small_usdt_assets as $asset)
                     $small_usdt_assets_str .= ($small_usdt_assets_str?' &nbsp; ':'').$asset; 
@@ -231,7 +232,7 @@ class CriptoController extends Controller
                 $dg->addRow($row);
             }
 
-            $ctrlBilletera = $totTotal;
+            $ctrlBilletera = $totTotal+$small_usdt;
 
 
             foreach ($awb as $k => $rw)
