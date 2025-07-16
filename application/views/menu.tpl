@@ -51,7 +51,7 @@
         </li>        
         -->
         <li class="nav-item">
-          <a class="nav-link rounded" href="app.Bot.trade+"><span class="glyphicon glyphicon-fire"></span> Trades</a>
+          <a class="nav-link rounded" href="app.Bot.trade+"><span class="glyphicon glyphicon-fire"></span> Trade</a>
         </li>        
         <li class="nav-item">
           <a class="nav-link rounded" href="app.Cripto.estadoDeCuenta+"><span class="glyphicon glyphicon-btc"></span> Estado de cuenta</a>
