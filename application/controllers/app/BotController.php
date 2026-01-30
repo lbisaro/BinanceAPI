@@ -1554,6 +1554,9 @@ class BotController extends Controller
             $lastComplete = date('Y-m-d',strtotime('-30 days')).' 00:00:00';
         $check_last = $lastComplete;
 
+        debug($check_last);
+        debug($lastComplete);
+
         $ak = $auth->getConfig('bncak');
         $as = $auth->getConfig('bncas');
         
