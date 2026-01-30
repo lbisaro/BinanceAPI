@@ -1547,10 +1547,11 @@ class BotController extends Controller
             }
 
         }
+        debug($check_last);
 
         if ($check_last)
             $lastComplete = strToDate($check_last).' 00:00:00';
-        if (!$lastComplete)
+        elseif (!$lastComplete)
             $lastComplete = date('Y-m-d',strtotime('-30 days')).' 00:00:00';
         $check_last = $lastComplete;
 
