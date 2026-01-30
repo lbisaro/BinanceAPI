@@ -1519,9 +1519,7 @@ class BotController extends Controller
         if (!$symbol)
             $symbol = $_REQUEST['symbol'];
         $check_last = $_REQUEST['check_last'];
-        debug($_REQUEST);
-        debug($check_last);
-
+        
         $oprOrders = $opr->getOrdenes($enCurso = false);
         $audit = array();
         $lastComplete = null;
@@ -1555,9 +1553,6 @@ class BotController extends Controller
         elseif (!$lastComplete)
             $lastComplete = date('Y-m-d',strtotime('-30 days')).' 00:00:00';
         $check_last = $lastComplete;
-
-        debug($check_last);
-        debug($lastComplete);
 
         $ak = $auth->getConfig('bncak');
         $as = $auth->getConfig('bncas');
