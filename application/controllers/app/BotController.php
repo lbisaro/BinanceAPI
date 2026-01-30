@@ -1551,9 +1551,8 @@ class BotController extends Controller
         if ($check_last)
             $lastComplete = strToDate($check_last).' 00:00:00';
         elseif (!$lastComplete)
-            $lastComplete = date('Y-m-d',strtotime('-7 days')).' 00:00:00';
+            $lastComplete = date('Y-m-d',strtotime('-30 days')).' 00:00:00';
         $check_last = $lastComplete;
-        debug($check_last);
 
         $ak = $auth->getConfig('bncak');
         $as = $auth->getConfig('bncas');
@@ -1571,7 +1570,6 @@ class BotController extends Controller
             {
                 $ordersHst = $api->orders($symbol); 
                 $show = false; 
-                debug($ordersHst);
                 foreach ($ordersHst as $k => $v)
                 {
                     $v['datetime'] = date('Y-m-d H:i:s',$ordersHst[$k]['updateTime']/1000);
