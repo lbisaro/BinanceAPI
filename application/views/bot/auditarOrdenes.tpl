@@ -53,7 +53,7 @@
         var symbol = $('#symbol').val();
         var check_last = $('#check_last').val();
         var check_last_date = check_last.substring(6, 10)+'-'+check_last.substring(3, 5)+'-'+check_last.substring(0, 2);
-        var url = 'https://www.bisaro.ar/app.bot.auditarOrdenes+{{url_prms}}&check_last='+check_last_date+'&symbol='+symbol+'&buscar=true';
+        var url = 'https://www.bisaro.ar/app.bot.auditarOrdenes+{{url_prms}}?check_last='+check_last_date+'&symbol='+symbol+'&buscar=true';
         goTo(url);
     }
 
