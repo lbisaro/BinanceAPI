@@ -1519,6 +1519,8 @@ class BotController extends Controller
         if (!$symbol)
             $symbol = $_REQUEST['symbol'];
         $check_last = $_REQUEST['check_last'];
+        debug($_REQUEST);
+        debug($check_last);
 
         $oprOrders = $opr->getOrdenes($enCurso = false);
         $audit = array();
@@ -1547,8 +1549,7 @@ class BotController extends Controller
             }
 
         }
-        debug($check_last);
-
+        
         if ($check_last)
             $lastComplete = strToDate($check_last).' 00:00:00';
         elseif (!$lastComplete)
