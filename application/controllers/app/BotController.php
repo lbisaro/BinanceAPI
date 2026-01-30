@@ -1553,6 +1553,7 @@ class BotController extends Controller
         elseif (!$lastComplete)
             $lastComplete = date('Y-m-d',strtotime('-7 days')).' 00:00:00';
         $check_last = $lastComplete;
+        debug($check_last);
 
         $ak = $auth->getConfig('bncak');
         $as = $auth->getConfig('bncas');
