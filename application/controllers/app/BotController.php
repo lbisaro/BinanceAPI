@@ -1570,6 +1570,7 @@ class BotController extends Controller
             {
                 $ordersHst = $api->orders($symbol); 
                 $show = false; 
+                debug($ordersHst);
                 foreach ($ordersHst as $k => $v)
                 {
                     $v['datetime'] = date('Y-m-d H:i:s',$ordersHst[$k]['updateTime']/1000);
